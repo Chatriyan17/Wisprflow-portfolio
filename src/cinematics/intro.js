@@ -41,7 +41,7 @@ export async function playIntro(game) {
     // 1. camera reveal: start over the far side of the world, glide back to the start
     document.body.classList.add('show-title');
     if (!REDUCED_MOTION) {
-      const from = { x: Math.min(WORLD.width - camera.viewW, 2890 - camera.viewW * 0.62), y: restY() - 36 };
+      const from = { x: Math.min(WORLD.width - camera.viewW, 3080 - camera.viewW * 0.6), y: restY() - 36 };
       const dur = 5.2;
       let t = 0;
       camera.override = { x: from.x, y: from.y };

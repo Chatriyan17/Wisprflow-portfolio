@@ -7,7 +7,10 @@ import { clamp } from './engine/rng.js';
 import { Character } from './entities/character.js';
 import { Companion } from './entities/companion.js';
 import { WorldRenderer } from './world/renderer.js';
-import { buildSolids, INTERACTABLES, WATERFALL, LANDMARKS } from './world/level.js';
+import { buildSolids, groundTopAt, INTERACTABLES, WATERFALL, CONVEYOR, PORTAL, BREAK, GATE } from './world/level.js';
+import { industryAt, gatewayAt } from './world/renderer.js';
+import { paintFriendSilhouette } from './world/industrial.js';
+import * as Stage2 from './cinematics/stage2.js';
 import { Dialogue } from './systems/dialogue.js';
 import { Bubbles } from './systems/bubbles.js';
 import { Story } from './systems/story.js';
@@ -27,7 +30,12 @@ class Game {
     this.mode = 'scroll';
     this.tickers = new Set();
     this.introSkipped = false;
-    this.busy = false;           // an interaction is running
+    this.busy = false;           // an interaction or scene is running
+    this.scripting = false;      // a scene is steering the protagonist
+    this.sceneQueue = [];
+    this.memory = 0;             // 0..1 strength of the memory filter
+    this.memoryTarget = 0;
+    this.flash = 0;
     this.scrollTarget = SCROLL.startX;
     this.lastTime = 0;
   }
@@ -74,7 +82,7 @@ class Game {
         this.girl.talking = who === 'girl';
       },
     });
-    this.story = new Story({ onBeat: (b) => this.onBeat(b) });
+    this.story = new Story({ onBeat: (b) => this.onBeat(b), onTrigger: (t) => this.runScene(t.id) });
 
     this.buffer = null;
     this.resize();
@@ -87,9 +95,43 @@ class Game {
     requestAnimationFrame((t) => this.frame(t));
     await new Promise((r) => setTimeout(r, 250));
     this.setPhase('intro');
+    this.offerResume();
     const result = await playIntro(this);
-    if (result.skipped) this.begin();
+    if (this.pendingResume) { this.begin(); this.doResume(); }
+    else if (result.skipped) this.begin();
     else this.awaitStart();
+  }
+
+  // ---------------------------------------------------------------- saved progress
+
+  offerResume() {
+    const cp = this.story.savedCheckpoint;
+    if (!cp || cp.id === 'start') return;
+    const btn = document.getElementById('resume');
+    btn.textContent = `Continue from ${cp.name} ▸`;
+    btn.hidden = false;
+    btn.onclick = (e) => { e.stopPropagation(); this.resume(); };
+    this.later(14, () => { btn.hidden = true; });
+  }
+
+  resume() {
+    document.getElementById('resume').hidden = true;
+    if (this.phase === 'intro') { this.pendingResume = true; this.introSkipped = true; return; }
+    if (this.phase !== 'play') this.begin();
+    this.doResume();
+  }
+
+  doResume() {
+    const cp = this.story.restore();
+    if (!cp) return;
+    const p = this.player, g = this.girl;
+    p.x = cp.x; p.y = groundTopAt(cp.x); p.vx = 0; p.vy = 0;
+    g.x = cp.x - 34; g.y = groundTopAt(cp.x - 34); g.vx = 0;
+    this.camera.follow(p, 0, true);
+    this.scrollTarget = cp.x;
+    if (this.mode === 'scroll') this.setMode('scroll', { silent: true });
+    this.bubbles.clear();
+    this.hud.toast(`Welcome back! Continuing from ${cp.name}.`);
   }
 
   setPhase(phase) {
@@ -290,7 +332,7 @@ class Game {
     this.busy = true;
     this.audio.sfx('interact');
     this.bubbles.clear();
-    this.story.visited.add(it.id);
+    this.story.markVisited(it.id);
     document.body.classList.add('is-busy');
     const p = this.player;
     p.facing = it.x >= p.x ? 1 : -1;
@@ -304,16 +346,21 @@ class Game {
           await this.hud.openCard({
             eyebrow: `Chapter ${CHAPTER_01.number} · ${CHAPTER_01.year}`,
             title: 'Journey Map',
-            html: this.hud.journeyHTML({ reachedWorkshop: this.story.atWorkshop }),
+            html: this.hud.journeyHTML({ progress: this.story.progress }),
           });
           break;
         case 'lookout': {
           p.facing = 1;
-          this.camera.override = { x: 2890 - this.camera.viewW / 2, y: G - this.camera.viewH * 0.78, rate: 1.6 };
+          this.camera.override = { x: GATE.x + 60 - this.camera.viewW / 2, y: G - this.camera.viewH * 0.8, rate: 1.6 };
           await this.say(SCRIPTS.lookout);
           this.camera.override = null;
           break;
         }
+        case 'gateway':
+          p.facing = 1;
+          await this.say(SCRIPTS.gateway);
+          await this.enterNextRegion();
+          break;
         default:
           await this.say(SCRIPTS[it.id]);
       }
@@ -324,12 +371,67 @@ class Game {
     }
   }
 
+  // Stage 3 hook: stepping through the gateway will lead into The Discovery Path.
+  // Until that region exists, the gateway glows, plays its sound and shows what's next.
+  async enterNextRegion() {
+    this.audio.sfx('portal');
+    this.renderer.sparkle(PORTAL.x, PORTAL.y - 82, 30);
+    this.flash = 1;
+    await new Promise((r) => this.later(0.7, r));
+    await this.hud.openCard({
+      eyebrow: 'Chapter 01 · Up next',
+      title: 'The Discovery Path',
+      html: '<p class="lede">A conversation changed the direction of the journey.</p>'
+        + '<p>Beyond this gateway lies The Discovery Path, the next part of the story. It opens in the next stage of the world.</p>'
+        + this.hud.journeyHTML({ progress: this.story.progress }),
+    });
+  }
+
+  // ---------------------------------------------------------------- scenes
+
+  async runScene(id) {
+    if (this.busy) { this.sceneQueue.push(id); return; }
+    const scene = {
+      'enter-workshop': Stage2.enterWorkshop,
+      observation: Stage2.observation,
+      'break-talk': Stage2.breakTalk,
+      memory: Stage2.memory,
+    }[id];
+    if (!scene) return;
+    this.busy = true;
+    this.scripting = true;
+    document.body.classList.add('is-busy');
+    this.bubbles.clear();
+    const p = this.player;
+    p.autopilot = null;
+    p.control.move = 0;
+    p.control.run = false;
+    p.vx *= 0.25;
+    try {
+      await scene(this);
+    } finally {
+      this.busy = false;
+      this.scripting = false;
+      document.body.classList.remove('is-busy');
+      this.story.save();
+      // keep Scroll Journey in step with where the scene left the protagonist
+      if (this.mode === 'scroll') this.scrollTarget = Math.max(this.scrollTarget, p.x);
+      const next = this.sceneQueue.shift();
+      if (next) this.runScene(next);
+    }
+  }
+
+  setMemory(on) {
+    this.memoryTarget = on ? 1 : 0;
+    document.body.classList.toggle('is-memory', on);
+  }
+
   openStory() {
     this.hud.openCard({
       eyebrow: `Chapter ${CHAPTER_01.number} · ${CHAPTER_01.year}`,
       title: CHAPTER_01.title,
-      html: this.hud.journeyHTML({ reachedWorkshop: this.story.atWorkshop })
-        + '<p style="margin-top:14px">The playable world currently covers the path to the first location. Each place on this map opens as a new part of the story.</p>',
+      html: this.hud.journeyHTML({ progress: this.story.progress })
+        + '<p style="margin-top:14px">The playable world covers the journey through The Old Workshop to the gateway of The Discovery Path. Each place on this map opens as a new part of the story.</p>',
     });
   }
 
@@ -350,7 +452,7 @@ class Game {
     const playing = this.phase === 'play';
     const blocked = this.dialogue.active || this.hud.cardOpen || this.busy;
 
-    if (playing) {
+    if (playing && !this.scripting) {
       if (this.mode === 'explore') {
         const c = p.control;
         c.move = blocked ? 0 : this.input.axis();
@@ -381,14 +483,20 @@ class Game {
       }
       ch.events.length = 0;
     }
+    for (const ev of this.renderer.events) {
+      if (ev.type === 'press') this.audio.sfx('thump', clamp(1 - Math.abs(p.x - ev.x) / 500, 0, 1));
+    }
+    this.renderer.events.length = 0;
+    this.memory += (this.memoryTarget - this.memory) * Math.min(1, dt * (REDUCED_MOTION ? 30 : 1.8));
+    this.flash = Math.max(0, this.flash - dt * 1.2);
 
     this.camera.follow(p, dt, false);
     this.renderer.update(dt);
     this.dialogue.update(dt);
 
     if (playing) {
-      this.story.update(p.x, this.mode);
-      this.hud.setProgress(this.story.prologue);
+      this.story.update(p.x, p.y, this.mode);
+      this.hud.setProgress(this.story.progress);
       this.nearest = blocked ? null : this.nearestInteractable();
     } else {
       this.nearest = null;
@@ -399,7 +507,34 @@ class Game {
     // ambience
     const wd = Math.abs(p.x - (WATERFALL.x + WATERFALL.w / 2));
     this.audio.setWater(clamp(1 - wd / 420, 0, 1));
+    const cx = this.camera.x + this.camera.viewW / 2;
+    this.audio.setRegion({
+      industry: industryAt(cx),
+      gateway: gatewayAt(cx) * clamp(1 - Math.abs(p.x - PORTAL.x) / 700, 0, 1),
+      conveyor: clamp(1 - Math.abs(p.x - (CONVEYOR.x0 + CONVEYOR.x1) / 2) / 350, 0, 1),
+    });
     this.audio.update();
+  }
+
+  // A remembered moment: warm sepia, soft edges, a little dreamy glow.
+  drawMemoryFilter(ctx, cam) {
+    const m = this.memory;
+    const W = cam.viewW, H = cam.viewH;
+    ctx.globalCompositeOperation = 'saturation';
+    ctx.fillStyle = `rgba(128,128,128,${0.75 * m})`;
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.fillStyle = `rgba(255, 214, 160, ${0.55 * m})`;
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'screen';
+    ctx.fillStyle = `rgba(120, 70, 60, ${0.18 * m})`;
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'source-over';
+    const v = ctx.createRadialGradient(W / 2, H * 0.6, Math.min(W, H) * 0.25, W / 2, H * 0.6, Math.max(W, H) * 0.7);
+    v.addColorStop(0, 'rgba(40, 24, 20, 0)');
+    v.addColorStop(1, `rgba(40, 24, 20, ${0.75 * m})`);
+    ctx.fillStyle = v;
+    ctx.fillRect(0, 0, W, H);
   }
 
   toScreen(x, y) {
@@ -424,8 +559,21 @@ class Game {
     const ctx = this.bctx;
     const cam = this.camera;
     this.renderer.drawBack(ctx, cam);
+    // friends, seen only in the memory
+    if (this.memory > 0.02) {
+      const t = this.renderer.time;
+      BREAK.friends.forEach((fx, i) => {
+        const talking = this.dialogue.current && this.dialogue.current.who === 'friend';
+        paintFriendSilhouette(ctx, fx - cam.x, G - cam.y, -1, Math.min(1, this.memory * 1.2), talking ? t * 9 + i * 2 : t * 1.5 + i);
+      });
+    }
     for (const ch of this.characters) ch.draw(ctx, cam, this.solids);
     this.renderer.drawFront(ctx, cam);
+    if (this.memory > 0.02) this.drawMemoryFilter(ctx, cam);
+    if (this.flash > 0) {
+      ctx.fillStyle = `rgba(214, 200, 255, ${this.flash * 0.7})`;
+      ctx.fillRect(0, 0, cam.viewW, cam.viewH);
+    }
 
     const out = this.ctx;
     out.imageSmoothingEnabled = false;

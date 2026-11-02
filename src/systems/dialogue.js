@@ -87,7 +87,7 @@ export class Dialogue {
     if (this.shown >= this.current.text.length) {
       if (this.auto) {
         this.linger += dt;
-        if (this.linger >= this.auto) { this.linger = 0; this.next(); }
+        if (this.linger >= this.auto + this.current.text.length * 0.022) { this.linger = 0; this.next(); }
       }
       return;
     }

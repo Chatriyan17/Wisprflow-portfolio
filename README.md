@@ -4,7 +4,10 @@ An interactive, autobiographical pixel-art portfolio. Visitors don't just read t
 
 **Chapter 01 · The Beginning (2022):** from manufacturing to discovering design.
 
-This is **Stage 1: World foundation**. It covers the opening world, the two original characters, the camera, both navigation modes, dialogue and interaction. The path leads up to the first story location, The Old Workshop, which opens in Stage 2.
+Built so far:
+
+- **Stage 1: World foundation.** The opening village, the two original characters, the camera, both navigation modes, dialogue and interaction.
+- **Stage 2: The Old Workshop** (Chapter 01 · Part 02). The road from the village into an industrial district, the factory hall, the break yard where friends first mention UX, and the gateway to the World of UX.
 
 ## Run it
 
@@ -33,6 +36,15 @@ It deploys as-is to GitHub Pages, Netlify, Vercel or any static host.
 - **Skip to story** opens the whole chapter as plain text, for visitors who'd rather read.
 - `prefers-reduced-motion` is respected: no camera pan, particles or typewriter effect.
 - Both modes share the same world, the same story beats and the same progress.
+
+### What's in Stage 2
+
+- **A gradual change of region, with no loading screen.** Grass becomes paving, trees become factories and chimneys, lanterns become sodium street lights, the sky turns rusty, and the music box gives way to a factory hum.
+- **The Old Workshop hall.** A hydraulic press, meshing gears, a conveyor belt that carries you, an overhead crane, a workbench, a tool cabinet, a blueprint board, pipes with steam vents, warning beacons, and light shafts through the windows.
+- **Story through exploration.** Inspect the machine (E) and read the blueprint (E). A conversation plays on the observation catwalk.
+- **The turning point.** In the break yard he remembers the conversation with friends who first mentioned UX. They appear only as faceless silhouettes in a warm sepia memory. Then the companion reappears: *"Looks like someone just opened a new door."*
+- **The discovery gateway.** A glowing sign, *A NEW PATH AWAITS · THE WORLD OF UX*, and a stone portal. Interacting with it plays the transition and shows what's next. `Game.enterNextRegion()` in `src/main.js` is the hook for Stage 3.
+- **Saved progress.** Checkpoints are remembered in the visitor's browser. Returning visitors get a *Continue from …* button.
 
 ### What's in Stage 1
 
@@ -69,12 +81,14 @@ src/
   entities/             Character (player) and Companion (follow AI)
   world/
     level.js            Layout: terrain, platforms, props, lights, interactables, story beats
-    art.js              Procedural 16-bit painters (sky, mountains, trees, house, workshop…)
+    art.js              Procedural 16-bit painters (sky, mountains, trees, house…)
+    industrial.js       Stage 2 painters (concrete, factory hall, machines, break yard, gateway, skyline)
     renderer.js         Parallax layers, baked main layer, water/smoke/grass, lighting
     pixel.js            Pixel drawing helpers (dither, discs, crisp pixel text)
-  systems/              dialogue, speech bubbles, story progress, audio
+  systems/              dialogue, speech bubbles, story progress + save, audio
   ui/hud.js             Chapter progress, mode switch, toasts, story cards
   cinematics/intro.js   Opening sequence
+  cinematics/stage2.js  Stage 2 scenes (workshop talk, catwalk, break yard, memory)
   content/chapter01.js  All story text, chapter locations and dialogue scripts
 assets/sprites/         Baked sprite sheets + animation metadata
 assets/portraits/       Dialogue portraits
@@ -94,7 +108,7 @@ The companion is currently labelled "Companion" in dialogue. Set her name in `CH
 ### Roadmap
 
 1. ✅ World foundation
-2. The manufacturing world (The Old Workshop)
+2. ✅ The manufacturing world (The Old Workshop)
 3. Discovery of UX (Discovery Path, Learning Camp)
 4. First workplace (Balwa HCM Cloud Suite)
 5. Education and mentorship (Knowledge Academy, Mentor's Camp)

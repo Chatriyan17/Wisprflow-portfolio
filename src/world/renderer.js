@@ -5,11 +5,47 @@
 import { WORLD, REDUCED_MOTION } from '../config.js';
 import { makeCanvas } from '../engine/assets.js';
 import { rng } from '../engine/rng.js';
-import { px, disc, bayer } from './pixel.js';
+import { px, disc, bayer, line } from './pixel.js';
 import * as Art from './art.js';
+import * as Ind from './industrial.js';
 import {
-  TERRAIN, BRIDGE, PLATFORMS, CRATES, PROPS, LIGHTS, SMOKE, WATERFALL, POND,
+  TERRAIN, BRIDGE, PLATFORMS, CRATES, PROPS, LIGHTS, SMOKE, STEAM, WATERFALL, POND,
+  REGIONS, HALL, CONVEYOR, PORTAL,
 } from './level.js';
+
+const smooth = (a, b, x) => {
+  const t = Math.max(0, Math.min(1, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+};
+
+// 0 in the village, 1 in the industrial district, fading again towards the gateway.
+export function industryAt(x) {
+  return smooth(REGIONS.industryStart, REGIONS.industryFull, x) * (1 - smooth(REGIONS.industryEnd - 200, REGIONS.gatewayFull, x));
+}
+export function gatewayAt(x) {
+  return smooth(REGIONS.industryEnd - 300, REGIONS.gatewayFull, x);
+}
+
+const LIGHT_COLORS = {
+  lantern: [255, 200, 120], window: [255, 200, 120], lamp: [255, 200, 120],
+  sodium: [255, 168, 70], hanglamp: [255, 214, 150], beacon: [255, 140, 40],
+  panel: [120, 255, 170], vending: [255, 130, 100], bulb: [255, 222, 160], portal: [160, 130, 255],
+};
+
+function gearRot(ctx, x, y, r, angle, colors) {
+  const teeth = Math.max(6, Math.round(r * 0.6));
+  for (let i = 0; i < teeth; i++) {
+    const a = angle + (i / teeth) * Math.PI * 2;
+    px(ctx, colors[0], x + Math.cos(a) * (r + 1) - 2, y + Math.sin(a) * (r + 1) - 2, 4, 4);
+  }
+  disc(ctx, colors[0], x, y, r);
+  disc(ctx, colors[1], x, y, r - 2);
+  for (let i = 0; i < 4; i++) {
+    const a = angle + (i / 4) * Math.PI * 2 + 0.4;
+    disc(ctx, colors[0], x + Math.cos(a) * r * 0.5, y + Math.sin(a) * r * 0.5, Math.max(1, Math.round(r * 0.18)));
+  }
+  disc(ctx, colors[2], x, y, Math.max(1, Math.round(r * 0.25)));
+}
 
 const G = WORLD.ground;
 const OY = 240;                 // canvas y = world y + OY  (room for tall trees / sky props)
@@ -66,9 +102,20 @@ export class WorldRenderer {
       paint(ctx, w);
       this.layers.push({ canvas: c, f });
     };
+    // Replace nature with an industrial skyline in the part of each layer that is
+    // seen while walking through the industrial district.
+    const industrialize = (ctx, w, f, depth, baseY, fill) => {
+      const L = (wx) => (wx - 320) * f + 320;
+      const worldOf = (lx) => (lx - 320) / f + 320;
+      const c0 = Math.round(L(REGIONS.industryFull + 120)), c1 = Math.round(L(REGIONS.industryEnd - 250));
+      ctx.clearRect(c0, -OY, c1 - c0, LAYER_H);
+      px(ctx, fill, c0, baseY, c1 - c0, 400);
+      const rr = rng(101 + depth);
+      Ind.paintSkyline(ctx, rr, L(REGIONS.industryStart - 100), L(REGIONS.industryEnd + 260), baseY, depth, (lx) => industryAt(worldOf(lx)) * 1.1);
+    };
     layer(0.12, (ctx, w) => Art.paintMountains(ctx, w, G - 40, rng(7)));
-    layer(0.25, (ctx, w) => Art.paintRuinsAndIslands(ctx, w, G - 20, rng(11)));
-    layer(0.42, (ctx, w) => Art.paintHills(ctx, w, G + 4, rng(13)));
+    layer(0.25, (ctx, w) => { Art.paintRuinsAndIslands(ctx, w, G - 20, rng(11)); industrialize(ctx, w, 0.25, 0, G - 18, '#9d7aa8'); });
+    layer(0.42, (ctx, w) => { Art.paintHills(ctx, w, G + 4, rng(13)); industrialize(ctx, w, 0.42, 1, G + 2, '#6c6676'); });
     layer(0.65, (ctx, w) => {
       const rr = rng(17);
       for (let x = 30; x < w; x += rr.int(60, 120)) {
@@ -76,6 +123,7 @@ export class WorldRenderer {
       }
       for (let x = 0; x < w; x += rr.int(40, 80)) Art.paintBush(ctx, rr, x, G + 4, rr.range(0.8, 1.4), rr.chance(0.3) ? 'blossom' : 'green');
       px(ctx, '#4f6a2c', 0, G + 2, w, 200);
+      industrialize(ctx, w, 0.65, 2, G + 2, '#4a3c48');
       // atmospheric perspective: tint toward the dusk haze
       ctx.globalCompositeOperation = 'source-atop';
       ctx.fillStyle = 'rgba(122, 84, 140, 0.42)';
@@ -99,6 +147,7 @@ export class WorldRenderer {
     const [front, fctx] = makeCanvas(WORLD.width, LAYER_H);
     fctx.translate(0, OY);
     Art.paintBridgeRail(fctx, BRIDGE.x0 - 2, BRIDGE.x1 - 6, BRIDGE.y + 6);
+    Ind.paintHallFront(fctx, G);
     this.front = front;
 
     // --- waterfall texture
@@ -118,8 +167,12 @@ export class WorldRenderer {
     // --- animated grass blades along walkable tops
     this.blades = [];
     const br = rng(29);
-    for (const [x0, x1, top] of TERRAIN) {
+    for (const [x0, x1, top, mat] of TERRAIN) {
+      if (mat === 'concrete' || mat === 'factory') continue;
       for (let x = x0 + 2; x < x1 - 2; x += br.int(3, 7)) {
+        const t = (x - x0) / (x1 - x0);
+        if (mat === 'toConcrete' && br() < t * 1.2) continue;
+        if (mat === 'toGlow' && br() > t + 0.2) continue;
         this.blades.push({ x, y: top + br.int(0, 4), h: br.int(3, 8), c: br.pick(['#a8bc52', '#c3cf63', '#7f9a3e']), p: br.range(0, 6) });
       }
     }
@@ -136,10 +189,21 @@ export class WorldRenderer {
     for (let i = 0; i < (REDUCED_MOTION ? 0 : 36); i++) {
       this.petals.push({ x: pr.range(0, 1200), y: pr.range(-50, 400), vx: pr.range(-18, -6), vy: pr.range(8, 18), p: pr.range(0, 6), c: pr.pick(['#f2b3c8', '#fde3ec', '#d98aa6']) });
     }
-    for (let i = 0; i < (REDUCED_MOTION ? 0 : 46); i++) {
-      const anchor = LIGHTS[i % LIGHTS.length];
-      this.fireflies.push({ ax: anchor.x + pr.range(-90, 90), ay: anchor.y + pr.range(-40, 50), p: pr.range(0, 10), s: pr.range(0.4, 1) });
+    const cozy = LIGHTS.filter((l) => ['lantern', 'window', 'bulb', 'portal'].includes(l.kind));
+    for (let i = 0; i < (REDUCED_MOTION ? 0 : 60); i++) {
+      const anchor = cozy[i % cozy.length];
+      this.fireflies.push({ ax: anchor.x + pr.range(-90, 90), ay: anchor.y + pr.range(-40, 50), p: pr.range(0, 10), s: pr.range(0.4, 1), c: anchor.kind === 'portal' ? '#b8f4ff' : '#fff2a8' });
     }
+    // dust motes drifting in the factory window light
+    this.motes = [];
+    for (let i = 0; i < (REDUCED_MOTION ? 0 : 50); i++) {
+      this.motes.push({ x: pr.range(HALL.x0 + 40, HALL.x1 - 40), y: pr.range(HALL.roof + 30, G - 20), p: pr.range(0, 10) });
+    }
+    // conveyor boxes and the press
+    this.boxes = [];
+    this.boxTimer = 0;
+    this.press = { t: 0, hit: false };
+    this.events = [];
   }
 
   paintMain(ctx) {
@@ -150,7 +214,7 @@ export class WorldRenderer {
 
     // props behind the terrain lip (big tree canopy etc.)
     const sorted = [...TERRAIN].sort((a, b) => b[2] - a[2]);
-    for (const [x0, x1, top] of sorted) Art.paintTerrainBlock(ctx, r, x0, x1, top, bottom);
+    for (const [x0, x1, top, mat] of sorted) Ind.paintGround(ctx, r, x0, x1, top, bottom, mat);
 
     const groundAt = (x) => {
       for (const [x0, x1, top] of TERRAIN) if (x >= x0 && x < x1) return top;
@@ -179,6 +243,21 @@ export class WorldRenderer {
         case 'pathSign': Art.paintPathSign(ctx, p.x, gy); break;
         case 'gearProp': Art.paintGearProp(ctx, p.x, gy); break;
         case 'workshop': Art.paintWorkshop(ctx, r, p.x, gy); break;
+        case 'utilityPole': Ind.paintUtilityPole(ctx, p.x, gy); break;
+        case 'chainFence': Ind.paintChainFence(ctx, p.x, gy, p.w); break;
+        case 'streetLamp': Ind.paintStreetLamp(ctx, p.x, gy); break;
+        case 'pallets': Ind.paintPallets(ctx, r, p.x, gy); break;
+        case 'gate': Ind.paintGate(ctx, p.x, gy); break;
+        case 'hall': Ind.paintHall(ctx, r, HALL.x0, HALL.x1, HALL.roof, gy); break;
+        case 'vending': Ind.paintVending(ctx, p.x, gy); break;
+        case 'stringLights': Ind.paintStringLights(ctx, p.x, gy, p.w); break;
+        case 'pottedPlant': Ind.paintPottedPlant(ctx, p.x, gy); break;
+        case 'breakTable': Ind.paintBreakTable(ctx, p.x, gy); break;
+        case 'canteen': Ind.paintCanteen(ctx, p.x, gy); break;
+        case 'glowFlowers': Ind.paintGlowFlowers(ctx, r, p.x, gy, p.w); break;
+        case 'uxSign': Ind.paintUxSign(ctx, p.x, gy); break;
+        case 'curiositySign': Ind.paintCuriositySign(ctx, p.x, gy); break;
+        case 'portal': Ind.paintPortalFrame(ctx, p.x, gy); break;
         case 'bannerPole':
           px(ctx, '#3a2a35', p.x - 1, gy - 78, 3, 78);
           px(ctx, '#f5c35b', p.x - 2, gy - 81, 5, 3);
@@ -214,7 +293,50 @@ export class WorldRenderer {
         }
       }
     }
+    if (!REDUCED_MOTION) {
+      for (const s of STEAM) {
+        s.acc = (s.acc || Math.random()) + dt;
+        if (s.acc > 1.8) {
+          s.acc = 0;
+          for (let k = 0; k < 4; k++) this.smoke.push({ x: s.x + k * 2, y: s.y, r: 1, life: k * 0.08, max: 1.4, steam: true });
+        }
+      }
+    }
+    // conveyor boxes
+    this.boxTimer -= dt;
+    if (this.boxTimer <= 0) {
+      this.boxTimer = 2.4;
+      this.boxes.push({ x: CONVEYOR.x0 + 4, y: 0, vy: 0, falling: false, c: Math.random() < 0.5 ? '#b98052' : '#a8704a' });
+    }
+    for (const b of this.boxes) {
+      if (!b.falling) {
+        b.x += CONVEYOR.speed * dt;
+        if (b.x > CONVEYOR.x1 + 4) b.falling = true;
+      } else {
+        b.vy += 400 * dt;
+        b.y += b.vy * dt;
+        b.x += 20 * dt;
+      }
+    }
+    this.boxes = this.boxes.filter((b) => b.y < 20);
+    // hydraulic press cycle: rise, pause, slam, hold
+    const pr = this.press;
+    pr.t = (pr.t + dt) % 3.2;
+    const down = pr.t > 1.8 && pr.t < 2.6;
+    if (down && !pr.hit) {
+      pr.hit = true;
+      this.events.push({ type: 'press', x: 3826 });
+      if (!REDUCED_MOTION) for (let k = 0; k < 8; k++) this.dust.push({ x: 3826 + (Math.random() - 0.5) * 30, y: G - 36, vx: (Math.random() - 0.5) * 80, vy: -Math.random() * 60, life: 0, max: 0.4, c: Math.random() < 0.5 ? '#ffd27a' : '#fff2c4', s: 1 });
+    }
+    if (!down) pr.hit = false;
     for (const p of this.smoke) {
+      if (p.steam) {
+        p.life += dt;
+        p.y -= dt * 30;
+        p.x -= dt * 8;
+        p.r = 1 + p.life * 5;
+        continue;
+      }
       p.life += dt;
       p.y -= dt * 12;
       p.x += dt * (6 + Math.sin(p.life * 1.3) * 4);
@@ -290,9 +412,26 @@ export class WorldRenderer {
       const dy = Math.round(this.layerY(L.f, cam.y, rest));
       blit(ctx, L.canvas, -dx, 0, W, L.canvas.height, 0, dy);
     }
+    // the far world turns rusty and hazy over the industrial district,
+    // and violet as the gateway comes into view
+    const ind = industryAt(cam.x + W / 2);
+    if (ind > 0.01) {
+      ctx.globalCompositeOperation = 'saturation';
+      ctx.fillStyle = `rgba(128,128,128,${0.4 * ind})`;
+      ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = `rgba(170,92,52,${0.16 * ind})`;
+      ctx.fillRect(0, 0, W, H);
+    }
+    const gw = gatewayAt(cam.x + W / 2);
+    if (gw > 0.01) {
+      ctx.fillStyle = `rgba(110,80,200,${0.14 * gw})`;
+      ctx.fillRect(0, 0, W, H);
+    }
     // main layer slice
     blit(ctx, this.main, cam.x, cam.y + OY, W, H, 0, 0);
 
+    this.drawIndustrial(ctx, cam);
     this.drawWater(ctx, cam);
     ctx.drawImage(this.bridge, Math.round(BRIDGE.x0 - 12 - cam.x), Math.round(-OY - cam.y));
     this.drawSmoke(ctx, cam);
@@ -335,10 +474,115 @@ export class WorldRenderer {
     }
   }
 
+  drawIndustrial(ctx, cam) {
+    const W = cam.viewW;
+    const t = this.time;
+    const vis = (x0, x1) => x1 - cam.x > -20 && x0 - cam.x < W + 20;
+    const S = Ind.IND.steel;
+    if (vis(HALL.x0, HALL.x1)) {
+      // overhead crane gliding along its rail, a crate swinging below
+      const cx = (HALL.x0 + HALL.x1) / 2 + Math.sin(t * 0.12) * 480 - cam.x;
+      const ry = G - 204 - cam.y;
+      px(ctx, S.deep, cx - 14, ry, 28, 8);
+      px(ctx, Ind.IND.hazard.y, cx - 14, ry, 28, 2);
+      const len = 70 + Math.sin(t * 0.3) * 16;
+      const sw = REDUCED_MOTION ? 0 : Math.sin(t * 1.1) * 3;
+      for (let i = 0; i < len; i += 3) px(ctx, S.mid, cx + sw * (i / len), ry + 8 + i, 1, 2);
+      const hx = cx + sw, hy = ry + 8 + len;
+      px(ctx, S.deep, hx - 3, hy, 7, 4);
+      px(ctx, S.dark, hx - 16, hy + 4, 32, 18);
+      px(ctx, '#94603c', hx - 15, hy + 5, 30, 16);
+      px(ctx, '#b98052', hx - 15, hy + 5, 30, 2);
+      line(ctx, S.mid, hx - 1, hy + 2, hx - 14, hy + 5);
+      line(ctx, S.mid, hx + 1, hy + 2, hx + 14, hy + 5);
+
+      // press ram
+      const p = this.press.t;
+      const k = p < 1.8 ? 0 : p < 2.0 ? (p - 1.8) / 0.2 : p < 2.6 ? 1 : Math.max(0, 1 - (p - 2.6) / 0.6);
+      const ramY = G - 104 + Math.round(k * 64) - cam.y;
+      const rx = 3826 - cam.x;
+      px(ctx, S.hi, rx - 3, G - 106 - cam.y, 6, ramY - (G - 106 - cam.y));
+      px(ctx, S.deep, rx - 17, ramY, 34, 14);
+      px(ctx, S.mid, rx - 16, ramY + 1, 32, 11);
+      px(ctx, S.light, rx - 16, ramY + 1, 32, 1);
+      // part on the bed
+      px(ctx, '#a2a7b8', rx - 10, G - 38 - cam.y + (k > 0.95 ? 2 : 0), 20, k > 0.95 ? 2 : 4);
+
+      // meshing gears
+      const a = REDUCED_MOTION ? 0 : t * 0.9;
+      gearRot(ctx, 3952 - cam.x, G - 118 - cam.y, 18, a, ['#4a4f5c', '#7d8496', '#c9cdd8']);
+      gearRot(ctx, 3982 - cam.x, G - 100 - cam.y, 11, -a * 1.6 + 0.3, ['#6e3626', '#9a4e2e', '#e3b13c']);
+      gearRot(ctx, 3968 - cam.x, G - 140 - cam.y, 8, -a * 2.2, ['#4a4f5c', '#a2a7b8', '#e9e3d8']);
+
+      // conveyor belt + boxes
+      const by = CONVEYOR.top - cam.y;
+      const bx0 = CONVEYOR.x0 - cam.x, bw = CONVEYOR.x1 - CONVEYOR.x0;
+      px(ctx, '#2a2228', bx0, by - 2, bw, 4);
+      const off = REDUCED_MOTION ? 0 : (t * CONVEYOR.speed) % 10;
+      for (let x = off; x < bw; x += 10) px(ctx, '#4a4048', bx0 + x, by - 2, 4, 1);
+      for (const b of this.boxes) {
+        const x = b.x - cam.x, y = CONVEYOR.top - 2 - 10 + b.y - cam.y;
+        px(ctx, '#3a2228', x - 8, y - 1, 16, 11);
+        px(ctx, b.c, x - 7, y, 14, 9);
+        px(ctx, '#e8c890', x - 1, y, 2, 9);
+        px(ctx, '#d8a070', x - 7, y, 14, 1);
+      }
+
+      // rotating warning beacons
+      for (const L of LIGHTS) {
+        if (L.kind !== 'beacon') continue;
+        const x = L.x - cam.x, y = L.y - cam.y;
+        if (x < -10 || x > W + 10) continue;
+        const on = Math.max(0, Math.sin(t * 4 + L.x));
+        px(ctx, S.deep, x - 5, y + 4, 10, 3);
+        px(ctx, on > 0.5 ? '#ffb040' : '#a05a20', x - 4, y - 3, 8, 7);
+        px(ctx, '#fff0c4', x - 2 + Math.round(Math.sin(t * 4 + L.x) * 2), y - 2, 2, 4);
+      }
+    }
+    // the gateway: a slowly turning swirl of light and a beam into the sky
+    if (vis(PORTAL.x - 200, PORTAL.x + 200)) {
+      const x = PORTAL.x - cam.x, cy = PORTAL.y - Ind.PORTAL_SHAPE.cy - cam.y;
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.08;
+      ctx.fillStyle = '#b79cff';
+      ctx.fillRect(x - 22, -cam.y - 300, 44, cy + cam.y + 300);
+      ctx.globalAlpha = 0.06;
+      ctx.fillRect(x - 40, -cam.y - 300, 80, cy + cam.y + 300);
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+      const pulse = REDUCED_MOTION ? 0 : Math.round(Math.sin(t * 2) * 2);
+      const rings = [[36, 62, '#3a2a7a'], [31, 54, '#5a46b8'], [25, 45 + pulse, '#7a6ae0'], [18, 34 + pulse, '#8eeaff'], [11, 21 + pulse, '#c9f6ff'], [4, 9, '#ffffff']];
+      for (const [rx, ry, c] of rings) {
+        ctx.fillStyle = c;
+        for (let dy = -ry; dy <= ry; dy++) {
+          const half = Math.floor(rx * Math.sqrt(Math.max(0, 1 - (dy * dy) / (ry * ry))));
+          ctx.fillRect(Math.round(x - half), Math.round(cy + dy), half * 2 + 1, 1);
+        }
+      }
+      const spin = REDUCED_MOTION ? 0 : t * 1.2;
+      for (let i = 0; i < 36; i++) {
+        const a2 = spin + (i / 36) * Math.PI * 2;
+        const rr = 0.35 + 0.6 * ((i * 7) % 10) / 10;
+        const sx = x + Math.cos(a2 + rr * 2) * 32 * rr, sy = cy + Math.sin(a2 + rr * 2) * 56 * rr;
+        px(ctx, i % 3 ? '#e9fbff' : '#ff9ad5', sx, sy, i % 4 ? 1 : 2, 1);
+      }
+      // motes rising out of the gateway
+      for (let i = 0; i < 18; i++) {
+        const life = ((t * 0.35 + i / 18) % 1);
+        const mx = x + Math.sin(i * 12.9 + t * 0.6) * (20 + i);
+        const my = cy + 60 - life * 170;
+        ctx.globalAlpha = 1 - life;
+        px(ctx, i % 2 ? '#8eeaff' : '#b79cff', mx, my, 1, 1);
+      }
+      ctx.globalAlpha = 1;
+    }
+  }
+
   drawSmoke(ctx, cam) {
     for (const p of this.smoke) {
       const a = 1 - p.life / p.max;
       ctx.globalAlpha = 0.55 * a;
+      if (p.steam) { ctx.globalAlpha = 0.5 * a; disc(ctx, '#f1eaf2', p.x - cam.x, p.y - cam.y, Math.round(p.r)); continue; }
       disc(ctx, p.life < 1 ? '#d9c6dc' : '#bfa6c8', p.x - cam.x, p.y - cam.y, Math.round(p.r));
     }
     ctx.globalAlpha = 1;
@@ -367,8 +611,20 @@ export class WorldRenderer {
     }
     ctx.globalAlpha = 1;
 
-    // petals (screen space with parallax)
-    for (const p of this.petals) {
+    // petals (screen space with parallax) belong to the green parts of the world;
+    // the factory has drifting dust in the window light instead
+    const ind = industryAt(cam.x + W / 2);
+    const petalCount = Math.round(this.petals.length * (1 - ind));
+    for (let i = 0; i < this.motes.length; i++) {
+      const m = this.motes[i];
+      const x = m.x + Math.sin(t * 0.3 + m.p) * 14 - cam.x;
+      const y = m.y + Math.cos(t * 0.25 + m.p) * 10 - cam.y;
+      if (x < 0 || x > W || y < 0 || y > H) continue;
+      ctx.globalAlpha = 0.35 + 0.35 * Math.sin(t + m.p);
+      px(ctx, '#ffe2b0', x, y, 1, 1);
+    }
+    ctx.globalAlpha = 1;
+    for (const p of this.petals.slice(0, petalCount)) {
       const x = ((p.x + p.vx * t - cam.x * 0.9) % (W + 40) + W + 40) % (W + 40) - 20;
       const y = ((p.y + p.vy * t + Math.sin(t + p.p) * 6) % (H + 40) + H + 40) % (H + 40) - 20;
       px(ctx, p.c, x, y, Math.sin(t * 3 + p.p) > 0 ? 2 : 1, 1);
@@ -424,16 +680,52 @@ export class WorldRenderer {
 
     // light sources
     ctx.globalCompositeOperation = 'lighter';
+    // sunset light shafts through the factory windows
+    if (cam.x + W > HALL.x0 && cam.x < HALL.x1) {
+      for (let wx = HALL.x0 + 70; wx < HALL.x1 - 100; wx += 170) {
+        const x0 = wx - cam.x, y0 = HALL.roof + 30 - cam.y;
+        const sway = REDUCED_MOTION ? 0 : Math.sin(t * 0.4 + wx) * 0.01;
+        ctx.globalAlpha = 0.07 + sway;
+        ctx.fillStyle = '#ffcf8a';
+        ctx.beginPath();
+        ctx.moveTo(x0, y0);
+        ctx.lineTo(x0 + 96, y0);
+        ctx.lineTo(x0 + 96 - 70, G - cam.y);
+        ctx.lineTo(x0 - 110, G - cam.y);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
     for (const L of LIGHTS) {
       const x = L.x - cam.x, y = L.y - cam.y;
       if (x < -L.r || x > W + L.r || y < -L.r || y > H + L.r) continue;
-      const flicker = REDUCED_MOTION ? 1 : 0.85 + Math.sin(t * 7 + L.x) * 0.06 + Math.sin(t * 13 + L.y) * 0.05;
-      const rg = ctx.createRadialGradient(x, y, 1, x, y, L.r * flicker);
-      rg.addColorStop(0, 'rgba(255, 200, 120, 0.42)');
-      rg.addColorStop(0.4, 'rgba(255, 160, 80, 0.14)');
-      rg.addColorStop(1, 'rgba(255, 140, 60, 0)');
+      let k = REDUCED_MOTION ? 1 : 0.85 + Math.sin(t * 7 + L.x) * 0.06 + Math.sin(t * 13 + L.y) * 0.05;
+      if (L.kind === 'beacon') k = REDUCED_MOTION ? 0.6 : 0.25 + 0.75 * Math.max(0, Math.sin(t * 4 + L.x));
+      if (L.kind === 'bulb') k = REDUCED_MOTION ? 0.9 : 0.75 + 0.25 * Math.sin(t * 3 + L.x * 0.7);
+      if (L.kind === 'portal') k = REDUCED_MOTION ? 1 : 0.85 + 0.15 * Math.sin(t * 1.7 + L.x);
+      if (L.kind === 'hanglamp') k = 1;
+      const [r, g2, b] = LIGHT_COLORS[L.kind] || LIGHT_COLORS.lantern;
+      const a0 = (L.kind === 'portal' ? 0.5 : L.kind === 'hanglamp' ? 0.32 : 0.42) * Math.min(1, k + 0.2);
+      const rg = ctx.createRadialGradient(x, y, 1, x, y, Math.max(2, L.r * (L.kind === 'beacon' ? 1 : k)));
+      rg.addColorStop(0, `rgba(${r}, ${g2}, ${b}, ${a0})`);
+      rg.addColorStop(0.4, `rgba(${r}, ${Math.round(g2 * 0.8)}, ${Math.round(b * 0.7)}, ${a0 * 0.33})`);
+      rg.addColorStop(1, `rgba(${r}, ${g2}, ${b}, 0)`);
       ctx.fillStyle = rg;
       ctx.fillRect(x - L.r, y - L.r, L.r * 2, L.r * 2);
+      if (L.kind === 'hanglamp') {
+        // a cone of light falling to the floor
+        ctx.globalAlpha = 0.06;
+        ctx.fillStyle = '#ffd9a0';
+        ctx.beginPath();
+        ctx.moveTo(x - 6, y);
+        ctx.lineTo(x + 6, y);
+        ctx.lineTo(x + 46, G - cam.y);
+        ctx.lineTo(x - 46, G - cam.y);
+        ctx.closePath();
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
     }
     // fireflies
     for (const f of this.fireflies) {
@@ -442,7 +734,7 @@ export class WorldRenderer {
       const on = (Math.sin(t * 2.2 + f.p * 3) + 1) / 2;
       if (on < 0.35) continue;
       ctx.globalAlpha = on;
-      px(ctx, '#fff2a8', x, y, 1, 1);
+      px(ctx, f.c, x, y, 1, 1);
       ctx.globalAlpha = on * 0.35;
       px(ctx, '#ffd27a', x - 1, y - 1, 3, 3);
     }

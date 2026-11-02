@@ -1,5 +1,8 @@
 import { CHAPTER_01 } from '../content/chapter01.js';
 
+// How many chapter locations are playable so far (Stage 2: The Old Workshop).
+const BUILT_LOCATIONS = 1;
+
 // DOM HUD: chapter progress, mode switch, sound toggle, controls panel, toasts, story card.
 export class HUD {
   constructor() {
@@ -37,17 +40,24 @@ export class HUD {
     this.pips.style.display = 'block';
   }
 
-  setProgress(prologue) {
+  // progress in location units: 0 = start, 1 = The Old Workshop, 2 = gateway to the Discovery Path
+  setProgress(progress) {
     const n = CHAPTER_01.locations.length;
-    this.fill.style.width = `${(prologue / n) * 100}%`;
-    const first = this.pips.firstElementChild;
-    if (prologue >= 1) {
-      first.classList.remove('is-next');
-      first.classList.add('is-reached');
-      this.now.textContent = '01 · The Old Workshop';
-    } else {
-      this.now.textContent = 'Prologue · on the way to The Old Workshop';
-    }
+    if (this.lastProgress !== undefined && Math.abs(this.lastProgress - progress) < 0.002) return;
+    this.lastProgress = progress;
+    this.fill.style.width = `${(Math.min(progress, n) / n) * 100}%`;
+    [...this.pips.children].forEach((li, i) => {
+      // only locations that exist in the world can be reached; the next one waits at its doorstep
+      const reached = i < BUILT_LOCATIONS && progress >= i + 1 - 0.001;
+      const next = !reached && i <= BUILT_LOCATIONS && progress >= i - 0.001 && (i === 0 || progress >= i);
+      li.classList.toggle('is-reached', reached);
+      li.classList.toggle('is-next', next);
+    });
+    this.now.textContent = progress < 1
+      ? 'Prologue · on the way to The Old Workshop'
+      : progress < 1.97
+        ? '01 · The Old Workshop'
+        : 'Gateway to 02 · The Discovery Path';
   }
 
   setMode(mode) {
@@ -83,12 +93,19 @@ export class HUD {
     if (this.card.open) this.card.close();
   }
 
-  journeyHTML({ reachedWorkshop }) {
+  journeyHTML({ progress = 0 } = {}) {
     const c = CHAPTER_01;
     const items = c.locations.map((loc, i) => {
-      const here = i === 0;
-      const status = i === 0 ? (reachedWorkshop ? 'You are here' : 'Next stop') : 'Opens soon';
-      return `<li class="${here ? 'is-here' : ''}"><div><strong>${loc.name}</strong><span>${loc.summary}</span></div><em>${status}</em></li>`;
+      let status = 'Opens soon';
+      let cls = '';
+      if (i === 0) {
+        status = progress >= 2 ? 'Explored' : progress >= 1 ? 'You are here' : 'Next stop';
+        cls = progress < 2 ? 'is-here' : '';
+      } else if (i === 1) {
+        status = progress >= 2 ? 'Gateway found · opens soon' : 'Opens soon';
+        cls = progress >= 2 ? 'is-here' : '';
+      }
+      return `<li class="${cls}"><div><strong>${loc.name}</strong><span>${loc.summary}</span></div><em>${status}</em></li>`;
     }).join('');
     return `
       <p class="lede">${c.theme}</p>

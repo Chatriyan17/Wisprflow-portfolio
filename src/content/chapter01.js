@@ -9,6 +9,8 @@ export const CHARACTERS = {
   // The companion's display name. Change it here if she should be named in the story.
   girl: { name: 'Companion', portrait: 'girl' },
   sign: { name: '' },
+  // Friends appear only as silhouettes in a memory: no names, no designs.
+  friend: { name: 'Friend' },
 };
 
 export const CHAPTER_01 = {
@@ -18,7 +20,7 @@ export const CHAPTER_01 = {
   theme: 'From manufacturing to discovering design.',
   objective: 'Discover how curiosity, experimentation and problem-solving led to UX design.',
   locations: [
-    { id: 'workshop', name: 'The Old Workshop', summary: 'My first professional journey: a career in manufacturing.' },
+    { id: 'workshop', name: 'The Old Workshop', summary: 'Where my professional journey began, in manufacturing companies.' },
     { id: 'discovery', name: 'The Discovery Path', summary: 'Friends introduced me to the idea of UX.' },
     { id: 'camp', name: 'The Learning Camp', summary: 'The Google UX Design course.' },
     { id: 'workplace', name: 'The First Workplace', summary: 'Balwa HCM Cloud Suite.' },
@@ -52,11 +54,39 @@ export const SCRIPTS = {
     { who: 'girl', expr: 'speaking', text: "That's the Old Workshop. It's where your story begins." },
     { who: 'boy', expr: 'thinking', text: 'Long before I knew what UX was.' },
   ],
-  'workshop-door': [
-    { who: 'sign', text: 'THE OLD WORKSHOP · Chapter 01 begins here.' },
-    { who: 'girl', expr: 'curious', text: 'So this is where your first professional journey started?' },
-    { who: 'boy', expr: 'neutral', text: 'Manufacturing. Machines, factory lights, long shifts.' },
-    { who: 'girl', expr: 'wink', text: "The doors open soon. Let's come back and step inside!" },
+
+  // ---- Stage 2: The Old Workshop -------------------------------------------
+  'enter-workshop': [
+    { who: 'girl', expr: 'curious', text: 'So, where did your journey begin?' },
+    { who: 'boy', expr: 'neutral', text: 'Back in 2022. I was working in a few manufacturing companies.' },
+  ],
+  machine: [
+    { who: 'boy', expr: 'neutral', text: 'Back in 2022, I started my professional journey in manufacturing companies.' },
+  ],
+  blueprint: [
+    { who: 'boy', expr: 'thinking', text: "I was learning and working, but something didn't feel right. I wasn't enjoying the kind of work I was doing." },
+  ],
+  observation: [
+    { who: 'girl', expr: 'curious', text: 'Did you always know what you wanted to become?' },
+    { who: 'boy', expr: 'thinking', text: 'Not really. I just knew I wanted to explore something different.' },
+  ],
+  'break-talk': [
+    { who: 'girl', expr: 'speaking', text: 'Sounds like an interesting start. Did you enjoy it?' },
+    { who: 'boy', expr: 'thinking', text: "Honestly, I didn't feel connected to the work I was doing. I knew I wanted something different, but I didn't know what yet." },
+    { who: 'girl', expr: 'smile', text: 'Sometimes, finding a new direction starts with a simple conversation.' },
+  ],
+  memory: [
+    { who: 'friend', text: "Have you heard about UX design? There's a field in IT called User Experience." },
+    { who: 'friend', text: "Why don't you explore it?" },
+    { who: 'boy', expr: 'surprised', text: "UX? What's that?" },
+  ],
+  'memory-after': [
+    { who: 'girl', expr: 'wink', text: 'Looks like someone just opened a new door.' },
+  ],
+  gateway: [
+    { who: 'sign', text: 'A NEW PATH AWAITS · THE WORLD OF UX' },
+    { who: 'sign', text: 'A conversation changed the direction of the journey.' },
+    { who: 'sign', text: 'Every new journey begins with curiosity.' },
   ],
 };
 

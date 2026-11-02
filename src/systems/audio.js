@@ -58,6 +58,46 @@ export class Audio {
     this.noise.connect(this.waterGain).connect(this.master);
     this.noise.start();
 
+    // factory hum + conveyor rattle + gateway shimmer (all start silent)
+    this.humGain = c.createGain();
+    this.humGain.gain.value = 0;
+    const humLp = c.createBiquadFilter();
+    humLp.type = 'lowpass';
+    humLp.frequency.value = 240;
+    this.humGain.connect(humLp).connect(this.master);
+    for (const f of [55, 82.5, 110.4]) {
+      const o = c.createOscillator();
+      o.type = 'sawtooth';
+      o.frequency.value = f;
+      o.connect(this.humGain);
+      o.start();
+    }
+    this.beltGain = c.createGain();
+    this.beltGain.gain.value = 0;
+    const bp = c.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 1800;
+    bp.Q.value = 2;
+    const belt = c.createBufferSource();
+    belt.buffer = buf;
+    belt.loop = true;
+    belt.playbackRate.value = 1.7;
+    belt.connect(bp).connect(this.beltGain).connect(this.master);
+    belt.start();
+    this.portalGain = c.createGain();
+    this.portalGain.gain.value = 0;
+    this.portalGain.connect(this.master);
+    for (const f of [220, 329.6, 440, 554.4]) {
+      const o = c.createOscillator();
+      o.type = 'sine';
+      o.frequency.value = f;
+      o.detune.value = Math.random() * 10 - 5;
+      o.connect(this.portalGain);
+      o.start();
+    }
+    this.region = { industry: 0, gateway: 0, conveyor: 0 };
+    this.nextClank = c.currentTime + 3;
+
     this.chordIndex = 0;
     this.nextChord = c.currentTime + 6;
     this.nextNote = c.currentTime + 1.5;
@@ -77,21 +117,42 @@ export class Audio {
 
   setWater(v) { this.water = v; }
 
+  setRegion(r) { this.region = r; }
+
   update() {
     if (!this.enabled || !this.ctx) return;
     const c = this.ctx;
     const t = c.currentTime;
     this.waterGain.gain.setTargetAtTime(this.water * 0.08, t, 0.3);
+    const R = this.region || { industry: 0, gateway: 0, conveyor: 0 };
+    // birdsong-like music box fades out in the factory; machines hum instead
+    this.padGain.gain.setTargetAtTime(0.05 * (1 - R.industry * 0.6), t, 0.8);
+    this.humGain.gain.setTargetAtTime(0.03 * R.industry, t, 0.8);
+    this.beltGain.gain.setTargetAtTime(0.05 * R.conveyor * R.industry, t, 0.3);
+    this.portalGain.gain.setTargetAtTime(0.012 * R.gateway * (0.7 + 0.3 * Math.sin(t * 2)), t, 0.2);
+    if (R.industry > 0.4 && t > this.nextClank) {
+      // distant metal clanks and hisses
+      const v = 0.02 * R.industry;
+      if (Math.random() < 0.6) {
+        this.tone(1400 + Math.random() * 600, 0.12, 'square', v, t);
+        this.tone(700 + Math.random() * 200, 0.2, 'triangle', v * 0.8, t + 0.02);
+      } else {
+        this.tone(180, 0.18, 'triangle', v * 1.4, t, 90);
+      }
+      this.nextClank = t + 2 + Math.random() * 4;
+    }
     if (t > this.nextChord) {
       this.chordIndex = (this.chordIndex + 1) % CHORDS.length;
       CHORDS[this.chordIndex].forEach((n, i) => this.pad[i].frequency.setTargetAtTime(NOTE(n), t, 0.8));
       this.nextChord = t + 6;
     }
-    if (t > this.nextNote) {
+    if (t > this.nextNote && Math.random() > R.industry * 0.85) {
       // gentle music-box notes
       const n = MELODY_SCALE[Math.floor(Math.random() * MELODY_SCALE.length)];
       this.tone(NOTE(n), 0.9, 'sine', 0.035, t);
       if (Math.random() < 0.35) this.tone(NOTE(n + 7), 0.7, 'sine', 0.02, t + 0.25);
+      this.nextNote = t + 0.9 + Math.random() * 1.6;
+    } else if (t > this.nextNote) {
       this.nextNote = t + 0.9 + Math.random() * 1.6;
     }
   }
@@ -112,9 +173,21 @@ export class Audio {
     o.stop(t + dur + 0.05);
   }
 
-  sfx(name) {
+  sfx(name, vol = 1) {
     if (!this.enabled || !this.ctx) return;
     switch (name) {
+      case 'thump':
+        if (vol <= 0.02) break;
+        this.tone(90, 0.25, 'triangle', 0.08 * vol, null, 45);
+        this.tone(2200, 0.05, 'square', 0.015 * vol);
+        break;
+      case 'memory':
+        [523, 659, 784, 988, 1175].forEach((f, i) => this.tone(f, 1.2, 'sine', 0.025, this.ctx.currentTime + i * 0.18));
+        break;
+      case 'portal':
+        [392, 523, 659, 784, 1047, 1319, 1568].forEach((f, i) => this.tone(f, 0.9, 'sine', 0.03, this.ctx.currentTime + i * 0.09));
+        this.tone(196, 1.6, 'triangle', 0.04, null, 392);
+        break;
       case 'jump': this.tone(330, 0.16, 'square', 0.04, null, 660); break;
       case 'land': this.tone(120, 0.08, 'triangle', 0.06, null, 60); break;
       case 'blip': this.tone(880, 0.06, 'square', 0.025); break;

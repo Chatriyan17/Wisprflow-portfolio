@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="styles/main.css" />
 </head>
 <body class="mode-scroll phase-loading">
-  <canvas id="world" role="img" aria-label="A pixel-art fantasy world at sunset. The protagonist and his companion stand at the start of a path that leads to the Old Workshop."></canvas>
+  <canvas id="world" role="img" aria-label="A pixel-art world at sunset. The protagonist and his companion travel from a cozy village into an old industrial district, through the Old Workshop factory, to a glowing gateway to the World of UX."></canvas>
 
   <!-- Spacer that gives the page its scroll length in Scroll Journey mode -->
   <div id="scroll-track" aria-hidden="true"></div>
@@ -132,6 +132,9 @@
         <button type="button" data-action="jump" class="touch__a" aria-label="Jump">▲</button>
       </div>
     </div>
+
+    <button type="button" id="resume" class="pixel-btn resume" hidden>Continue ▸</button>
+    <p id="memory-caption" class="memory-caption" aria-hidden="true">A memory · 2022</p>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <p id="sr-live" class="sr-only" aria-live="polite"></p>

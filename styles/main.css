@@ -452,6 +452,41 @@ body.mode-explore .controls__scroll { display: none; }
 .journey em { font: 400 10px/1 var(--font-pixel); font-style: normal; color: var(--lavender); white-space: nowrap; text-transform: uppercase; }
 .journey li.is-here em { color: var(--gold); }
 
+/* ---------- resume + memory ---------- */
+
+.resume {
+  position: fixed;
+  left: 50%;
+  bottom: calc(26px + var(--safe-b));
+  transform: translateX(-50%);
+  box-shadow: 0 0 0 3px var(--gold), 0 6px 0 0 rgba(29, 18, 34, 0.45);
+  z-index: 6;
+}
+.resume[hidden] { display: none; }
+body.phase-press .resume { bottom: calc(14vh + 70px + var(--safe-b)); }
+
+.memory-caption {
+  position: fixed;
+  left: 50%;
+  top: 22vh;
+  transform: translateX(-50%);
+  margin: 0;
+  font: 400 clamp(12px, 1.8vw, 16px)/1 var(--font-pixel);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #ffe2b8;
+  text-shadow: 0 2px 0 rgba(40, 24, 20, 0.9);
+  opacity: 0;
+  transition: opacity 1.2s;
+  pointer-events: none;
+}
+body.is-memory .memory-caption { opacity: 1; }
+.dialogue[data-speaker='friend'] .dialogue__portrait { display: none; }
+.dialogue[data-speaker='friend'] { grid-template-columns: 1fr; }
+.dialogue[data-speaker='friend'] .dialogue__name { color: #ffe2b8; }
+body.is-memory .dialogue { background: rgba(58, 36, 30, 0.94); }
+body.is-memory .dialogue__text { font-style: italic; }
+
 /* ---------- touch ---------- */
 
 .touch { display: none; }
