@@ -1,5 +1,4 @@
 import { WORLD, REDUCED_MOTION } from '../config.js';
-import { SCRIPTS } from '../content/chapter01.js';
 import { BREAK, HALL } from '../world/level.js';
 
 const G = WORLD.ground;
@@ -47,7 +46,7 @@ function fade(game, ch, to, seconds) {
 
 export async function enterWorkshop(game) {
   game.player.facing = 1;
-  await game.say(SCRIPTS['enter-workshop'], { auto: AUTO });
+  await game.say('enter-workshop', { auto: AUTO });
 }
 
 export async function observation(game) {
@@ -55,13 +54,13 @@ export async function observation(game) {
   // stop on the platform and look back out over the factory floor
   player.facing = -1;
   camera.override = { x: Math.max(HALL.x0, player.x - camera.viewW * 0.7), y: player.y - camera.viewH * 0.62, rate: 1.4 };
-  await game.say(SCRIPTS.observation, { auto: AUTO });
+  await game.say('observation', { auto: AUTO });
   camera.override = null;
 }
 
 export async function breakTalk(game) {
   game.player.facing = 1;
-  await game.say(SCRIPTS['break-talk'], { auto: AUTO });
+  await game.say('break-talk', { auto: AUTO });
 }
 
 export async function memory(game) {
@@ -80,7 +79,7 @@ export async function memory(game) {
   girl.visible = false;
   await wait(game, 0.9);
 
-  await game.say(SCRIPTS.memory, { auto: AUTO });
+  await game.say('memory', { auto: AUTO });
   await wait(game, 0.4);
 
   // back to the present: she's right there beside him
@@ -97,7 +96,7 @@ export async function memory(game) {
   await fade(game, girl, 1, 0.4);
   player.facing = -1;
   await wait(game, 0.3);
-  await game.say(SCRIPTS['memory-after'], { auto: AUTO });
+  await game.say('memory-after', { auto: AUTO });
   player.facing = 1;
   girl.scripted = false;
 }

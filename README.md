@@ -31,7 +31,7 @@ It deploys as-is to GitHub Pages, Netlify, Vercel or any static host.
 | Interact | `E` or click the prompt | `E` or click the prompt |
 | Switch | toggle in the top bar, or press `←` `→` / `A` `D` | toggle in the top bar |
 
-- `M` toggles sound (off by default). `Esc` closes cards and skips the intro.
+- `M` toggles sound (off by default). `V` toggles character voices. `Esc` closes cards and skips the intro.
 - Touch devices get on-screen ◀ ▶ ▲ E buttons in Explore World.
 - **Skip to story** opens the whole chapter as plain text, for visitors who'd rather read.
 - `prefers-reduced-motion` is respected: no camera pan, particles or typewriter effect.
@@ -52,6 +52,15 @@ It deploys as-is to GitHub Pages, Netlify, Vercel or any static host.
 - **The starting world.** The big lantern tree and welcome sign, home, the Journey Map ledge, a waterfall with a stone bridge, a floating-island lookout, a blossom grove, and The Old Workshop with its doors still locked.
 - **Interactables.** Welcome sign, home door, Journey Map (lists all 7 chapter locations), lookout (the camera pans to the workshop) and the workshop door.
 - **Chapter progress HUD.** Seven location pips, filling up as you approach the first location.
+
+## Character voices
+
+With sound on, every line of dialogue is spoken (signs stay silent).
+
+1. **Recorded voices come first.** Record a line as an `.mp3`, name it after the line's key, put it in `assets/voices/` and run `python3 tools/voice_manifest.py`. The full list of lines and file names is in [`assets/voices/VOICE-SCRIPT.md`](assets/voices/VOICE-SCRIPT.md). Regenerate that list after editing dialogue with `node tools/voice_script.mjs`.
+2. **Everything else uses the browser's built-in speech.** Each character gets their own voice, pitch and pace: the protagonist lower, the companion brighter, the friends deeper. Indian-English voices are preferred where the device has them. The exact voice depends on the visitor's device and browser.
+
+Lines can be recorded a few at a time; anything not yet recorded keeps using the browser voice.
 
 ## Characters: exact originals, not redraws
 
@@ -85,14 +94,17 @@ src/
     industrial.js       Stage 2 painters (concrete, factory hall, machines, break yard, gateway, skyline)
     renderer.js         Parallax layers, baked main layer, water/smoke/grass, lighting
     pixel.js            Pixel drawing helpers (dither, discs, crisp pixel text)
-  systems/              dialogue, speech bubbles, story progress + save, audio
+  systems/              dialogue, character voices, speech bubbles, story progress + save, audio
   ui/hud.js             Chapter progress, mode switch, toasts, story cards
   cinematics/intro.js   Opening sequence
   cinematics/stage2.js  Stage 2 scenes (workshop talk, catwalk, break yard, memory)
   content/chapter01.js  All story text, chapter locations and dialogue scripts
 assets/sprites/         Baked sprite sheets + animation metadata
 assets/portraits/       Dialogue portraits
+assets/voices/          Recorded voice lines (optional) + manifest + voice script
 tools/bake_sprites.py   Sprite/portrait baker
+tools/voice_script.mjs  Exports every spoken line with its file name
+tools/voice_manifest.py Lists recorded voice clips for the game
 ```
 
 Character sprites, the background layers, camera, dialogue, interactables and story progression are separate modules. Characters are independent, controllable entities on top of the world; they are never baked into the background.

@@ -15,6 +15,7 @@ import { Dialogue } from './systems/dialogue.js';
 import { Bubbles } from './systems/bubbles.js';
 import { Story } from './systems/story.js';
 import { Audio } from './systems/audio.js';
+import { VoiceCast } from './systems/voice.js';
 import { HUD } from './ui/hud.js';
 import { playIntro } from './cinematics/intro.js';
 import { SCRIPTS, MODE_HINTS, CHAPTER_01 } from './content/chapter01.js';
@@ -74,8 +75,10 @@ class Game {
     this.audio = new Audio();
     this.hud = new HUD();
     this.bubbles = new Bubbles(document.getElementById('bubbles'));
+    this.voice = new VoiceCast();
     this.dialogue = new Dialogue({
       audio: this.audio,
+      voice: this.voice,
       live: document.getElementById('sr-live'),
       onSpeaker: (who) => {
         this.player.talking = who === 'boy';
@@ -143,7 +146,10 @@ class Game {
   onTick(fn) { this.tickers.add(fn); }
   offTick(fn) { this.tickers.delete(fn); }
 
-  say(lines, opts) {
+  // say('script-id') plays a script from content/chapter01.js (with voices);
+  // say([...lines]) plays ad-hoc lines.
+  say(lines, opts = {}) {
+    if (typeof lines === 'string') return this.dialogue.play(SCRIPTS[lines] || [], { ...opts, id: lines });
     return this.dialogue.play(lines, opts);
   }
 
@@ -245,6 +251,9 @@ class Game {
     modeScroll.addEventListener('click', (e) => { release(e); this.setMode('scroll'); });
     modeExplore.addEventListener('click', (e) => { release(e); this.setMode('explore'); });
     sound.addEventListener('click', (e) => { release(e); this.toggleSound(); });
+    const voices = document.getElementById('voice-toggle');
+    voices.addEventListener('click', (e) => { release(e); this.toggleVoices(); });
+    if (!this.voice.available) voices.hidden = true;
     document.getElementById('story-open').addEventListener('click', () => this.openStory());
     document.getElementById('interact-prompt').addEventListener('click', () => this.tryInteract());
 
@@ -296,15 +305,25 @@ class Game {
     });
     this.input.on('anykey', (e) => {
       if (e.code === 'KeyM' && !e.repeat && !e.metaKey && !e.ctrlKey) this.toggleSound();
+      if (e.code === 'KeyV' && !e.repeat && !e.metaKey && !e.ctrlKey) this.toggleVoices();
       if (this.phase === 'play' && this.mode === 'scroll' && e.code === 'KeyW' && !this.dialogue.active && !this.hud.cardOpen) this.setMode('explore');
     });
   }
 
   async toggleSound() {
     const on = !this.audio.enabled;
+    this.voice.setSound(on);
     await this.audio.setEnabled(on);
     this.hud.setSound(on);
-    this.hud.toast(on ? 'Sound on ♪' : 'Sound off', 1400);
+    this.hud.toast(on ? (this.voice.enabled ? 'Sound on ♪ · voices on' : 'Sound on ♪') : 'Sound off', 1600);
+  }
+
+  toggleVoices() {
+    const on = !this.voice.enabled;
+    this.voice.setEnabled(on);
+    this.hud.setVoices(on);
+    if (on && !this.audio.enabled) this.toggleSound();
+    else this.hud.toast(on ? 'Character voices on' : 'Character voices off', 1400);
   }
 
   // ---------------------------------------------------------------- story
@@ -342,7 +361,7 @@ class Game {
     try {
       switch (it.id) {
         case 'journey-map':
-          await this.say(SCRIPTS['journey-map-intro']);
+          await this.say('journey-map-intro');
           await this.hud.openCard({
             eyebrow: `Chapter ${CHAPTER_01.number} · ${CHAPTER_01.year}`,
             title: 'Journey Map',
@@ -352,17 +371,17 @@ class Game {
         case 'lookout': {
           p.facing = 1;
           this.camera.override = { x: GATE.x + 60 - this.camera.viewW / 2, y: G - this.camera.viewH * 0.8, rate: 1.6 };
-          await this.say(SCRIPTS.lookout);
+          await this.say('lookout');
           this.camera.override = null;
           break;
         }
         case 'gateway':
           p.facing = 1;
-          await this.say(SCRIPTS.gateway);
+          await this.say('gateway');
           await this.enterNextRegion();
           break;
         default:
-          await this.say(SCRIPTS[it.id]);
+          await this.say(it.id);
       }
     } finally {
       this.busy = false;

@@ -72,6 +72,12 @@ export class HUD {
     b.setAttribute('aria-label', on ? 'Sound on. Turn sound off' : 'Sound off. Turn sound on');
   }
 
+  setVoices(on) {
+    const b = document.getElementById('voice-toggle');
+    b.setAttribute('aria-pressed', String(on));
+    b.setAttribute('aria-label', on ? 'Character voices on. Turn voices off' : 'Character voices off. Turn voices on');
+  }
+
   toast(text, ms = 2600) {
     this.toastEl.textContent = text;
     this.toastEl.classList.add('is-on');

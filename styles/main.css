@@ -258,6 +258,25 @@ body:not(.phase-play) .hud-top { visibility: hidden; }
 .icon-sound::after { content: ''; position: absolute; right: 0; top: 2px; width: 3px; height: 12px; background: currentColor; transform: skewX(-25deg); opacity: 0.9; }
 #sound-toggle[aria-pressed='true'] .icon-sound::after { width: 4px; height: 4px; top: 6px; transform: none; box-shadow: 0 -5px 0 0 currentColor, 0 5px 0 0 currentColor, 3px -8px 0 0 currentColor, 3px 8px 0 0 currentColor; }
 
+.icon-btn[hidden] { display: none; }
+.icon-voice { width: 20px; height: 16px; position: relative; display: block; }
+.icon-voice::before {
+  /* speech bubble */
+  content: '';
+  position: absolute; left: 0; top: 0; width: 20px; height: 12px;
+  background: currentColor;
+  box-shadow: 4px 4px 0 -1px currentColor;
+}
+.icon-voice::after {
+  /* sound dots inside the bubble */
+  content: '';
+  position: absolute; left: 4px; top: 5px; width: 2px; height: 2px;
+  background: var(--plum);
+  box-shadow: 5px 0 0 var(--plum), 10px 0 0 var(--plum);
+}
+#voice-toggle[aria-pressed='false'] { opacity: 0.55; }
+#voice-toggle[aria-pressed='false'] .icon-voice::after { box-shadow: none; width: 12px; left: 4px; }
+
 /* ---------- controls ---------- */
 
 .controls {

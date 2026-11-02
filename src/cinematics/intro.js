@@ -1,5 +1,4 @@
 import { REDUCED_MOTION, WORLD } from '../config.js';
-import { SCRIPTS } from '../content/chapter01.js';
 
 const G = WORLD.ground;
 
@@ -99,7 +98,7 @@ export async function playIntro(game) {
     await wait(0.3);
 
     // 4. dialogue
-    await game.say(SCRIPTS.intro, { auto: 2.2 });
+    await game.say('intro', { auto: 2.2 });
     player.facing = 1;
     await wait(0.4);
     girl.facing = 1;
