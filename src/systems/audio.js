@@ -124,7 +124,14 @@ export class Audio {
     const c = this.ctx;
     const t = c.currentTime;
     this.waterGain.gain.setTargetAtTime(this.water * 0.08, t, 0.3);
-    const R = this.region || { industry: 0, gateway: 0, conveyor: 0 };
+    const R = this.region || { industry: 0, gateway: 0, conveyor: 0, forest: 0 };
+    if ((R.forest || 0) > 0.3 && t > (this.nextBird || 0)) {
+      // birdsong in the discovery forest
+      const f = 2200 + Math.random() * 1400;
+      const n = 2 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < n; i++) this.tone(f + Math.random() * 300, 0.07, 'sine', 0.012 * R.forest, t + i * 0.11, f * 1.3);
+      this.nextBird = t + 1.5 + Math.random() * 3.5;
+    }
     // birdsong-like music box fades out in the factory; machines hum instead
     this.padGain.gain.setTargetAtTime(0.05 * (1 - R.industry * 0.6), t, 0.8);
     this.humGain.gain.setTargetAtTime(0.03 * R.industry, t, 0.8);
@@ -180,6 +187,13 @@ export class Audio {
         if (vol <= 0.02) break;
         this.tone(90, 0.25, 'triangle', 0.08 * vol, null, 45);
         this.tone(2200, 0.05, 'square', 0.015 * vol);
+        break;
+      case 'discover':
+        [880, 1109, 1319].forEach((f, i) => this.tone(f, 0.5, 'sine', 0.03, this.ctx.currentTime + i * 0.07));
+        this.tone(1760, 0.3, 'triangle', 0.012, this.ctx.currentTime + 0.22);
+        break;
+      case 'connect':
+        [523, 659, 784, 1047, 1319, 1568, 2093].forEach((f, i) => this.tone(f, 1.4, 'sine', 0.022, this.ctx.currentTime + i * 0.22));
         break;
       case 'memory':
         [523, 659, 784, 988, 1175].forEach((f, i) => this.tone(f, 1.2, 'sine', 0.025, this.ctx.currentTime + i * 0.18));

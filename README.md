@@ -8,6 +8,7 @@ Built so far:
 
 - **Stage 1: World foundation.** The opening village, the two original characters, the camera, both navigation modes, dialogue and interaction.
 - **Stage 2: The Old Workshop** (Chapter 01 · Part 02). The road from the village into an industrial district, the factory hall, the break yard where friends first mention UX, and the gateway to the World of UX.
+- **Stage 3: The Discovery Path** (Chapter 01 · Part 03). Through the gateway into a magical forest: the first question, the learning station with the Google UX Design course on Coursera, six industry islands rising and connecting, and the door of the first design studio.
 
 ## Run it
 
@@ -36,6 +37,14 @@ It deploys as-is to GitHub Pages, Netlify, Vercel or any static host.
 - **Skip to story** opens the whole chapter as plain text, for visitors who'd rather read.
 - `prefers-reduced-motion` is respected: no camera pan, particles or typewriter effect.
 - Both modes share the same world, the same story beats and the same progress.
+
+### What's in Stage 3
+
+- **Through the gateway.** The portal opens with a flash and a chapter card, and the pair step out into the Discovery Forest. On the way, pipes sprout into branches, the old street lamp is wrapped in vines, and blueprint pages drifting out of the factory turn into paper and books.
+- **"Everything starts with a question."** A sign and a conversation at the forest entrance.
+- **The learning station.** A study nook under the trees, with a vintage computer showing the Google UX Design course on Coursera. Using it plays the conversation and opens a panel of what he started to discover: understanding UX, user-centred design, research, problem identification, wireframing and prototyping. They're presented as first steps, not mastery, and six discovery cards float out around the desk.
+- **The world of possibilities.** Healthcare, Education, Finance, E-commerce, Transportation and Technology islands rise one by one as he walks, each with a discovery chime. On the stone hill the camera pulls back, the conversation plays, and glowing pathways connect every world. Each island can also be inspected with E from below.
+- **The first design studio.** A cozy creative workspace with a neon sign: *THE FIRST DESIGN STUDIO · Time to turn curiosity into practice.* Its door (E) is the hook for Stage 4: `Game.enterNextRegion()`.
 
 ### What's in Stage 2
 
@@ -92,12 +101,14 @@ src/
     level.js            Layout: terrain, platforms, props, lights, interactables, story beats
     art.js              Procedural 16-bit painters (sky, mountains, trees, house…)
     industrial.js       Stage 2 painters (concrete, factory hall, machines, break yard, gateway, skyline)
+    forest.js           Stage 3 painters (forest, learning station, industry islands, studio)
     renderer.js         Parallax layers, baked main layer, water/smoke/grass, lighting
     pixel.js            Pixel drawing helpers (dither, discs, crisp pixel text)
   systems/              dialogue, character voices, speech bubbles, story progress + save, audio
   ui/hud.js             Chapter progress, mode switch, toasts, story cards
   cinematics/intro.js   Opening sequence
   cinematics/stage2.js  Stage 2 scenes (workshop talk, catwalk, break yard, memory)
+  cinematics/stage3.js  Stage 3 scenes (gateway, first question, course, curiosity)
   content/chapter01.js  All story text, chapter locations and dialogue scripts
 assets/sprites/         Baked sprite sheets + animation metadata
 assets/portraits/       Dialogue portraits
@@ -121,7 +132,7 @@ The companion is currently labelled "Companion" in dialogue. Set her name in `CH
 
 1. ✅ World foundation
 2. ✅ The manufacturing world (The Old Workshop)
-3. Discovery of UX (Discovery Path, Learning Camp)
+3. ✅ Discovery of UX (Discovery Path, Learning Camp)
 4. First workplace (Balwa HCM Cloud Suite)
 5. Education and mentorship (Knowledge Academy, Mentor's Camp)
 6. The birth of design skills (Origin Temple puzzle)

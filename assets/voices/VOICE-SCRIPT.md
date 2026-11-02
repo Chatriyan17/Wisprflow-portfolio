@@ -17,6 +17,12 @@ Signs are not voiced.
 | `observation-2.mp3` | Not really. I just knew I wanted to explore something different. |
 | `break-talk-2.mp3` | Honestly, I didn't feel connected to the work I was doing. I knew I wanted something different, but I didn't know what yet. |
 | `memory-3.mp3` | UX? What's that? |
+| `first-question-2.mp3` | I was curious. I wanted to understand what UX actually meant. |
+| `course-1.mp3` | I started learning through the Google UX Design course on Coursera. |
+| `course-3.mp3` | I started understanding how UX works, how designers think and how products are designed around people's needs. |
+| `curiosity-2.mp3` | That's what got me curious. |
+| `curiosity-2-1.mp3` | What fascinated me was that I could learn something new from every industry while building a product. |
+| `curiosity-2-3.mp3` | Exactly. It was about understanding people, their problems and finding better ways to solve them. |
 
 ## Companion (companion)
 
@@ -33,6 +39,12 @@ Signs are not voiced.
 | `break-talk-1.mp3` | Sounds like an interesting start. Did you enjoy it? |
 | `break-talk-3.mp3` | Sometimes, finding a new direction starts with a simple conversation. |
 | `memory-after-1.mp3` | Looks like someone just opened a new door. |
+| `first-question-1.mp3` | So, what happened after your friends introduced you to UX? |
+| `first-question-3.mp3` | Then let's find out. |
+| `course-2.mp3` | What did you learn? |
+| `curiosity-1.mp3` | You realise there are so many worlds to explore, right? |
+| `curiosity-2-2.mp3` | So UX wasn't just about designing screens? |
+| `curiosity-2-4.mp3` | Looks like we've found something worth exploring. |
 
 ## Friend (memory, silhouettes)
 

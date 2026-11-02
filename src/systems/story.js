@@ -62,6 +62,7 @@ export class Story {
     }
     for (const t of TRIGGERS) {
       if (this.seen.has(t.id)) continue;
+      if (t.mode && t.mode !== mode) continue;
       if (t.maxY !== undefined && y > t.maxY) continue;
       if (x >= t.x && this.lastX < t.x + 60) {
         this.seen.add(t.id);
@@ -79,12 +80,16 @@ export class Story {
 
   // Chapter progress in "location units": 0 at the start, 1 at the Old Workshop,
   // 2 at the gateway to the Discovery Path.
+  // Chapter progress in "location units": 0 at the start, 1 at The Old Workshop,
+  // 2 through the gateway into The Discovery Path, 3 at The Learning Camp,
+  // 4 at the doorstep of The First Workplace.
   get progress() {
-    const a = clamp((this.maxX - LANDMARKS.start) / (LANDMARKS.workshop - LANDMARKS.start), 0, 1);
-    const b = clamp((this.maxX - LANDMARKS.workshop) / (LANDMARKS.gateway - 40 - LANDMARKS.workshop), 0, 1);
-    return a + b;
+    const L = LANDMARKS;
+    const seg = (a, b) => clamp((this.maxX - a) / (b - a), 0, 1);
+    const throughGateway = this.seen.has('gateway') || this.maxX > L.gateway + 60;
+    return seg(L.start, L.workshop)
+      + (throughGateway ? 1 : seg(L.workshop, L.gateway - 40) * 0.999)
+      + seg(L.gateway + 60, L.station - 20)
+      + seg(L.station, L.studio - 30);
   }
-
-  get atWorkshop() { return this.progress >= 1; }
-  get atGateway() { return this.progress >= 2; }
 }

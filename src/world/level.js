@@ -23,7 +23,15 @@ export const TERRAIN = [
   [3000, 3640, G, 'concrete'],     // industrial district
   [3640, 5000, G, 'factory'],      // the Old Workshop hall floor
   [5000, 5660, G, 'concrete'],     // break yard
-  [5660, WORLD.width, G, 'toGlow'], // paving gives way to glowing grass near the gateway
+  [5660, 6250, G, 'toGlow'],       // paving gives way to glowing grass near the gateway
+  // --- Stage 3: the Discovery Forest (beyond the gateway)
+  [6250, 6820, G, 'forest'],
+  // 6820..6940: a stream crossed by a little wooden bridge
+  [6940, 8280, G, 'forest'],
+  [8280, 8300, G - 11, 'forest'],
+  [8300, 8524, G - 22, 'forest'],  // the hill at the heart of the world of possibilities
+  [8524, 8544, G - 11, 'forest'],
+  [8544, WORLD.width, G, 'forest'],
 ];
 
 // Where the industrial look fades in and out (used by art, sky tint and audio).
@@ -32,6 +40,7 @@ export const REGIONS = {
   industryFull: 3150,
   industryEnd: 5700,
   gatewayFull: 6150,
+  forestStart: 6200,
 };
 
 export const HALL = { x0: 3640, x1: 5000, roof: G - 238 };
@@ -41,6 +50,23 @@ export const CATWALK = { x0: 4732, x1: 4892, top: G - 72 };
 export const STAIRS = { up: 4660, down: 4892, step: 12, count: 6 };
 export const BREAK = { table: 5352, friends: [5374, 5412] };
 export const PORTAL = { x: 6150, y: G };
+
+// Stage 3
+export const STREAM = { x0: 6820, x1: 6940, y: G + 24 };
+export const WOOD_BRIDGE = { x0: 6810, x1: 6950, y: G };
+export const STATION = { x: 7420 };
+export const HILL = { x: 8412, top: G - 22 };
+export const STUDIO = { x: 9560, door: 9650 };
+export const ISLANDS = [
+  { id: 'healthcare', name: 'Healthcare', x: 8058, y: G - 150, at: 7950 },
+  { id: 'education', name: 'Education', x: 8172, y: G - 226, at: 8030 },
+  { id: 'finance', name: 'Finance', x: 8286, y: G - 166, at: 8110 },
+  { id: 'ecommerce', name: 'E-commerce', x: 8540, y: G - 170, at: 8190 },
+  { id: 'transport', name: 'Transportation', x: 8654, y: G - 228, at: 8270 },
+  { id: 'technology', name: 'Technology', x: 8768, y: G - 150, at: 8350 },
+];
+// Until the gateway is opened, the world beyond it is out of reach.
+export const PORTAL_WALL = { x: 6172, y: -800, w: 10, h: 1400, kind: 'portalWall' };
 
 export const BRIDGE = { x0: 1318, x1: 1542, y: G - 24 };
 
@@ -73,6 +99,8 @@ export function buildSolids() {
   }
   solids.push({ x: CATWALK.x0, y: CATWALK.top, w: CATWALK.x1 - CATWALK.x0, h: 8, kind: 'catwalk' });
   solids.push({ x: CATWALK.x0 + 6, y: G - 58, w: CATWALK.x1 - CATWALK.x0 - 12, h: 58, kind: 'generator' });
+  solids.push({ x: WOOD_BRIDGE.x0, y: WOOD_BRIDGE.y, w: WOOD_BRIDGE.x1 - WOOD_BRIDGE.x0, h: 8, kind: 'bridge' });
+  solids.push({ ...PORTAL_WALL });
   solids.push({ x: BRIDGE.x0, y: BRIDGE.y, w: BRIDGE.x1 - BRIDGE.x0, h: 10, kind: 'bridge' });
   for (const p of PLATFORMS) solids.push({ x: p.x, y: p.y, w: p.w, h: 8, oneWay: true, kind: p.kind });
   for (const c of CRATES) solids.push({ x: c.x, y: G - c.h, w: c.w, h: c.h, kind: 'crate' });
@@ -84,6 +112,7 @@ export function buildSolids() {
 
 export function groundTopAt(x) {
   if (x >= BRIDGE.x0 && x <= BRIDGE.x1) return BRIDGE.y;
+  if (x >= WOOD_BRIDGE.x0 && x <= WOOD_BRIDGE.x1) return WOOD_BRIDGE.y;
   if (x >= STAIRS.up && x < CATWALK.x1 + STAIRS.step * STAIRS.count) return CATWALK.top;
   if (x >= CONVEYOR.x0 && x < CONVEYOR.x1) return CONVEYOR.top;
   for (const [x0, x1, top] of TERRAIN) if (x >= x0 && x < x1) return top;
@@ -151,7 +180,41 @@ export const PROPS = [
   { type: 'glowFlowers', x: 5930, w: 160 },
   { type: 'curiositySign', x: 6020 },
   { type: 'portal', x: 6150 },
+  // --- Stage 3: the Discovery Forest
+  { type: 'rubble', x: 6270 },
+  { type: 'pipeBranch', x: 6305, h: 96 },
   { type: 'glowFlowers', x: 6220, w: 150 },
+  { type: 'overgrownLamp', x: 6392 },
+  { type: 'pipeBranch', x: 6468, h: 70 },
+  { type: 'mushrooms', x: 6510 },
+  { type: 'questionSign', x: 6570 },
+  { type: 'bigForestTree', x: 6700, h: 200, r: 54, kind: 'green' },
+  { type: 'ferns', x: 6760, w: 50 },
+  { type: 'crystals', x: 6790 },
+  { type: 'woodBridge', x: 6810 },
+  { type: 'bigForestTree', x: 7010, h: 180, r: 46, kind: 'blossom' },
+  { type: 'mushrooms', x: 7080 },
+  { type: 'glowFlowers', x: 7100, w: 120 },
+  { type: 'bigForestTree', x: 7200, h: 210, r: 52, kind: 'green' },
+  { type: 'ferns', x: 7250, w: 40 },
+  { type: 'station', x: 7420 },
+  { type: 'bigForestTree', x: 7640, h: 190, r: 48, kind: 'blossom' },
+  { type: 'crystals', x: 7700 },
+  { type: 'mushrooms', x: 7760 },
+  { type: 'glowFlowers', x: 7800, w: 140 },
+  { type: 'ferns', x: 7960, w: 60 },
+  { type: 'hillStones', x: 8412 },
+  { type: 'glowFlowers', x: 8320, w: 180 },
+  { type: 'ferns', x: 8600, w: 60 },
+  { type: 'crystals', x: 8880 },
+  { type: 'bigForestTree', x: 9000, h: 200, r: 50, kind: 'green' },
+  { type: 'mushrooms', x: 9080 },
+  { type: 'glowFlowers', x: 9120, w: 100 },
+  { type: 'bigForestTree', x: 9220, h: 170, r: 44, kind: 'blossom' },
+  { type: 'studioSign', x: 9420 },
+  { type: 'glowFlowers', x: 9460, w: 80 },
+  { type: 'studio', x: 9560 },
+  { type: 'bigForestTree', x: 9810, h: 190, r: 50, kind: 'green' },
 ];
 
 // Light sources for the lighting pass (world coords).
@@ -184,6 +247,24 @@ export const LIGHTS = [
   { x: 5720, y: G - 76, r: 46, kind: 'sodium' },
   { x: 5880, y: G - 74, r: 70, kind: 'portal' },
   { x: 6150, y: G - 56, r: 130, kind: 'portal' },
+  // stage 3
+  { x: 6392, y: G - 80, r: 36, kind: 'glow' },
+  { x: 6512, y: G - 8, r: 24, kind: 'glow' },
+  { x: 6570, y: G - 70, r: 40, kind: 'lantern' },
+  { x: 6792, y: G - 10, r: 26, kind: 'glow' },
+  { x: 7082, y: G - 8, r: 24, kind: 'glow' },
+  { x: 7360, y: G - 92, r: 40, kind: 'lantern' },
+  { x: 7486, y: G - 92, r: 40, kind: 'lantern' },
+  { x: 7426, y: G - 72, r: 50, kind: 'screen' },
+  { x: 7702, y: G - 10, r: 26, kind: 'glow' },
+  { x: 7762, y: G - 8, r: 24, kind: 'glow' },
+  { x: 8412, y: G - 40, r: 60, kind: 'glow' },
+  { x: 8882, y: G - 10, r: 26, kind: 'glow' },
+  { x: 9082, y: G - 8, r: 24, kind: 'glow' },
+  { x: 9420, y: G - 120, r: 70, kind: 'neon' },
+  { x: 9610, y: G - 70, r: 40, kind: 'window' },
+  { x: 9700, y: G - 70, r: 40, kind: 'window' },
+  { x: 9650, y: G - 150, r: 50, kind: 'window' },
 ];
 
 // string-light bulbs over the break yard (also light sources)
@@ -216,6 +297,10 @@ export const INTERACTABLES = [
   { id: 'machine', x: 3826, y: G, label: 'Inspect machine', range: 36 },
   { id: 'blueprint', x: 4600, y: G, label: 'Read blueprint', range: 34 },
   { id: 'gateway', x: 6150, y: G, label: 'Explore', range: 48 },
+  // stage 3
+  { id: 'course', x: 7426, y: G, label: 'Use computer', range: 34 },
+  ...ISLANDS.map((i) => ({ id: `island-${i.id}`, x: i.x, y: i.x > 8290 && i.x < 8530 ? G - 22 : G, label: `Look at ${i.name}`, range: 22, island: i.id })),
+  { id: 'studio', x: 9650, y: G, label: 'Explore', range: 44 },
 ];
 
 // Scripted scenes, fired once when the protagonist reaches them (both modes).
@@ -224,6 +309,11 @@ export const TRIGGERS = [
   { id: 'observation', x: 4790, maxY: CATWALK.top + 4 },
   { id: 'break-talk', x: 5150 },
   { id: 'memory', x: 5300 },
+  // stage 3 (in Scroll Journey these play by themselves; in Explore World press E)
+  { id: 'gateway', x: 6096, mode: 'scroll' },
+  { id: 'first-question', x: 6600 },
+  { id: 'course', x: 7404, mode: 'scroll' },
+  { id: 'curiosity', x: 8404, maxY: G - 18 },
 ];
 
 // Checkpoints for "continue where you left off".
@@ -233,6 +323,10 @@ export const CHECKPOINTS = [
   { id: 'hall', x: 3700, name: 'the factory floor' },
   { id: 'break', x: 5060, name: 'the break yard' },
   { id: 'gateway', x: 5800, name: 'the gateway' },
+  { id: 'forest', x: 6330, name: 'The Discovery Path' },
+  { id: 'station', x: 7300, name: 'the learning station' },
+  { id: 'possibilities', x: 7900, name: 'the world of possibilities' },
+  { id: 'studio', x: 9300, name: 'the design studio' },
 ];
 
 // Story beats: shared by Scroll Journey and Explore World. Fired once each when the
@@ -250,10 +344,17 @@ export const BEATS = [
   { id: 'stairs', x: 4630, mode: 'explore', who: 'girl', text: 'Let\'s take the stairs up to the platform.' },
   { id: 'glow', x: 5560, who: 'girl', text: 'Look! Something\'s glowing up ahead.' },
   { id: 'newpath', x: 5800, who: 'boy', text: 'A new path…?' },
+  { id: 'green', x: 6430, who: 'girl', text: 'The factory\'s gone… everything is turning green.' },
+  { id: 'brook', x: 6780, mode: 'explore', who: 'girl', text: 'Careful on the little bridge!' },
+  { id: 'nook', x: 7240, who: 'girl', text: 'Look, a little study nook under the trees.' },
+  { id: 'rising', x: 7900, who: 'boy', text: 'Wait… is the ground moving?' },
+  { id: 'studio-seen', x: 9160, who: 'girl', text: 'There\'s a studio up ahead!' },
 ];
 
 export const LANDMARKS = {
   start: 380,
-  workshop: 3000,
-  gateway: 6150,
+  workshop: 3000,     // 01 The Old Workshop
+  gateway: 6150,      // 02 The Discovery Path (through the gateway)
+  station: 7420,      // 03 The Learning Camp (the learning station)
+  studio: 9650,       // doorstep of 04 The First Workplace
 };

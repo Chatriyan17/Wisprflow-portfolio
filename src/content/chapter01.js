@@ -88,6 +88,46 @@ export const SCRIPTS = {
     { who: 'sign', text: 'A conversation changed the direction of the journey.' },
     { who: 'sign', text: 'Every new journey begins with curiosity.' },
   ],
+
+  // ---- Stage 3: The Discovery Path -----------------------------------------
+  'first-question': [
+    { who: 'girl', expr: 'curious', text: 'So, what happened after your friends introduced you to UX?' },
+    { who: 'boy', expr: 'thinking', text: 'I was curious. I wanted to understand what UX actually meant.' },
+    { who: 'girl', expr: 'smile', text: "Then let's find out." },
+  ],
+  course: [
+    { who: 'boy', expr: 'smile', text: 'I started learning through the Google UX Design course on Coursera.' },
+    { who: 'girl', expr: 'curious', text: 'What did you learn?' },
+    { who: 'boy', expr: 'speaking', text: "I started understanding how UX works, how designers think and how products are designed around people's needs." },
+  ],
+  curiosity: [
+    { who: 'girl', expr: 'surprised', text: 'You realise there are so many worlds to explore, right?' },
+    { who: 'boy', expr: 'happy', text: "That's what got me curious." },
+  ],
+  // ...the islands connect, then:
+  'curiosity-2': [
+    { who: 'boy', expr: 'speaking', text: 'What fascinated me was that I could learn something new from every industry while building a product.' },
+    { who: 'girl', expr: 'curious', text: "So UX wasn't just about designing screens?" },
+    { who: 'boy', expr: 'smile', text: 'Exactly. It was about understanding people, their problems and finding better ways to solve them.' },
+    { who: 'girl', expr: 'laugh', text: "Looks like we've found something worth exploring." },
+  ],
+  studio: [
+    { who: 'sign', text: 'THE FIRST DESIGN STUDIO' },
+    { who: 'sign', text: 'Time to turn curiosity into practice.' },
+  ],
+  'island-healthcare': [{ who: 'sign', text: 'HEALTHCARE · Products for patients, doctors and care teams.' }],
+  'island-education': [{ who: 'sign', text: 'EDUCATION · Products that help people learn and teach.' }],
+  'island-finance': [{ who: 'sign', text: 'FINANCE · Products that help people manage and move money.' }],
+  'island-ecommerce': [{ who: 'sign', text: 'E-COMMERCE · Products that help people discover and buy.' }],
+  'island-transport': [{ who: 'sign', text: "TRANSPORTATION · Products that help people get where they're going." }],
+  'island-technology': [{ who: 'sign', text: 'TECHNOLOGY · Tools that help people create and connect.' }],
+};
+
+// What the course opened up: presented as discoveries, not mastery.
+export const COURSE = {
+  name: 'Google UX Design Certificate',
+  platform: 'Coursera',
+  discoveries: ['Understanding UX', 'User-centred design', 'Research', 'Problem identification', 'Wireframing', 'Prototyping'],
 };
 
 // Hints the companion gives when a navigation mode starts.

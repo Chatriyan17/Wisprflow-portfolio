@@ -8,9 +8,10 @@ import { rng } from '../engine/rng.js';
 import { px, disc, bayer, line } from './pixel.js';
 import * as Art from './art.js';
 import * as Ind from './industrial.js';
+import * as Forest from './forest.js';
 import {
   TERRAIN, BRIDGE, PLATFORMS, CRATES, PROPS, LIGHTS, SMOKE, STEAM, WATERFALL, POND,
-  REGIONS, HALL, CONVEYOR, PORTAL,
+  REGIONS, HALL, CONVEYOR, PORTAL, STREAM, WOOD_BRIDGE, STATION, HILL, ISLANDS,
 } from './level.js';
 
 const smooth = (a, b, x) => {
@@ -22,6 +23,9 @@ const smooth = (a, b, x) => {
 export function industryAt(x) {
   return smooth(REGIONS.industryStart, REGIONS.industryFull, x) * (1 - smooth(REGIONS.industryEnd - 200, REGIONS.gatewayFull, x));
 }
+export function forestAt(x) {
+  return smooth(REGIONS.forestStart, REGIONS.forestStart + 300, x);
+}
 export function gatewayAt(x) {
   return smooth(REGIONS.industryEnd - 300, REGIONS.gatewayFull, x);
 }
@@ -30,6 +34,7 @@ const LIGHT_COLORS = {
   lantern: [255, 200, 120], window: [255, 200, 120], lamp: [255, 200, 120],
   sodium: [255, 168, 70], hanglamp: [255, 214, 150], beacon: [255, 140, 40],
   panel: [120, 255, 170], vending: [255, 130, 100], bulb: [255, 222, 160], portal: [160, 130, 255],
+  glow: [130, 220, 255], screen: [150, 200, 255], neon: [255, 150, 210],
 };
 
 function gearRot(ctx, x, y, r, angle, colors) {
@@ -173,6 +178,7 @@ export class WorldRenderer {
         const t = (x - x0) / (x1 - x0);
         if (mat === 'toConcrete' && br() < t * 1.2) continue;
         if (mat === 'toGlow' && br() > t + 0.2) continue;
+        if (mat === 'forest' && br() < 0.15) continue;
         this.blades.push({ x, y: top + br.int(0, 4), h: br.int(3, 8), c: br.pick(['#a8bc52', '#c3cf63', '#7f9a3e']), p: br.range(0, 6) });
       }
     }
@@ -189,7 +195,7 @@ export class WorldRenderer {
     for (let i = 0; i < (REDUCED_MOTION ? 0 : 36); i++) {
       this.petals.push({ x: pr.range(0, 1200), y: pr.range(-50, 400), vx: pr.range(-18, -6), vy: pr.range(8, 18), p: pr.range(0, 6), c: pr.pick(['#f2b3c8', '#fde3ec', '#d98aa6']) });
     }
-    const cozy = LIGHTS.filter((l) => ['lantern', 'window', 'bulb', 'portal'].includes(l.kind));
+    const cozy = LIGHTS.filter((l) => ['lantern', 'window', 'bulb', 'portal', 'glow'].includes(l.kind) && l.x < 6200);
     for (let i = 0; i < (REDUCED_MOTION ? 0 : 60); i++) {
       const anchor = cozy[i % cozy.length];
       this.fireflies.push({ ax: anchor.x + pr.range(-90, 90), ay: anchor.y + pr.range(-40, 50), p: pr.range(0, 10), s: pr.range(0.4, 1), c: anchor.kind === 'portal' ? '#b8f4ff' : '#fff2a8' });
@@ -199,6 +205,21 @@ export class WorldRenderer {
     for (let i = 0; i < (REDUCED_MOTION ? 0 : 50); i++) {
       this.motes.push({ x: pr.range(HALL.x0 + 40, HALL.x1 - 40), y: pr.range(HALL.roof + 30, G - 20), p: pr.range(0, 10) });
     }
+    // --- stage 3: industry islands, floating books / pages, discoveries
+    this.islands = ISLANDS.map((isl, i) => ({ ...isl, img: Forest.makeIslandCanvas(isl.id, isl.name, rng(700 + i)), t: 0, shown: false, p: i * 1.3 }));
+    this.links = 0;          // 0..1 how far the glowing pathways have grown
+    this.linksOn = false;
+    this.discoveries = 0;    // 0..1 the course discoveries floating out of the station
+    this.discoveriesOn = false;
+    this.books = [];
+    const bkr = rng(77);
+    for (let x = 6300; x < 7700; x += bkr.int(50, 110)) {
+      this.books.push({ x, y: G - bkr.int(60, 150), p: bkr.range(0, 6), kind: bkr.chance(0.55) ? 'page' : 'book', c: bkr.pick(['#8c3b3b', '#3a6eb0', '#5b7a36', '#7a5ab8', '#c08a2a']) });
+    }
+    for (let i = 0; i < (REDUCED_MOTION ? 0 : 50); i++) {
+      this.fireflies.push({ ax: pr.range(6300, 9800), ay: G - pr.range(10, 140), p: pr.range(0, 10), s: pr.range(0.3, 0.9), c: pr.pick(['#fff2a8', '#b8f4ff', '#ffc8ec']) });
+    }
+
     // conveyor boxes and the press
     this.boxes = [];
     this.boxTimer = 0;
@@ -211,10 +232,14 @@ export class WorldRenderer {
     const bottom = WORLD.height + 10;
     Art.paintBackCliff(ctx, r, 1326, 1536, WATERFALL.top - 12, bottom);
     Art.paintPondBase(ctx, POND.x0 - 4, POND.x1 + 4, POND.y, bottom);
+    Forest.paintStream(ctx, STREAM.x0, STREAM.x1, STREAM.y, bottom);
 
     // props behind the terrain lip (big tree canopy etc.)
     const sorted = [...TERRAIN].sort((a, b) => b[2] - a[2]);
-    for (const [x0, x1, top, mat] of sorted) Ind.paintGround(ctx, r, x0, x1, top, bottom, mat);
+    for (const [x0, x1, top, mat] of sorted) {
+      if (mat === 'forest') Forest.paintForestGround(ctx, r, x0, x1, top, bottom);
+      else Ind.paintGround(ctx, r, x0, x1, top, bottom, mat);
+    }
 
     const groundAt = (x) => {
       for (const [x0, x1, top] of TERRAIN) if (x >= x0 && x < x1) return top;
@@ -258,6 +283,19 @@ export class WorldRenderer {
         case 'uxSign': Ind.paintUxSign(ctx, p.x, gy); break;
         case 'curiositySign': Ind.paintCuriositySign(ctx, p.x, gy); break;
         case 'portal': Ind.paintPortalFrame(ctx, p.x, gy); break;
+        case 'rubble': Forest.paintRubble(ctx, r, p.x, gy); break;
+        case 'pipeBranch': Forest.paintPipeBranch(ctx, r, p.x, gy, p.h); break;
+        case 'overgrownLamp': Forest.paintOvergrownLamp(ctx, r, p.x, gy); break;
+        case 'mushrooms': Forest.paintMushrooms(ctx, r, p.x, gy); break;
+        case 'crystals': Forest.paintCrystals(ctx, p.x, gy); break;
+        case 'ferns': Forest.paintFerns(ctx, r, p.x, gy, p.w); break;
+        case 'questionSign': Forest.paintQuestionSign(ctx, p.x, gy); break;
+        case 'bigForestTree': Forest.paintBigForestTree(ctx, r, p.x, gy, p); break;
+        case 'woodBridge': Forest.paintWoodBridge(ctx, WOOD_BRIDGE.x0, WOOD_BRIDGE.x1, WOOD_BRIDGE.y); break;
+        case 'station': Forest.paintStation(ctx, r, p.x, gy); break;
+        case 'hillStones': Forest.paintHillStones(ctx, p.x, HILL.top); break;
+        case 'studioSign': Forest.paintStudioSign(ctx, p.x, gy); break;
+        case 'studio': Forest.paintStudio(ctx, r, p.x, gy); break;
         case 'bannerPole':
           px(ctx, '#3a2a35', p.x - 1, gy - 78, 3, 78);
           px(ctx, '#f5c35b', p.x - 2, gy - 81, 5, 3);
@@ -302,6 +340,10 @@ export class WorldRenderer {
         }
       }
     }
+    // stage 3 animations
+    for (const isl of this.islands) if (isl.shown && isl.t < 1) isl.t = Math.min(1, isl.t + dt / (REDUCED_MOTION ? 0.01 : 1.8));
+    if (this.linksOn && this.links < 1) this.links = Math.min(1, this.links + dt / (REDUCED_MOTION ? 0.01 : 3.2));
+    if (this.discoveriesOn && this.discoveries < 1) this.discoveries = Math.min(1, this.discoveries + dt / (REDUCED_MOTION ? 0.01 : 2));
     // conveyor boxes
     this.boxTimer -= dt;
     if (this.boxTimer <= 0) {
@@ -350,6 +392,15 @@ export class WorldRenderer {
       d.vy += 30 * dt;
     }
     this.dust = this.dust.filter((d) => d.life < d.max);
+  }
+
+  raiseIsland(id) {
+    const isl = this.islands.find((i) => i.id === id);
+    if (!isl || isl.shown) return false;
+    isl.shown = true;
+    if (REDUCED_MOTION) isl.t = 1;
+    this.sparkle(isl.x, isl.y + 20, 16);
+    return true;
   }
 
   puff(x, y, count = 6, color = '#e9d6c4', spread = 30) {
@@ -432,6 +483,7 @@ export class WorldRenderer {
     blit(ctx, this.main, cam.x, cam.y + OY, W, H, 0, 0);
 
     this.drawIndustrial(ctx, cam);
+    this.drawForest(ctx, cam);
     this.drawWater(ctx, cam);
     ctx.drawImage(this.bridge, Math.round(BRIDGE.x0 - 12 - cam.x), Math.round(-OY - cam.y));
     this.drawSmoke(ctx, cam);
@@ -472,6 +524,109 @@ export class WorldRenderer {
       const sy = py + 6 + ((i * 7) % 26);
       px(ctx, (i + Math.floor(t * 2)) % 3 ? '#9db0e6' : '#c8b8ea', sx, sy, 4 + (i % 3) * 2, 1);
     }
+  }
+
+  drawForest(ctx, cam) {
+    const W = cam.viewW;
+    const t = this.time;
+    if (cam.x + W < 6200) return;
+    // stream shimmer
+    if (STREAM.x1 - cam.x > 0 && STREAM.x0 - cam.x < W) {
+      for (let i = 0; i < 10; i++) {
+        const sx = STREAM.x0 + ((i * 29 + t * 12) % (STREAM.x1 - STREAM.x0 - 8)) - cam.x;
+        px(ctx, i % 3 ? '#bfe4ff' : '#ffc8ec', sx, STREAM.y + 4 + ((i * 7) % 20) - cam.y, 3 + (i % 3), 1);
+      }
+    }
+    // floating books and pages: blueprints drifting out of the factory turn into paper
+    for (const b of this.books) {
+      const x = Math.round(b.x - cam.x + Math.sin(t * 0.5 + b.p) * 6);
+      const y = Math.round(b.y - cam.y + Math.sin(t * 1.3 + b.p) * 4);
+      if (x < -12 || x > W + 12) continue;
+      const k = Math.max(0, Math.min(1, (b.x - 6260) / 600));
+      if (b.kind === 'page') {
+        const c = k < 0.5 ? (k < 0.25 ? '#3a6eb0' : '#9cc0ee') : Forest.MAGIC.page;
+        const flip = Math.sin(t * 2 + b.p) > 0;
+        px(ctx, '#1d1222', x - 1, y - 1, 9, 11);
+        px(ctx, c, x, y, flip ? 7 : 6, 9);
+        px(ctx, k < 0.5 ? '#d6e8ff' : '#a8987e', x + 1, y + 2, 4, 1);
+        px(ctx, k < 0.5 ? '#d6e8ff' : '#a8987e', x + 1, y + 4, 5, 1);
+      } else {
+        const open = Math.sin(t * 3 + b.p) > 0.2;
+        px(ctx, '#1d1222', x - 1, y - 1, open ? 14 : 9, 8);
+        px(ctx, b.c, x, y, open ? 12 : 7, 6);
+        if (open) { px(ctx, Forest.MAGIC.page, x + 1, y, 5, 4); px(ctx, Forest.MAGIC.page, x + 6, y, 5, 4); }
+        else px(ctx, Forest.MAGIC.page, x + 1, y + 4, 5, 1);
+      }
+      if ((Math.floor(t * 3 + b.p * 10)) % 7 === 0) px(ctx, '#fff2c4', x + 3, y - 3, 1, 1);
+    }
+    // course discoveries floating out of the learning station
+    if (this.discoveries > 0) {
+      const colors = ['#8eeaff', '#ff9ad5', '#ffd98a', '#9effc8', '#b79cff', '#f2a060'];
+      for (let i = 0; i < 6; i++) {
+        const k = Math.max(0, Math.min(1, this.discoveries * 6 - i * 0.8));
+        if (k <= 0) continue;
+        const a = (i / 6) * Math.PI * 2 + t * 0.4;
+        const x = Math.round(STATION.x + 6 + Math.cos(a) * 70 * k - cam.x);
+        const y = Math.round(G - 120 + Math.sin(a) * 18 * k - cam.y + Math.sin(t * 2 + i) * 2);
+        px(ctx, '#1d1222', x - 5, y - 6, 11, 13);
+        px(ctx, colors[i], x - 4, y - 5, 9, 11);
+        px(ctx, '#ffffff', x - 2, y - 3, 5, 1);
+        px(ctx, '#ffffff', x - 2, y - 1, 3, 1);
+        px(ctx, '#ffffff', x - 2, y + 1, 4, 1);
+      }
+    }
+    // the world of possibilities: islands rising, joined by glowing paths
+    if (this.links > 0) this.drawLinks(ctx, cam);
+    for (const isl of this.islands) {
+      if (!isl.shown) continue;
+      const e = 1 - Math.pow(1 - isl.t, 3);
+      const bob = REDUCED_MOTION ? 0 : Math.sin(t * 0.9 + isl.p) * 2;
+      const x = Math.round(isl.x - 58 - cam.x);
+      const y = Math.round(isl.y - 70 - cam.y + (1 - e) * 160 + bob);
+      if (x > W + 10 || x + isl.img.width < -10) continue;
+      ctx.globalAlpha = Math.min(1, isl.t * 2);
+      // soft halo
+      ctx.globalCompositeOperation = 'lighter';
+      const hg = ctx.createRadialGradient(x + 58, y + 70, 4, x + 58, y + 70, 70);
+      hg.addColorStop(0, 'rgba(180,150,255,0.25)');
+      hg.addColorStop(1, 'rgba(180,150,255,0)');
+      ctx.fillStyle = hg;
+      ctx.fillRect(x - 20, y, 160, 150);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.drawImage(isl.img, x, y);
+      // a thin waterfall spilling off each island
+      const wx = x + 84;
+      for (let k = 0; k < 40; k += 2) {
+        const v = (k + Math.floor(t * 30)) % 8;
+        px(ctx, v < 3 ? '#ffffff' : '#a9d6f6', wx, y + 74 + k, 2, 2);
+      }
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  drawLinks(ctx, cam) {
+    const t = this.time;
+    const hub = { x: HILL.x, y: HILL.top - 30 };
+    const ends = this.islands.map((i) => ({ x: i.x, y: i.y + 30 }));
+    const pairs = ends.map((e) => [hub, e]);
+    for (let i = 0; i < ends.length - 1; i++) pairs.push([ends[i], ends[i + 1]]);
+    ctx.globalCompositeOperation = 'lighter';
+    pairs.forEach(([a, b], idx) => {
+      const k = Math.max(0, Math.min(1, this.links * pairs.length * 0.5 - idx * 0.4));
+      if (k <= 0) return;
+      const mx = (a.x + b.x) / 2, my = Math.min(a.y, b.y) - 40;
+      const steps = 60;
+      for (let s = 0; s <= steps * k; s++) {
+        const u = s / steps;
+        const x = (1 - u) * (1 - u) * a.x + 2 * (1 - u) * u * mx + u * u * b.x - cam.x;
+        const y = (1 - u) * (1 - u) * a.y + 2 * (1 - u) * u * my + u * u * b.y - cam.y;
+        const pulse = (Math.sin(u * 12 - t * 4 + idx) + 1) / 2;
+        ctx.globalAlpha = 0.35 + pulse * 0.5;
+        px(ctx, idx < 6 ? '#8eeaff' : '#ff9ad5', x, y, 2, 2);
+      }
+    });
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
   }
 
   drawIndustrial(ctx, cam) {

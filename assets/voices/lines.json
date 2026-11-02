@@ -108,5 +108,65 @@
     "key": "memory-after-1",
     "who": "girl",
     "text": "Looks like someone just opened a new door."
+  },
+  {
+    "key": "first-question-1",
+    "who": "girl",
+    "text": "So, what happened after your friends introduced you to UX?"
+  },
+  {
+    "key": "first-question-2",
+    "who": "boy",
+    "text": "I was curious. I wanted to understand what UX actually meant."
+  },
+  {
+    "key": "first-question-3",
+    "who": "girl",
+    "text": "Then let's find out."
+  },
+  {
+    "key": "course-1",
+    "who": "boy",
+    "text": "I started learning through the Google UX Design course on Coursera."
+  },
+  {
+    "key": "course-2",
+    "who": "girl",
+    "text": "What did you learn?"
+  },
+  {
+    "key": "course-3",
+    "who": "boy",
+    "text": "I started understanding how UX works, how designers think and how products are designed around people's needs."
+  },
+  {
+    "key": "curiosity-1",
+    "who": "girl",
+    "text": "You realise there are so many worlds to explore, right?"
+  },
+  {
+    "key": "curiosity-2",
+    "who": "boy",
+    "text": "That's what got me curious."
+  },
+  {
+    "key": "curiosity-2-1",
+    "who": "boy",
+    "text": "What fascinated me was that I could learn something new from every industry while building a product."
+  },
+  {
+    "key": "curiosity-2-2",
+    "who": "girl",
+    "text": "So UX wasn't just about designing screens?"
+  },
+  {
+    "key": "curiosity-2-3",
+    "who": "boy",
+    "text": "Exactly. It was about understanding people, their problems and finding better ways to solve them."
+  },
+  {
+    "key": "curiosity-2-4",
+    "who": "girl",
+    "text": "Looks like we've found something worth exploring."
   }
 ]

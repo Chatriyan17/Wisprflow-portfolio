@@ -471,6 +471,20 @@ body.mode-explore .controls__scroll { display: none; }
 .journey em { font: 400 10px/1 var(--font-pixel); font-style: normal; color: var(--lavender); white-space: nowrap; text-transform: uppercase; }
 .journey li.is-here em { color: var(--gold); }
 
+/* chapter cards reuse the title card */
+body.show-chapter .title-card__title span { font-size: 0.8em; margin-top: 0; }
+
+/* course discoveries */
+.discoveries { list-style: none; margin: 4px 0 10px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }
+.discoveries li {
+  padding: 10px 12px;
+  background: rgba(58, 42, 90, 0.6);
+  box-shadow: inset 3px 0 0 0 var(--lavender);
+  font: 500 15px/1.3 var(--font-body);
+}
+.discoveries li::before { content: '✦ '; color: var(--gold); }
+.card__body .note { color: var(--lavender); font-size: 14px; }
+
 /* ---------- resume + memory ---------- */
 
 .resume {

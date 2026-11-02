@@ -1,7 +1,8 @@
 import { CHAPTER_01 } from '../content/chapter01.js';
 
-// How many chapter locations are playable so far (Stage 2: The Old Workshop).
-const BUILT_LOCATIONS = 1;
+// How many chapter locations are playable so far
+// (Stage 3: The Old Workshop, The Discovery Path, The Learning Camp).
+const BUILT_LOCATIONS = 3;
 
 // DOM HUD: chapter progress, mode switch, sound toggle, controls panel, toasts, story card.
 export class HUD {
@@ -53,11 +54,14 @@ export class HUD {
       li.classList.toggle('is-reached', reached);
       li.classList.toggle('is-next', next);
     });
+    const locs = CHAPTER_01.locations;
+    const i = Math.floor(progress + 0.001);
+    const num = (k) => String(k + 1).padStart(2, '0');
     this.now.textContent = progress < 1
-      ? 'Prologue · on the way to The Old Workshop'
-      : progress < 1.97
-        ? '01 · The Old Workshop'
-        : 'Gateway to 02 · The Discovery Path';
+      ? `Prologue · on the way to ${locs[0].name}`
+      : progress >= BUILT_LOCATIONS + 0.97
+        ? `Gateway to ${num(BUILT_LOCATIONS)} · ${locs[BUILT_LOCATIONS].name}`
+        : `${num(Math.min(i, BUILT_LOCATIONS) - 1)} · ${locs[Math.min(i, BUILT_LOCATIONS) - 1].name}`;
   }
 
   setMode(mode) {
@@ -101,15 +105,18 @@ export class HUD {
 
   journeyHTML({ progress = 0 } = {}) {
     const c = CHAPTER_01;
+    const here = Math.floor(progress + 0.001) - 1;   // index of the location you're in
     const items = c.locations.map((loc, i) => {
       let status = 'Opens soon';
       let cls = '';
-      if (i === 0) {
-        status = progress >= 2 ? 'Explored' : progress >= 1 ? 'You are here' : 'Next stop';
-        cls = progress < 2 ? 'is-here' : '';
-      } else if (i === 1) {
-        status = progress >= 2 ? 'Gateway found · opens soon' : 'Opens soon';
-        cls = progress >= 2 ? 'is-here' : '';
+      const atDoor = progress >= BUILT_LOCATIONS + 0.97;
+      if (i < BUILT_LOCATIONS) {
+        if (i === here && !atDoor) { status = 'You are here'; cls = 'is-here'; }
+        else if (i < here || atDoor) status = 'Explored';
+        else status = i === here + 1 ? 'Next stop' : 'Ahead';
+      } else if (i === BUILT_LOCATIONS && atDoor) {
+        status = 'Gateway found · opens soon';
+        cls = 'is-here';
       }
       return `<li class="${cls}"><div><strong>${loc.name}</strong><span>${loc.summary}</span></div><em>${status}</em></li>`;
     }).join('');
