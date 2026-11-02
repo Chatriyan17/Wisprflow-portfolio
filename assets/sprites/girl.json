@@ -1,12 +1,12 @@
 {
   "image": "girl.png",
-  "frameWidth": 56,
+  "frameWidth": 72,
   "frameHeight": 74,
   "columns": 8,
-  "spriteHeight": 74,
-  "spriteWidth": 56,
+  "spriteHeight": 70,
+  "spriteWidth": 72,
   "anchor": {
-    "x": 28.0,
+    "x": 36.0,
     "y": 74
   },
   "faces": "right",
@@ -25,43 +25,49 @@
       8,
       9,
       10,
-      11
-    ],
-    "run": [
+      11,
       12,
       13,
       14,
-      15,
+      15
+    ],
+    "run": [
       16,
       17,
       18,
-      19
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25
     ],
     "jump": [
-      20
+      26
     ],
     "fall": [
-      21
-    ],
-    "land": [
-      22,
-      23
-    ],
-    "talk": [
-      24,
-      25,
-      26,
       27
     ],
+    "land": [
+      28,
+      29
+    ],
+    "talk": [
+      30,
+      31,
+      32,
+      33
+    ],
     "front": [
-      28
+      34
     ],
     "front_talk": [
-      29,
-      30
+      35,
+      36
     ],
     "back": [
-      31
+      37
     ]
   },
   "source": "reference/girl-character-sheet.webp"

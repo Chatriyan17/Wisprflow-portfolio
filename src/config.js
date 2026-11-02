@@ -14,8 +14,8 @@ export const WORLD = {
 export const PHYSICS = {
   gravity: 1400,
   maxFall: 720,
-  walkSpeed: 95,
-  runSpeed: 175,
+  walkSpeed: 62,
+  runSpeed: 140,
   accel: 950,
   airAccel: 650,
   friction: 1300,

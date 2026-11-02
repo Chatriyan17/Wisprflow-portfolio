@@ -49,7 +49,7 @@ The in-game sprites are cut directly out of the supplied reference sheets in `re
 - `reference/girl-character-sheet.webp`: the companion and guide
 - `reference/world-concept.webp`: the world mood reference
 
-`tools/bake_sprites.py` cuts out the front, side and back turnaround poses, removes the background, and reduces them to game-scale pixel sprites. It then builds every animation frame by posing those original pixels: idle, walk, run, jump, fall, land, talk, front, front-talk and back. The face, hair, glasses, beard, braids, clothes and colours are therefore always the original design. Dialogue portraits are cropped as-is from the expression panels.
+`tools/bake_sprites.py` cuts out the front, side and back turnaround poses, removes the background, and reduces them to game-scale pixel sprites. It then cuts the side pose into bones (upper arm, forearm, thigh, shin, foot) and animates them with a skeletal rig. Hip, knee, ankle, shoulder and elbow angles follow a human gait cycle, with heel strike, knee bend, toe-off, counter-swinging arms and the body rising and falling as the feet plant. Frames are posed at reference resolution and then reduced to the game's pixel grid with the character's own palette. The animations are idle, walk, run, jump, fall, land, talk, front, front-talk and back. The face, hair, glasses, beard, braids, clothes and colours are therefore always the original design. Dialogue portraits are cropped as-is from the expression panels.
 
 To rebuild after changing a reference sheet (requires Pillow, numpy, scipy):
 

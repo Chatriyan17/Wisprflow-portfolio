@@ -49,6 +49,14 @@ CHARACTERS = {
         },
         "hip": 0.565,           # hip line as a fraction of the side sprite height
         "palette": 48,
+        # Skeleton for the side pose, in reference-sheet pixels of the cut-out
+        # side figure (after flipping to face right).
+        "rig": {
+            "hip": (52, 215), "knee": (52, 273), "ankle": (47, 333),
+            "shoulder": (45, 128), "elbow": (45, 168),
+            "arm": [(25, 116), (58, 116), (62, 170), (66, 242), (30, 242), (25, 170)],
+            "back_x": 32, "neck_y": 106,
+        },
     },
     "girl": {
         "sheet": "girl-character-sheet.webp",
@@ -63,10 +71,16 @@ CHARACTERS = {
         },
         "hip": 0.545,
         "palette": 48,
+        "rig": {
+            "hip": (48, 212), "knee": (47, 290), "ankle": (44, 366),
+            "shoulder": (33, 118), "elbow": (32, 164),
+            "arm": [(9, 106), (46, 106), (52, 160), (56, 254), (14, 254), (9, 160)],
+            "back_x": 16, "neck_y": 100,
+        },
     },
 }
 
-CELL_PAD_X = 14   # extra room for legs swinging out
+CELL_PAD_X = 22   # extra room for legs swinging out
 CELL_PAD_TOP = 4
 
 
@@ -214,6 +228,204 @@ def shear_upper(im, amount, pivot_y):
     return im.transform((w, h), Image.AFFINE, (1, k, -k * pivot_y, 0, 1, 0), resample=Image.NEAREST)
 
 
+# ---------------------------------------------------------------------------
+# Skeletal rig: the side pose is cut into bones (upper arm, forearm, thigh,
+# shin, foot) and posed with joint angles from a human gait cycle. Posing
+# happens at reference resolution, then each frame is reduced to the game
+# pixel grid with the character's palette, so every frame stays crisp and
+# keeps the original colours.
+# ---------------------------------------------------------------------------
+
+def _rot(v, deg):
+    """Rotate a screen-space vector the way PIL rotates images (counter-clockwise on screen)."""
+    a = math.radians(deg)
+    x, y = v
+    return (x * math.cos(a) + y * math.sin(a), -x * math.sin(a) + y * math.cos(a))
+
+
+def _gauss(p, c, w):
+    d = ((p - c + 0.5) % 1.0) - 0.5
+    return math.exp(-(d / w) ** 2)
+
+
+def paste_at(canvas, img, dx, dy):
+    dx, dy = int(round(dx)), int(round(dy))
+    sx, sy = max(0, -dx), max(0, -dy)
+    if sx >= img.width or sy >= img.height:
+        return
+    canvas.alpha_composite(img, dest=(max(0, dx), max(0, dy)), source=(sx, sy))
+
+
+def place_bone(canvas, bone, pivot_src, angle, pivot_dst):
+    """Rotate a bone image around its joint and pin that joint to pivot_dst."""
+    r = bone.convert("RGBa").rotate(angle, resample=Image.BICUBIC, center=pivot_src).convert("RGBA")
+    paste_at(canvas, r, pivot_dst[0] - pivot_src[0], pivot_dst[1] - pivot_src[1])
+
+
+def tint(img, f, purple=0.0):
+    a = np.asarray(img).astype(np.float32).copy()
+    a[..., :3] *= f
+    if purple:
+        a[..., 0] += 30 * purple
+        a[..., 2] += 50 * purple
+    return Image.fromarray(a.clip(0, 255).astype(np.uint8), "RGBA")
+
+
+class Rig:
+    def __init__(self, rgb, mask, flip, cfg):
+        im = Image.fromarray(np.dstack([rgb, mask.astype(np.uint8) * 255]).astype(np.uint8), "RGBA")
+        if flip:
+            im = im.transpose(Image.FLIP_LEFT_RIGHT)
+        R = cfg["rig"]
+        self.R = R
+        arr = np.asarray(im).copy()
+        h, w = arr.shape[:2]
+        self.h, self.w = h, w
+
+        # arm mask from the polygon
+        from PIL import ImageDraw
+        m = Image.new("L", (w, h), 0)
+        ImageDraw.Draw(m).polygon(R["arm"], fill=255)
+        arm_mask = (np.asarray(m) > 0) & (arr[..., 3] > 0)
+
+        arm = arr.copy()
+        arm[~arm_mask] = 0
+        # body without the arm; fill the hole with the torso / trousers behind it
+        body = arr.copy()
+        body[arm_mask] = 0
+        for y in range(h):
+            xs = np.where(arm_mask[y])[0]
+            if not len(xs):
+                continue
+            right = np.where((arr[y, :, 3] > 0) & ~arm_mask[y] & (np.arange(w) > xs.max()))[0]
+            if len(right):
+                src = arr[y, min(w - 1, right.min() + 2)]
+                if src[3] == 0:
+                    src = arr[y, right.min()]
+                for x in xs:
+                    if x >= R["back_x"]:
+                        body[y, x] = src
+        self.body = body
+
+        # split the arm at the elbow, and the body at the hip / knee / ankle
+        ov = 4
+        ey = R["elbow"][1]
+        up = arm.copy(); up[ey + ov:] = 0
+        fo = arm.copy(); fo[:ey - ov] = 0
+        self.upper_arm, self.forearm = up, fo
+
+        hy, ky, ay = R["hip"][1], R["knee"][1], R["ankle"][1]
+        torso = body.copy(); torso[hy + 2:] = 0
+        legs = body.copy(); legs[:hy - 2] = 0
+        thigh = legs.copy(); thigh[ky + ov:] = 0
+        shin = legs.copy(); shin[:ky - ov] = 0; shin[ay + ov:] = 0
+        foot = legs.copy(); foot[:ay - ov] = 0
+        pelvis = legs.copy(); pelvis[hy + 10:] = 0
+        head = torso.copy(); head[R["neck_y"]:] = 0
+        chest = torso.copy(); chest[:R["neck_y"]] = 0
+        to = lambda a: Image.fromarray(a.astype(np.uint8), "RGBA")
+        self.parts = {k: to(v) for k, v in dict(
+            head=head, chest=chest, pelvis=pelvis, thigh=thigh, shin=shin, foot=foot,
+            upper_arm=up, forearm=fo).items()}
+
+    def pose(self, near, far, arm_near, arm_far, lean=0.0, head_bob=0.0, crouch_ok=True):
+        """near/far: dicts with hip, knee, foot angles (degrees). arms: (shoulder, elbow)."""
+        R, P = self.R, self.parts
+        pad = int(self.h * 0.6)
+        W, H = self.w + pad * 2, self.h + pad
+        ox, oy = pad, pad // 2   # figure origin inside the work canvas
+        hip = (R["hip"][0] + ox, R["hip"][1] + oy)
+
+        def leg(canvas, a, dark):
+            th, kn, ft = a["hip"], a["knee"], a["foot"]
+            kp = _rot((R["knee"][0] - R["hip"][0], R["knee"][1] - R["hip"][1]), th)
+            knee = (hip[0] + kp[0], hip[1] + kp[1])
+            shin_a = th - kn
+            ap = _rot((R["ankle"][0] - R["knee"][0], R["ankle"][1] - R["knee"][1]), shin_a)
+            ankle = (knee[0] + ap[0], knee[1] + ap[1])
+            parts = [P["thigh"], P["shin"], P["foot"]]
+            if dark:
+                parts = [tint(x, 0.62, 0.25) for x in parts]
+            src = lambda pt: (pt[0] + 0, pt[1] + 0)
+            place_bone(canvas, parts[1], R["knee"], shin_a, knee)
+            place_bone(canvas, parts[2], R["ankle"], ft, ankle)
+            place_bone(canvas, parts[0], R["hip"], th, hip)
+
+        def arm(canvas, a, dark):
+            sh_a, el = a
+            sp = (R["shoulder"][0] + ox, R["shoulder"][1] + oy + head_bob * 0)
+            ep = _rot((R["elbow"][0] - R["shoulder"][0], R["elbow"][1] - R["shoulder"][1]), sh_a)
+            elbow = (sp[0] + ep[0], sp[1] + ep[1])
+            ua, fa = P["upper_arm"], P["forearm"]
+            if dark:
+                ua, fa = tint(ua, 0.6, 0.25), tint(fa, 0.6, 0.25)
+            place_bone(canvas, fa, R["elbow"], sh_a + el, elbow)
+            place_bone(canvas, ua, R["shoulder"], sh_a, sp)
+
+        legs_layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        leg(legs_layer, far, True)
+        paste_at(legs_layer, tint(P["pelvis"], 0.9), ox, oy)
+        leg(legs_layer, near, False)
+
+        top = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        arm(top, arm_far, True)
+        paste_at(top, P["chest"], ox, oy)
+        paste_at(top, P["head"], ox, oy + head_bob)
+        arm(top, arm_near, False)
+        if lean:
+            # lean the upper body forward around the hip
+            k = math.tan(math.radians(lean))
+            top = top.transform(top.size, Image.AFFINE, (1, k, -k * hip[1], 0, 1, 0), resample=Image.BICUBIC)
+
+        # plant the lowest foot on the ground: the body rises and falls naturally
+        la = np.asarray(legs_layer)[..., 3]
+        rows = np.where(la.max(1) > 100)[0]
+        lowest = rows.max() if len(rows) else oy + self.h - 1
+        frame = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        frame.alpha_composite(legs_layer)
+        frame.alpha_composite(top)
+        ground = oy + self.h - 1
+        shifted = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        paste_at(shifted, frame, 0, ground - lowest)
+        return shifted, (hip[0], ground)
+
+
+def gait(p, run=False):
+    """Joint angles for one leg at gait phase p (0 = heel strike). Degrees; + = forward / toe up."""
+    if not run:
+        hip = 4 + 23 * math.cos(math.tau * p) + 3 * math.sin(math.tau * p)
+        knee = 14 * _gauss(p, 0.12, 0.07) + 56 * _gauss(p, 0.71, 0.11)
+        shin = hip - knee
+        foot = 14 * _gauss(p, 0.0, 0.05) - 30 * _gauss(p, 0.58, 0.06) + (shin * 0.45 + 8) * _gauss(p, 0.8, 0.09)
+    else:
+        hip = 8 + 34 * math.cos(math.tau * p) + 6 * math.sin(math.tau * p)
+        knee = 28 * _gauss(p, 0.15, 0.08) + 100 * _gauss(p, 0.66, 0.13)
+        shin = hip - knee
+        foot = 8 * _gauss(p, 0.0, 0.05) - 34 * _gauss(p, 0.5, 0.07) + (shin * 0.4 + 12) * _gauss(p, 0.75, 0.1)
+    return {"hip": hip, "knee": knee, "foot": foot}
+
+
+def to_game_frame(img, anchor, scale, cell_w, cell_h, palette_img):
+    """Reduce a posed reference-resolution frame to the game pixel grid."""
+    W, H = img.size
+    tw, th = max(1, round(W * scale)), max(1, round(H * scale))
+    a = np.asarray(img).astype(np.float32)
+    al = a[..., 3:4] / 255.0
+    prem = np.dstack([a[..., :3] * al, a[..., 3:4]]).astype(np.uint8)
+    small = np.asarray(Image.fromarray(prem, "RGBA").resize((tw, th), Image.BOX)).astype(np.float32)
+    sa = small[..., 3:4] / 255.0
+    rgb = np.where(sa > 0.01, small[..., :3] / np.maximum(sa, 0.01), 0).clip(0, 255)
+    solid = small[..., 3] > 0.45 * 255
+    q = Image.fromarray(rgb.astype(np.uint8), "RGB").quantize(palette=palette_img, dither=Image.NONE).convert("RGBA")
+    qa = np.asarray(q).copy()
+    qa[..., 3] = np.where(solid, 255, 0)
+    q = add_outline(Image.fromarray(qa, "RGBA"))
+    cell = Image.new("RGBA", (cell_w, cell_h), (0, 0, 0, 0))
+    ax, ay = anchor[0] * scale, anchor[1] * scale
+    paste_at(cell, q, cell_w / 2 - ax, cell_h - 1 - ay)
+    return cell
+
+
 def bake(name, cfg):
     sheet = np.asarray(Image.open(os.path.join(REF, cfg["sheet"])).convert("RGB"))
     raw = {}
@@ -230,18 +442,20 @@ def bake(name, cfg):
     cell_h = sh + CELL_PAD_TOP
     cell_w += cell_w % 2
 
-    # place the side pose on a cell-sized canvas so rotated legs are never clipped
-    side_src = poses["side"]
-    side = Image.new("RGBA", (cell_w, cell_h), (0, 0, 0, 0))
-    side.alpha_composite(side_src, ((cell_w - side_src.width) // 2, cell_h - side_src.height))
-    sw, sh = side.size
-    upper, legs, hip_y, hip_x = split_legs(side, cfg["hip"] * side_src.height / cell_h + (cell_h - side_src.height) / cell_h)
-    pivot = (hip_x, hip_y)
-    # a short un-rotated "pelvis" strip keeps the hip filled while the legs swing
-    legs_arr = np.asarray(legs).copy()
-    pelvis_arr = legs_arr.copy()
-    pelvis_arr[hip_y + max(4, sh // 14):] = 0
-    pelvis = darken(Image.fromarray(pelvis_arr, "RGBA"), 0.85)
+    # palette shared by every frame of this character
+    total_w = sum(p.width for p in poses.values())
+    strip = Image.new("RGB", (total_w, sh), (0, 0, 0))
+    x = 0
+    for p_ in poses.values():
+        strip.paste(p_.convert("RGB"), (x, 0)); x += p_.width
+    palette_img = strip.quantize(colors=cfg["palette"], method=Image.MEDIANCUT, dither=Image.NONE)
+
+    # skeletal rig built from the full-resolution side pose
+    x0, y0, x1, y1, sole, flip = cfg["poses"]["side"]
+    rgb, mask = cut_pose(sheet, cfg["bg"], cfg["bg_tol"], (x0, y0, x1, y1), sole, cfg.get("erode", 1))
+    rig = Rig(rgb, mask, flip, cfg)
+    scale = cfg["height"] / rig.h
+    sw = cell_w
 
     frames = []
     anims = {}
@@ -250,56 +464,44 @@ def bake(name, cfg):
         anims.setdefault(anim, []).append(len(frames))
         frames.append(img)
 
-    leg_len = sh - hip_y
+    def side(near, far, arm_near, arm_far, lean=0.0, head_bob=0.0):
+        img, anchor = rig.pose(near, far, arm_near, arm_far, lean=lean, head_bob=head_bob)
+        return to_game_frame(img, anchor, scale, cell_w, cell_h, palette_img)
 
-    def side_frame(front_angle, back_angle, bob=0, lean=0, head_bob=0):
-        # rotated legs are vertically shorter: drop the body so the feet stay planted
-        drop = round(leg_len * (1 - math.cos(math.radians(max(abs(front_angle), abs(back_angle))))) * 0.8)
-        bob += drop
-        back = darken(rotate_about(legs, back_angle, pivot), 0.72)
-        front = rotate_about(legs, front_angle, pivot)
-        up = upper
-        if lean:
-            up = shear_upper(up, lean, hip_y)
-        layers = [(pelvis, 0, bob), (back, 0, bob), (front, 0, bob)]
-        if head_bob:
-            head_h = (cell_h - side_src.height) + int(side_src.height * 0.40)
-            body = up.copy()
-            body_arr = np.asarray(body).copy()
-            body_arr[:head_h] = 0
-            head_arr = np.asarray(up).copy()
-            head_arr[head_h:] = 0
-            layers += [(Image.fromarray(body_arr, "RGBA"), 0, bob),
-                       (Image.fromarray(head_arr, "RGBA"), 0, bob + head_bob)]
-        else:
-            layers.append((up, 0, bob))
-        return compose(cell_w, cell_h, sw, sh, layers)
+    stand = {"hip": 0, "knee": 0, "foot": 0}
+    stand_far = {"hip": -2, "knee": 2, "foot": 0}
+    rest_arm = (2, 4)
+    bob_px = 1 / scale   # one game pixel in reference pixels
 
-    # idle (side) - gentle breathing
-    for bob in (0, 0, 1, 1):
-        add("idle", side_frame(0, 0, head_bob=bob))
-    # walk - scissor stride
-    for i in range(8):
-        t = i / 8 * math.tau
-        ang = math.sin(t) * 20
-        bob = 1 if abs(math.cos(t)) > 0.7 else 0
-        add("walk", side_frame(ang, -ang, bob=-bob))
-    # run - wider stride, forward lean, more bounce
-    for i in range(8):
-        t = i / 8 * math.tau
-        ang = math.sin(t) * 34
-        bob = 2 if abs(math.cos(t)) > 0.7 else 0
-        add("run", side_frame(ang, -ang, bob=-bob, lean=5))
-    # jump / fall
-    add("jump", side_frame(28, -14, lean=2))
-    add("fall", side_frame(12, -22))
-    # land - squash and recover
-    base = side_frame(0, 0)
-    add("land", squash(base, 1.08, 0.9, cell_w, cell_h))
-    add("land", squash(base, 1.03, 0.96, cell_w, cell_h))
-    # talk (side) - head nods while speaking
-    for hb in (0, 1, 0, 1):
-        add("talk", side_frame(0, 0, head_bob=hb))
+    # idle - gentle breathing (head and shoulders settle by one pixel)
+    for hb in (0, 0, bob_px, bob_px):
+        add("idle", side(stand, stand_far, rest_arm, (-2, 4), head_bob=hb))
+    # walk - full gait cycle with knee bend, heel strike and toe-off; arms counter-swing
+    N = 12
+    for i in range(N):
+        p = i / N
+        near, far = gait(p), gait((p + 0.5) % 1)
+        arm_n = (-(near["hip"] - 4) * 0.8, 10 + 8 * max(0, -(near["hip"] - 4)) / 23)
+        arm_f = (-(far["hip"] - 4) * 0.8, 10 + 8 * max(0, -(far["hip"] - 4)) / 23)
+        add("walk", side(near, far, arm_n, arm_f, lean=2))
+    # run - longer stride, high knees, bent arms pumping, forward lean
+    N = 10
+    for i in range(N):
+        p = i / N
+        near, far = gait(p, True), gait((p + 0.5) % 1, True)
+        arm_n = (-(near["hip"] - 8) * 0.9, 70)
+        arm_f = (-(far["hip"] - 8) * 0.9, 70)
+        add("run", side(near, far, arm_n, arm_f, lean=8))
+    # jump: knee drives up, arms swing up
+    add("jump", side({"hip": 50, "knee": 80, "foot": -10}, {"hip": -12, "knee": 35, "foot": -25}, (95, 25), (70, 25), lean=3))
+    # fall: legs reach for the ground
+    add("fall", side({"hip": 22, "knee": 18, "foot": 10}, {"hip": -8, "knee": 30, "foot": -10}, (55, 15), (35, 15)))
+    # land: absorb the impact by bending the knees, then stand up
+    add("land", side({"hip": 40, "knee": 72, "foot": 0}, {"hip": 34, "knee": 66, "foot": 0}, (30, 30), (20, 30), lean=10))
+    add("land", side({"hip": 18, "knee": 32, "foot": 0}, {"hip": 14, "knee": 28, "foot": 0}, (12, 15), (8, 15), lean=4))
+    # talk - head nods while speaking, a little hand gesture
+    for hb, el in ((0, 20), (bob_px, 35), (0, 25), (bob_px, 40)):
+        add("talk", side(stand, stand_far, (8, el), (-2, 4), head_bob=hb))
     # front / back views
     fw, fh = poses["front"].size
     add("front", compose(cell_w, cell_h, fw, fh, [(poses["front"], 0, 0)]))

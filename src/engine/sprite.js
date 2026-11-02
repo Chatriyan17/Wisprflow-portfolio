@@ -33,7 +33,7 @@ export class SpriteSheet {
   }
 }
 
-const DEFAULT_FPS = { idle: 3, walk: 10, run: 14, talk: 6, land: 14, front_talk: 6 };
+const DEFAULT_FPS = { idle: 3, walk: 16, run: 20, talk: 6, land: 12, front_talk: 6 };
 const NON_LOOPING = new Set(['land', 'jump', 'fall']);
 
 export class Animator {
