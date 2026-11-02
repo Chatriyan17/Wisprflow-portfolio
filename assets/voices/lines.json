@@ -1,0 +1,112 @@
+[
+  {
+    "key": "intro-1",
+    "who": "girl",
+    "text": "Hey! Ready to explore how this journey began?"
+  },
+  {
+    "key": "intro-2",
+    "who": "boy",
+    "text": "Let's go. There's a lot to discover."
+  },
+  {
+    "key": "welcome-sign-3",
+    "who": "girl",
+    "text": "Every place along this path holds a piece of the story."
+  },
+  {
+    "key": "home-1",
+    "who": "girl",
+    "text": "Nobody home. We already left!"
+  },
+  {
+    "key": "home-2",
+    "who": "boy",
+    "text": "Every journey needs somewhere to start from."
+  },
+  {
+    "key": "journey-map-intro-1",
+    "who": "girl",
+    "text": "Here's the map. Seven places, one chapter."
+  },
+  {
+    "key": "lookout-1",
+    "who": "girl",
+    "text": "See the chimney smoke over there?"
+  },
+  {
+    "key": "lookout-2",
+    "who": "girl",
+    "text": "That's the Old Workshop. It's where your story begins."
+  },
+  {
+    "key": "lookout-3",
+    "who": "boy",
+    "text": "Long before I knew what UX was."
+  },
+  {
+    "key": "enter-workshop-1",
+    "who": "girl",
+    "text": "So, where did your journey begin?"
+  },
+  {
+    "key": "enter-workshop-2",
+    "who": "boy",
+    "text": "Back in 2022. I was working in a few manufacturing companies."
+  },
+  {
+    "key": "machine-1",
+    "who": "boy",
+    "text": "Back in 2022, I started my professional journey in manufacturing companies."
+  },
+  {
+    "key": "blueprint-1",
+    "who": "boy",
+    "text": "I was learning and working, but something didn't feel right. I wasn't enjoying the kind of work I was doing."
+  },
+  {
+    "key": "observation-1",
+    "who": "girl",
+    "text": "Did you always know what you wanted to become?"
+  },
+  {
+    "key": "observation-2",
+    "who": "boy",
+    "text": "Not really. I just knew I wanted to explore something different."
+  },
+  {
+    "key": "break-talk-1",
+    "who": "girl",
+    "text": "Sounds like an interesting start. Did you enjoy it?"
+  },
+  {
+    "key": "break-talk-2",
+    "who": "boy",
+    "text": "Honestly, I didn't feel connected to the work I was doing. I knew I wanted something different, but I didn't know what yet."
+  },
+  {
+    "key": "break-talk-3",
+    "who": "girl",
+    "text": "Sometimes, finding a new direction starts with a simple conversation."
+  },
+  {
+    "key": "memory-1",
+    "who": "friend",
+    "text": "Have you heard about UX design? There's a field in IT called User Experience."
+  },
+  {
+    "key": "memory-2",
+    "who": "friend",
+    "text": "Why don't you explore it?"
+  },
+  {
+    "key": "memory-3",
+    "who": "boy",
+    "text": "UX? What's that?"
+  },
+  {
+    "key": "memory-after-1",
+    "who": "girl",
+    "text": "Looks like someone just opened a new door."
+  }
+]

@@ -18,4 +18,11 @@ for (const who of ['boy', 'girl', 'friend']) {
   out.push('');
 }
 writeFileSync(new URL('../assets/voices/VOICE-SCRIPT.md', import.meta.url), out.join('\n'));
-console.log('wrote assets/voices/VOICE-SCRIPT.md');
+
+// machine-readable copy for tools/generate_voices.py
+const lines = [];
+for (const [id, list] of Object.entries(SCRIPTS)) {
+  list.forEach((l, i) => { if (l.who !== 'sign') lines.push({ key: `${id}-${i + 1}`, who: l.who, text: l.text }); });
+}
+writeFileSync(new URL('../assets/voices/lines.json', import.meta.url), JSON.stringify(lines, null, 2) + '\n');
+console.log(`wrote assets/voices/VOICE-SCRIPT.md and lines.json (${lines.length} spoken lines)`);

@@ -9,14 +9,19 @@
 // Voices only play while sound is on; they can also be turned off on their own.
 
 const PROFILES = {
-  // preferred voice names, in order; matched case-insensitively against what the device offers
-  boy: { prefer: ['rishi', 'en-in male', 'google uk english male', 'daniel', 'alex', 'david', 'aaron', 'arthur', 'guy', 'male'], gender: 'male', pitch: 0.95, rate: 1.0 },
-  girl: { prefer: ['veena', 'heera', 'en-in female', 'google uk english female', 'samantha', 'karen', 'zira', 'moira', 'tessa', 'female'], gender: 'female', pitch: 1.2, rate: 1.04 },
-  friend: { prefer: ['ravi', 'fred', 'google us english', 'tom', 'mark', 'male'], gender: 'male', pitch: 0.8, rate: 0.95 },
+  // preferred voice names, in order; matched case-insensitively against what the device offers.
+  // Neural voices ("Natural", "Neural", "Enhanced", "Premium") are always preferred over
+  // basic ones, and keep their natural pitch: bending pitch is what makes speech sound robotic.
+  boy: { prefer: ['prabhat', 'rishi', 'ravi', 'andrew', 'brian', 'guy', 'christopher', 'ryan', 'google uk english male', 'daniel', 'alex', 'aaron', 'david', 'male'], gender: 'male', pitch: 0.98, rate: 1.0 },
+  girl: { prefer: ['neerja', 'veena', 'heera', 'ava', 'emma', 'jenny', 'aria', 'sonia', 'libby', 'google uk english female', 'samantha', 'karen', 'zira', 'female'], gender: 'female', pitch: 1.05, rate: 1.02 },
+  friend: { prefer: ['kunal', 'ravi', 'eric', 'roger', 'steffan', 'thomas', 'george', 'fred', 'google us english', 'male'], gender: 'male', pitch: 0.92, rate: 0.97 },
 };
 
-const MALE_HINTS = ['male', 'rishi', 'daniel', 'alex', 'david', 'aaron', 'arthur', 'fred', 'tom', 'mark', 'ravi', 'guy', 'george', 'oliver', 'james'];
-const FEMALE_HINTS = ['female', 'veena', 'heera', 'samantha', 'karen', 'zira', 'moira', 'tessa', 'victoria', 'susan', 'fiona', 'kate', 'serena', 'aria', 'jenny', 'sonia', 'neerja'];
+const QUALITY = ['natural', 'neural', 'premium', 'enhanced', 'online', 'wavenet', 'studio'];
+const isNatural = (v) => QUALITY.some((q) => v.name.toLowerCase().includes(q));
+
+const MALE_HINTS = ['male', 'prabhat', 'kunal', 'andrew', 'brian', 'christopher', 'eric', 'roger', 'steffan', 'thomas', 'ryan', 'rishi', 'daniel', 'alex', 'david', 'aaron', 'arthur', 'fred', 'tom', 'mark', 'ravi', 'guy', 'george', 'oliver', 'james'];
+const FEMALE_HINTS = ['female', 'neerja', 'ava', 'emma', 'libby', 'veena', 'heera', 'samantha', 'karen', 'zira', 'moira', 'tessa', 'victoria', 'susan', 'fiona', 'kate', 'serena', 'aria', 'jenny', 'sonia', 'neerja'];
 
 export class VoiceCast {
   constructor() {
@@ -64,7 +69,23 @@ export class VoiceCast {
     if (this.assigned[who] !== undefined) return this.assigned[who];
     const profile = PROFILES[who];
     const english = this.voices.filter((v) => /^en/i.test(v.lang));
-    const pool = english.length ? english : this.voices;
+    const all = english.length ? english : this.voices;
+    // try the device's natural-sounding voices first, then everything else
+    const natural = all.filter(isNatural);
+    let chosen = null;
+    for (const pool of natural.length ? [natural, all] : [all]) {
+      chosen = this.matchVoice(pool, who, profile);
+      if (chosen) break;
+    }
+    const pool = all;
+    if (who === 'friend' && chosen && this.assigned.boy && chosen.name === this.assigned.boy.name) {
+      chosen = [...natural, ...all].find((v) => v !== this.assigned.boy && MALE_HINTS.some((h) => v.name.toLowerCase().includes(h))) || chosen;
+    }
+    this.assigned[who] = chosen || pool[0] || null;
+    return this.assigned[who];
+  }
+
+  matchVoice(pool, who, profile) {
     let chosen = null;
     for (const want of profile.prefer) {
       chosen = pool.find((v) => v.name.toLowerCase().includes(want) || (want.startsWith('en-in') && /en-IN/i.test(v.lang) && v.name.toLowerCase().includes(want.split(' ')[1])));
@@ -74,12 +95,7 @@ export class VoiceCast {
       const hints = profile.gender === 'male' ? MALE_HINTS : FEMALE_HINTS;
       chosen = pool.find((v) => hints.some((h) => v.name.toLowerCase().includes(h))) || null;
     }
-    // keep the friend from sounding exactly like the protagonist when possible
-    if (who === 'friend' && chosen && this.assigned.boy && chosen.name === this.assigned.boy.name) {
-      chosen = pool.find((v) => v !== this.assigned.boy && MALE_HINTS.some((h) => v.name.toLowerCase().includes(h))) || chosen;
-    }
-    this.assigned[who] = chosen || pool[0] || null;
-    return this.assigned[who];
+    return chosen;
   }
 
   // Speak one line. Resolves when the voice has finished (or straight away if muted).
@@ -96,8 +112,9 @@ export class VoiceCast {
       const u = new SpeechSynthesisUtterance(line.text.replace(/…/g, '...'));
       const v = this.pickVoice(line.who);
       if (v) { u.voice = v; u.lang = v.lang; }
-      u.pitch = profile.pitch;
-      u.rate = profile.rate;
+      const natural = v && isNatural(v);
+      u.pitch = natural ? 1 : profile.pitch;
+      u.rate = natural ? 1 : profile.rate;
       u.volume = 0.95;
       let done = false;
       let started = false;
