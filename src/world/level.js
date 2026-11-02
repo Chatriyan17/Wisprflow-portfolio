@@ -167,7 +167,7 @@ export const STATIONS = [
 export const DESIGN_WALL = { x: 11780 };
 export const ACADEMY = { sign: 11990, door: 12165 };
 // The Four-Armed Creative Golem sits in the corner between the desks and the design wall.
-export const GOLEM = { x: 11650, arena: 11520, girl: 11468, book: 11572 };
+export const GOLEM = { x: 11650, arena: 11520, girl: 11468 };
 export const STATION_GATE = { x: 11690, y: -800, w: 10, h: 1400, kind: 'stationGate' };
 
 // Until the gateway is opened, the world beyond it is out of reach.
@@ -504,7 +504,6 @@ export const INTERACTABLES = [
   // stage 4
   { id: 'studio-exit', x: 10150, y: G, label: 'Go outside', range: 26 },
   ...STATIONS.map((st) => ({ id: `station-${st.id}`, x: st.x - 10, y: G, label: `${st.name} station`, range: 40, station: st.id })),
-  { id: 'boss-book', x: GOLEM.book, y: G, label: 'Boss Book', range: 22, after: 'golem-defeated' },
   { id: 'design-wall', x: 11780, y: G, label: 'Look at the wall', range: 40 },
   { id: 'academy', x: 12165, y: G, label: 'Explore', range: 46 },
   // stage 5

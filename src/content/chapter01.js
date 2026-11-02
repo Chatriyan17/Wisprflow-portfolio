@@ -347,18 +347,18 @@ export const MODE_HINTS = {
   touch: 'Use the buttons to walk and jump. Tap E near things!',
 };
 
-// The boss battle: one challenge per creative discipline. Each completed
-// challenge shuts down one of the golem's four arms.
+// The boss battle: one creative discipline per arm. He handles each one, and
+// each one shuts down one of the golem's four arms.
 export const BOSS = {
   name: 'The Four-Armed Creative Golem',
   phases: [
     { id: 'graphic', num: 1, title: 'Poster Assembly', discipline: 'Graphic Design', arm: 'Paintbrush arm',
-      girl: 'Its paintbrush flung a poster at you! Put each piece in its matching outline.', offline: 'Paintbrush arm offline! It dropped its paint bucket.' },
+      girl: 'Its paintbrush is flinging a poster at you!', offline: 'Paintbrush arm offline! It dropped its paint bucket.' },
     { id: 'motion', num: 2, title: 'Motion Timing', discipline: 'Motion Design', arm: 'Film reel arm',
       girl: 'Energy waves from the film reel! Jump when the glow reaches your feet.', offline: 'Film reel arm frozen!' },
     { id: 'visual', num: 3, title: 'Visual Hierarchy', discipline: 'Visual Design', arm: 'Colour prism arm',
-      girl: 'The prism scrambled a page! Biggest and boldest goes first.', offline: 'Colour prism arm offline! Its colours turned into stars.' },
+      girl: 'The prism scrambled a whole page!', offline: 'Colour prism arm offline! Its colours turned into stars.' },
     { id: 'product', num: 4, title: 'Connect the Flow', discipline: 'Product Design', arm: 'Interface projector arm',
-      girl: 'Last arm! Link the screens in the order a user moves through them.', offline: 'Interface projector offline! Success screen.' },
+      girl: 'Last arm! It scattered the screens of an app!', offline: 'Interface projector offline! Success screen.' },
   ],
 };

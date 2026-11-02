@@ -619,15 +619,6 @@ class Game {
           await this.say('mentor-talk');
           this.renderer.mentorTalking = false;
           break;
-        case 'boss-book': {
-          this.audio.sfx('page');
-          let choice = null;
-          const shown = this.hud.openCard(Boss.bossBookCard(this));
-          document.querySelectorAll('#card-body [data-replay]').forEach((b) => b.addEventListener('click', () => { choice = b.dataset.replay; this.hud.closeCard(); }));
-          await shown;
-          if (choice) { this.bossReplay = choice; this.later(0.05, () => this.runScene('golem-replay')); }
-          break;
-        }
         case 'info-board':
           this.audio.sfx('page');
           await this.hud.openCard(academyInfoCard());
@@ -670,7 +661,6 @@ class Game {
       hats: Stage4.hats,
       'missing-piece': Stage4.missingPiece,
       golem: Boss.golem,
-      'golem-replay': Boss.golemReplay,
       decision: Stage4.decision,
       'academy-door': Stage5.academyDoor,
       'campus-arrive': Stage5.campusArrive,

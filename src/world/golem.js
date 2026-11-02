@@ -250,6 +250,9 @@ export class Golem {
 
   showWarning(player, on) { this.warn = on ? { t: 0, x0: this.x - 48, player } : null; }
 
+  // the boy puts the thrown pieces together: a finished design above his head
+  showDesign(type, player) { this.fx.push({ kind: 'design', type, t: 0, player }); }
+
   releaseSymbols() { this.symbols = { t: 0, orbit: 0, fade: 1 }; }
   endSymbols() { if (this.symbols) this.symbols.ending = true; }
 
@@ -324,7 +327,7 @@ export class Golem {
       if (f.kind === 'bucket' && f.state === 'spilled') f.spill = Math.min(1, f.spill + dt * 1.6);
     }
     this.fx = this.fx.filter((f) => !(f.kind === 'spark' && f.t > f.max) && !(f.kind === 'flyer' && f.t > f.dur + 0.2)
-      && !(f.kind === 'film' && f.t > 4.2) && !(f.kind === 'success' && f.t > 3.2));
+      && !(f.kind === 'film' && f.t > 4.2) && !(f.kind === 'design' && f.t > 3.4) && !(f.kind === 'success' && f.t > 3.2));
 
     if (this.warn) this.warn.t += dt;
 
@@ -398,8 +401,6 @@ export class Golem {
     // the paint bucket on the floor (graphic arm)
     for (const f of this.fx) if (f.kind === 'bucket') this.drawBucket(ctx, f, cam);
 
-    // the Boss Book on its little stand, once the battle is won
-    if (this.rest) this.drawBook(ctx, Math.round(this.x - 78 - cam.x), feet);
 
     // back pipes
     for (const s of [-1, 1]) {
@@ -815,26 +816,47 @@ export class Golem {
     }
   }
 
-  drawBook(ctx, x, feet) {
-    // a wooden lectern with an open, softly glowing book
-    px(ctx, C.ink, x - 2, feet - 22, 5, 22);
-    px(ctx, C.wood, x - 1, feet - 22, 3, 22);
-    px(ctx, C.ink, x - 8, feet - 2, 17, 2);
-    px(ctx, C.ink, x - 10, feet - 27, 21, 6);
-    px(ctx, C.woodL, x - 9, feet - 26, 19, 4);
-    px(ctx, C.ink, x - 10, feet - 31, 21, 5);
-    px(ctx, C.cream, x - 9, feet - 31, 9, 4);
-    px(ctx, C.cream, x + 1, feet - 31, 9, 4);
-    px(ctx, '#c8b8a8', x, feet - 31, 1, 4);
-    for (let i = 0; i < 2; i++) { px(ctx, '#a8968a', x - 7, feet - 30 + i * 2, 6, 1); px(ctx, '#a8968a', x + 2, feet - 30 + i * 2, 6, 1); }
-    const k = 0.5 + 0.5 * Math.sin(this.t * 2.4);
-    glow(ctx, x, feet - 32, 18, '255, 220, 150', 0.22 + 0.15 * k);
-    if (MOTION) {
-      const life = (this.t * 0.5) % 1;
-      ctx.globalAlpha = 1 - life;
-      px(ctx, C.amberL, x - 4 + Math.sin(this.t * 3) * 4, feet - 34 - life * 14, 1, 1);
-      ctx.globalAlpha = 1;
+  drawDesign(ctx, f, cam) {
+    const p = f.player;
+    if (!p) return;
+    const t = f.t;
+    const a = t < 0.2 ? t / 0.2 : t > 2.8 ? Math.max(0, 1 - (t - 2.8) / 0.6) : 1;
+    const w = 44, h = 34;
+    const x = Math.round(p.x - cam.x - w / 2), y = Math.round(p.y - cam.y - 150 - Math.sin(Math.min(1, t) * Math.PI / 2) * 4);
+    const on = (i) => t > 0.3 + i * 0.42;
+    const pop = (i) => { const k = t - (0.3 + i * 0.42); return k < 0.12 ? 1 : 0; };
+    ctx.globalAlpha = a;
+    glow(ctx, x + w / 2, y + h / 2, 40, '255, 225, 160', 0.3 * a);
+    px(ctx, C.ink, x - 1, y - 1, w + 2, h + 2);
+    px(ctx, C.cream, x, y, w, h);
+    if (f.type === 'graphic') {
+      // a poster: sun, headline, mountain
+      if (on(0)) { disc(ctx, C.ink, x + 32, y + 9, 6 + pop(0)); disc(ctx, '#c8553d', x + 32, y + 9, 5 + pop(0)); }
+      if (on(1)) { px(ctx, C.ink, x + 4, y + 16, 36, 7); px(ctx, C.gold, x + 5, y + 17, 34, 5); }
+      if (on(2)) { tri(ctx, C.ink, [x + 15, y + 22], [x + 3, y + 32], [x + 27, y + 32]); tri(ctx, C.sage, [x + 15, y + 24], [x + 5, y + 31], [x + 25, y + 31]); }
+    } else if (f.type === 'visual') {
+      // a page with clear hierarchy: primary, secondary, supporting
+      if (on(0)) px(ctx, C.plum, x + 4, y + 5, 36, 8 + pop(0));
+      if (on(1)) px(ctx, '#7a5a88', x + 4, y + 17, 26, 5 + pop(1));
+      if (on(2)) { px(ctx, '#a898b0', x + 4, y + 26, 20, 2); px(ctx, '#a898b0', x + 4, y + 29, 14, 2); }
+    } else {
+      // a user flow: start → details → confirmation
+      const nodes = [[x + 3, y + 12, C.teal], [x + 17, y + 12, C.gold], [x + 31, y + 12, C.sage]];
+      nodes.forEach(([nx, ny, c], i) => {
+        if (!on(i)) return;
+        px(ctx, C.ink, nx - pop(i), ny - pop(i), 10 + pop(i) * 2, 10 + pop(i) * 2);
+        px(ctx, c, nx + 1, ny + 1, 8, 8);
+        if (i > 0) { px(ctx, C.ink, nx - 4, ny + 4, 4, 2); px(ctx, C.ink, nx - 2, ny + 3, 1, 4); }
+      });
+      if (on(2)) { px(ctx, C.ink, x + 33, y + 15, 2, 2); px(ctx, C.ink, x + 35, y + 13, 2, 2); }
     }
+    if (t > 1.6) {
+      // finished: a little check badge
+      disc(ctx, C.ink, x + w, y, 5);
+      disc(ctx, '#5ef0a0', x + w, y, 4);
+      px(ctx, C.ink, x + w - 2, y, 2, 1); px(ctx, C.ink, x + w - 1, y + 1, 1, 1); px(ctx, C.ink, x + w, y - 1, 2, 1); px(ctx, C.ink, x + w + 1, y - 2, 1, 1);
+    }
+    ctx.globalAlpha = 1;
   }
 
   drawFilm(ctx, f) {
@@ -909,6 +931,7 @@ export class Golem {
       else { px(ctx, C.ink, x - 9, y - 4, 18, 8); px(ctx, f.c, x - 8, y - 3, 16, 6); }
       ctx.globalAlpha = 1;
     }
+    for (const f of this.fx) if (f.kind === 'design') this.drawDesign(ctx, f, cam);
     // warning: a glowing path along the floor and a target at his feet
     if (this.warn && this.warn.player) {
       const p = this.warn.player;

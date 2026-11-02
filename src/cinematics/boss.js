@@ -2,7 +2,6 @@ import { WORLD, REDUCED_MOTION } from '../config.js';
 import { GOLEM } from '../world/level.js';
 import { ARM_OF } from '../world/golem.js';
 import { BOSS } from '../content/chapter01.js';
-import { mountPoster, mountHierarchy, mountFlow } from '../ui/bossChallenges.js';
 
 const G = WORLD.ground;
 const AUTO = 1.4;
@@ -72,7 +71,6 @@ function bossEnd(game) {
   game.input.captureScrollKeys = game.mode === 'explore';
   document.body.classList.remove('is-boss');
   $('boss-hud').hidden = true;
-  closePanel(game);
   tip(null);
   $('boss-jump').hidden = true;
   if (game.skipLabel) $('skip-scene').textContent = game.skipLabel;
@@ -99,24 +97,8 @@ function tip(text, kind = '') {
   return el;
 }
 
-function openPanel(ph) {
-  $('boss-panel-eyebrow').textContent = `Phase ${ph.num} · ${ph.discipline}`;
-  $('boss-panel-title').textContent = ph.title;
-  const body = $('boss-panel-body');
-  body.innerHTML = '';
-  $('boss-panel').hidden = false;
-  return body;
-}
-
-function closePanel(game) {
-  $('boss-panel').hidden = true;
-  $('boss-panel-body').innerHTML = '';
-  if (game && game.activePuzzle && game.activePuzzle.destroy) game.activePuzzle.destroy();
-  if (document.activeElement && document.activeElement.closest && document.activeElement.closest('#boss-panel')) document.activeElement.blur();
-}
-
 // keep the boy, the girl and the golem in shot: the boy just left of centre,
-// the golem to the right, room for the challenge panel on the left
+// the golem to the right
 function arenaCamera(game) {
   const cam = game.camera;
   const narrow = cam.viewW < 520;
@@ -127,7 +109,6 @@ function arenaCamera(game) {
 // Phases
 // ---------------------------------------------------------------------------
 
-const MOUNT = { graphic: mountPoster, visual: mountHierarchy, product: mountFlow };
 const FLING = {
   graphic: [{ c: '#c8553d', shape: 'circle' }, { c: '#e3b13c', shape: 'bar' }, { c: '#8fae8b', shape: 'tri' }],
   visual: [{ c: '#b79ad8', shape: 'bar' }, { c: '#f2b58a', shape: 'bar' }, { c: '#8fae8b', shape: 'bar' }],
@@ -142,31 +123,30 @@ async function attackWarning(game, arm) {
   g.attack(arm);
 }
 
-// Phases 1, 3, 4: puzzle panels
-async function puzzlePhase(game, ph) {
+// Phases 1, 3, 4: the boy handles each design challenge himself. The pieces
+// the arm throws at him snap together into a finished design above his head.
+async function designPhase(game, ph) {
   const g = game.golem;
+  const { player, audio } = game;
   const arm = ARM_OF[ph.id];
-  game.bubbles.say(game.girl, ph.girl, { duration: 4.5 });
+  game.bubbles.say(game.girl, ph.girl, { duration: 3.5 });
   await attackWarning(game, arm);
-  game.audio.sfx(ph.id === 'graphic' ? 'splat' : ph.id === 'visual' ? 'prism' : 'holo');
-  g.throwAt(arm, game.player, FLING[ph.id]);
-  await wait(game, 0.55);
+  audio.sfx(ph.id === 'graphic' ? 'splat' : ph.id === 'visual' ? 'prism' : 'holo');
+  g.throwAt(arm, player, FLING[ph.id]);
+  await wait(game, 0.7);
   g.hold(arm);
-  const body = openPanel(ph);
-  await new Promise((resolve) => {
-    let done = false;
-    const finish = () => { if (done) return; done = true; resolve(); };
-    const handle = MOUNT[ph.id](body, {
-      audio: game.audio,
-      onMiss: () => { g.goofy(); game.audio.sfx('laugh'); },
-      onPlace: () => { g.nod(); game.audio.sfx('clank'); },
-      onDone: finish,
-    });
-    game.activePuzzle = { solveNow: () => { handle.solveNow(); setTimeout(finish, 50); }, destroy: handle.destroy };
-    if (game.fastForward) game.activePuzzle.solveNow();
-  });
-  closePanel(game);
-  game.activePuzzle = null;
+  // he catches the pieces and puts them together
+  player.facing = 1;
+  g.showDesign(ph.id, player);
+  tip(`${ph.title} · ${ph.discipline}`);
+  for (let i = 0; i < 3; i++) {
+    await wait(game, REDUCED_MOTION ? 0.25 : 0.42);
+    audio.sfx('place');
+  }
+  await wait(game, 0.5);
+  game.renderer.sparkle(player.x, player.y - 120, 12);
+  audio.sfx('success');
+  await wait(game, REDUCED_MOTION ? 0.5 : 0.9);
   g.recover(arm);
 }
 
@@ -249,7 +229,7 @@ async function shutDown(game, ph) {
 
 async function runPhase(game, ph) {
   if (ph.id === 'motion') await motionPhase(game, ph);
-  else await puzzlePhase(game, ph);
+  else await designPhase(game, ph);
   await shutDown(game, ph);
 }
 
@@ -389,54 +369,4 @@ async function victory(game) {
   game.openStationGate();
   game.story.save();
   await wait(game, 0.5);
-}
-
-// The Boss Book: replay one challenge. The golem wakes up, relights that one arm,
-// and settles back down when it's done.
-export async function golemReplay(game) {
-  const id = game.bossReplay || 'graphic';
-  const ph = BOSS.phases.find((p) => p.id === id);
-  const g = game.golem;
-  const { girl, audio } = game;
-  let release = null;
-  bossBegin(game);
-  try {
-    release = await setUp(game);
-    g.rest = false;
-    g.awake = true;
-    g.sitT = 0; g.headT = 0; g.eyesT = 1; g.darkT = 0.6; g.weakT = 0;
-    for (const a of Object.values(g.arms)) { a.droopT = 0.55; }
-    audio.sfx('whirr');
-    await wait(game, 1.0);
-    g.relight(ARM_OF[id]);
-    audio.sfx('powerup');
-    updateSystems(game);
-    banner('REPLAY', `Phase ${ph.num} · ${ph.title}`, 'battle');
-    await wait(game, 1.2);
-    await runPhase(game, ph);
-    for (const a of Object.values(g.arms)) a.droopT = 1;
-    g.eyesT = 0.2;
-    g.sitT = 1;
-    g.headT = 0.35;
-    g.darkT = 0;
-    audio.sfx('sitdown');
-    await wait(game, 1.2);
-    g.setRest(true);
-  } finally {
-    if (release) release();
-    girl.scripted = false;
-    girl.autopilot = null;
-    bossEnd(game);
-  }
-}
-
-export function bossBookCard(game) {
-  const rows = BOSS.phases.map((p) => `
-    <li><div><strong>Phase ${p.num} · ${p.title}</strong><span>${p.discipline} · ${p.arm}</span></div>
-    <button type="button" class="pixel-btn pixel-btn--small" data-replay="${p.id}">Replay ▸</button></li>`).join('');
-  return {
-    eyebrow: 'The Four-Armed Creative Golem',
-    title: 'Boss Book',
-    html: `<p>One designer, four creative hats. Replay any challenge. The golem doesn't mind; it rather enjoys it.</p><ol class="boss-book">${rows}</ol>`,
-  };
 }
