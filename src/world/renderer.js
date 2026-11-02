@@ -11,12 +11,35 @@ import * as Ind from './industrial.js';
 import * as Forest from './forest.js';
 import * as Studio from './studio.js';
 import * as Campus from './campus.js';
+import * as Camp from './camp.js';
 import {
   TERRAIN, BRIDGE, PLATFORMS, CRATES, PROPS, LIGHTS, SMOKE, STEAM, WATERFALL, POND,
   REGIONS, HALL, CONVEYOR, PORTAL, STREAM, WOOD_BRIDGE, STATION, HILL, ISLANDS,
   STATIONS, DESIGN_WALL, ACADEMY, INTERIOR,
   CAMPUS, CLASSROOM, LIBRARY, LAB, FOUNDATION, MENTOR, PRINCIPLES, areaOf,
+  CAMP, SCHOOL, OVERLOOK, MEMORIES,
 } from './level.js';
+
+// cached crisp text images (drawn every frame on the blackboards and canvas)
+const TEXT_CACHE = new Map();
+function textImg(text, size = 8, color = '#e8f0e0', font = 'Silkscreen', shadow = null) {
+  const key = `${text}|${size}|${color}|${font}|${shadow}`;
+  let c = TEXT_CACHE.get(key);
+  if (!c) {
+    [c] = makeCanvas(text.length * size + 16, size * 2 + 6);
+    Art.pixelTextOn(c.getContext('2d'), text, c.width / 2, 2, size, color, shadow, font);
+    TEXT_CACHE.set(key, c);
+  }
+  return c;
+}
+// draw text left-aligned at (x, y), revealed left-to-right by k (chalk writing)
+function chalk(ctx, text, x, y, k = 1, color = '#e8f0e0', size = 8) {
+  const img = textImg(text, size, color);
+  const tw = text.length * size * 0.78;
+  const left = Math.round(img.width / 2 - tw / 2 - 2);
+  const w = Math.max(0, Math.round((tw + 6) * Math.min(1, k)));
+  if (w > 0) ctx.drawImage(img, left, 0, w, img.height, Math.round(x), Math.round(y), w, img.height);
+}
 
 // The seven design principles on the Foundation Wall, as small pixel symbols.
 export function drawPrinciple(ctx, id, x, y, lit) {
@@ -246,7 +269,7 @@ export class WorldRenderer {
     this.blades = [];
     const br = rng(29);
     for (const [x0, x1, top, mat] of TERRAIN) {
-      if (mat === 'concrete' || mat === 'factory' || mat === 'studio' || mat === 'campus') continue;
+      if (mat === 'concrete' || mat === 'factory' || mat === 'studio' || mat === 'campus' || mat === 'classroom') continue;
       for (let x = x0 + 2; x < x1 - 2; x += br.int(3, 7)) {
         const t = (x - x0) / (x1 - x0);
         if (mat === 'toConcrete' && br() < t * 1.2) continue;
@@ -325,6 +348,31 @@ export class WorldRenderer {
       this.mentorSignImg = mc;
     }
 
+    // --- stage 6 + 7
+    this.seen = new Set();          // shared with the story (set by the game)
+    this.mentorWriting = false;
+    this.board = { phase: 'idle', step: 0, stepT: 0, second: 0, transform: 0, glow: 0 };
+    this.teacherWriting = false;
+    this.memIslands = MEMORIES.map((m, i) => ({ ...m, img: Camp.makeMemoryCanvas(m.id, m.num, m.name, rng(900 + i)), lit: 0, on: false, p: i * 1.1 }));
+    this.memLinks = 0;
+    this.memLinksOn = false;
+    this.canvasOn = 0;
+    this.canvasTarget = 0;
+    this.finaleGate = 0;
+    this.finaleTarget = 0;
+    {
+      const [cc, cctx] = makeCanvas(224, 100);
+      Art.pixelTextOn(cctx, "I'M JUST", 112, 8, 16, '#ffe8a8', '#5a3a1a', 'Pixelify Sans');
+      Art.pixelTextOn(cctx, 'GETTING STARTED.', 112, 30, 16, '#ffe8a8', '#5a3a1a', 'Pixelify Sans');
+      Art.pixelTextOn(cctx, 'UNDERSTANDING PROBLEMS.', 112, 62, 8, '#cfe2ff', '#1a2a4a');
+      Art.pixelTextOn(cctx, 'EXPLORING POSSIBILITIES.', 112, 73, 8, '#cfe2ff', '#1a2a4a');
+      Art.pixelTextOn(cctx, 'DESIGNING MEANINGFUL EXPERIENCES.', 112, 84, 8, '#cfe2ff', '#1a2a4a');
+      this.canvasImg = cc;
+    }
+    for (let i = 0; i < (REDUCED_MOTION ? 0 : 40); i++) {
+      this.fireflies.push({ ax: pr.range(16000, 17500), ay: G - pr.range(10, 160), p: pr.range(0, 10), s: pr.range(0.3, 0.9), c: pr.pick(['#fff2a8', '#ffe2a0', '#b8f4ff']) });
+    }
+
     // conveyor boxes and the press
     this.boxes = [];
     this.boxTimer = 0;
@@ -345,6 +393,9 @@ export class WorldRenderer {
       if (mat === 'forest') Forest.paintForestGround(ctx, r, x0, x1, top, bottom);
       else if (mat === 'studio') Studio.paintStudioFloor(ctx, r, x0, x1, top, bottom);
       else if (mat === 'campus') Campus.paintCampusGround(ctx, r, x0, x1, top, bottom);
+      else if (mat === 'campforest') Camp.paintCampGround(ctx, r, x0, x1, top, bottom);
+      else if (mat === 'overlook') Camp.paintOverlookGround(ctx, r, x0, x1, top, bottom);
+      else if (mat === 'classroom') Camp.paintClassroomFloor(ctx, r, x0, x1, top, bottom);
       else Ind.paintGround(ctx, r, x0, x1, top, bottom, mat);
     }
 
@@ -422,6 +473,17 @@ export class WorldRenderer {
         case 'foundationWall': Campus.paintFoundationWall(ctx, FOUNDATION.x0, gy); break;
         case 'fountain': Campus.paintFountain(ctx, p.x, gy); break;
         case 'mentorPath': Campus.paintMentorPath(ctx, r, p.x, gy); break;
+        case 'campArrival': Camp.paintCampArrival(ctx, p.x, gy); break;
+        case 'campLantern': Camp.paintCampLantern(ctx, p.x, gy); break;
+        case 'campStream': Camp.paintCampStream(ctx, r, CAMP.stream.x0, CAMP.stream.x1, G, WORLD.height + 10); break;
+        case 'mentorSign': Camp.paintMentorSign(ctx, p.x, gy); break;
+        case 'cabin': Camp.paintCabin(ctx, r, CAMP.cabin.x0, CAMP.cabin.x1, gy); break;
+        case 'nextChapterSign': Camp.paintNextChapterSign(ctx, p.x, gy); break;
+        case 'overlookRocks': Camp.paintOverlookRocks(ctx, p.x, gy); break;
+        case 'platform': Camp.paintPlatform(ctx, OVERLOOK.platform.x0, OVERLOOK.platform.x1, OVERLOOK.platform.top, G); break;
+        case 'designCanvas': this.canvasRect = Camp.paintDesignCanvas(ctx, p.x, OVERLOOK.platform.top); break;
+        case 'chapterGate': Camp.paintChapterGate(ctx, p.x, gy); break;
+        case 'schoolroom': Camp.paintSchoolroom(ctx, r, SCHOOL.x0, SCHOOL.x1, gy); break;
         case 'bannerPole':
           px(ctx, '#3a2a35', p.x - 1, gy - 78, 3, 78);
           px(ctx, '#f5c35b', p.x - 2, gy - 81, 5, 3);
@@ -466,6 +528,16 @@ export class WorldRenderer {
         }
       }
     }
+    // stage 6 + 7 animations
+    const b = this.board;
+    if (b.phase === 'demo' && b.step < 4) { b.stepT += dt; if (b.stepT > 1.7) { b.stepT = 0; b.step++; this.events.push({ type: 'chalk' }); } }
+    if (b.phase === 'second') b.second = Math.min(0.55, b.second + dt * 0.05);     // the teacher writes slowly
+    if (b.phase === 'transform') b.transform = Math.min(1, b.transform + dt / (REDUCED_MOTION ? 0.5 : 7));
+    b.glow += ((b.phase === 'transform' ? 1 : 0) - b.glow) * Math.min(1, dt * 1.5);
+    for (const m of this.memIslands) if (m.on && m.lit < 1) m.lit = Math.min(1, m.lit + dt * 1.5);
+    if (this.memLinksOn && this.memLinks < 1) this.memLinks = Math.min(1, this.memLinks + dt / (REDUCED_MOTION ? 0.1 : 3));
+    this.canvasOn += (this.canvasTarget - this.canvasOn) * Math.min(1, dt * 0.8);
+    this.finaleGate += (this.finaleTarget - this.finaleGate) * Math.min(1, dt * 0.7);
     // stage 5 animations
     this.gateOpen += (this.gateTarget - this.gateOpen) * Math.min(1, dt * 1.6);
     this.mentorSign += (this.mentorTarget - this.mentorSign) * Math.min(1, dt * 0.9);
@@ -641,6 +713,24 @@ export class WorldRenderer {
       ctx.fillStyle = `rgba(170,92,52,${0.16 * ind})`;
       ctx.fillRect(0, 0, W, H);
     }
+    // the mentor's camp at dusk, the overlook at sunrise
+    const mid = cam.x + W / 2;
+    const dusk = Math.max(0, Math.min(1, (mid - 15950) / 250)) * (1 - Math.max(0, Math.min(1, (mid - 17350) / 450)));
+    if (dusk > 0.01 && mid < 19360) {
+      ctx.fillStyle = `rgba(70, 40, 110, ${0.32 * dusk})`;
+      ctx.fillRect(0, 0, W, H);
+    }
+    const dawn = Math.max(0, Math.min(1, (mid - 17400) / 450));
+    if (dawn > 0.01 && mid < 19360) {
+      ctx.globalCompositeOperation = 'lighter';
+      const sg = ctx.createLinearGradient(0, 0, 0, H);
+      sg.addColorStop(0, `rgba(255, 200, 120, ${0.05 * dawn})`);
+      sg.addColorStop(0.7, `rgba(255, 170, 90, ${0.22 * dawn})`);
+      sg.addColorStop(1, 'rgba(255, 170, 90, 0)');
+      ctx.fillStyle = sg;
+      ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'source-over';
+    }
     const gw = gatewayAt(cam.x + W / 2);
     if (gw > 0.01) {
       ctx.fillStyle = `rgba(110,80,200,${0.14 * gw})`;
@@ -653,6 +743,7 @@ export class WorldRenderer {
     this.drawForest(ctx, cam);
     this.drawStudio(ctx, cam);
     this.drawCampus(ctx, cam);
+    this.drawCamp(ctx, cam);
     this.drawWater(ctx, cam);
     ctx.drawImage(this.bridge, Math.round(BRIDGE.x0 - 12 - cam.x), Math.round(-OY - cam.y));
     this.drawSmoke(ctx, cam);
@@ -780,6 +871,244 @@ export class WorldRenderer {
       }
       ctx.globalAlpha = 1;
     }
+  }
+
+  // -------------------------------------------------------------- stage 6 + 7
+  drawCamp(ctx, cam) {
+    const W = cam.viewW;
+    const t = this.time;
+    if (cam.x + W < CAMP.x0) return;
+    const gy = G - cam.y;
+    const area = areaOf(cam.x + W / 2).id;
+    if (area === 'camp') {
+      // the mentor, by his blackboard
+      const mx = CAMP.mentor - cam.x;
+      if (mx > -40 && mx < W + 40) {
+        Camp.drawMentor(ctx, mx, gy, t, { talking: this.mentorTalking, writing: this.mentorWriting });
+        const bx = CAMP.cabin.x0 + 175 - cam.x, by = G - 176 + 66 - cam.y;
+        chalk(ctx, 'HOW DO YOU', bx + 6, by + 6, this.mentorBoard || 0);
+        chalk(ctx, 'APPROACH A', bx + 6, by + 18, (this.mentorBoard || 0) - 1);
+        chalk(ctx, 'PROBLEM?', bx + 6, by + 30, (this.mentorBoard || 0) - 2, '#ffe28a');
+      }
+      // the path to the next chapter glows once the mentor has spoken
+      if (this.seen.has('mentor-return')) {
+        const sx = CAMP.nextSign - cam.x;
+        if (sx > -200 && sx < W + 200) {
+          for (let i = 0; i < 24; i++) {
+            const life = (t * 0.3 + i / 24) % 1;
+            ctx.globalAlpha = 1 - life;
+            px(ctx, i % 2 ? '#ffe8a8' : '#ffd98a', sx - 60 + ((i * 37) % 180) + life * 30, gy - 4 - life * 40, 1, 1);
+          }
+          ctx.globalAlpha = 1;
+        }
+      }
+      this.drawOverlook(ctx, cam);
+    }
+    if (area === 'classroom') this.drawSchool(ctx, cam);
+  }
+
+  drawOverlook(ctx, cam) {
+    const W = cam.viewW;
+    const t = this.time;
+    if (cam.x + W < OVERLOOK.x0 + 100) return;
+    // the six memories floating above, joined by glowing paths
+    if (this.memLinks > 0) {
+      const pts = this.memIslands.map((m) => ({ x: m.x, y: m.y + 40 }));
+      const hub = { x: (OVERLOOK.platform.x0 + OVERLOOK.platform.x1) / 2, y: OVERLOOK.platform.top - 60 };
+      const pairs = [];
+      for (let i = 0; i < pts.length - 1; i++) pairs.push([pts[i], pts[i + 1]]);
+      pts.forEach((p) => pairs.push([p, hub]));
+      ctx.globalCompositeOperation = 'lighter';
+      pairs.forEach(([a, b], idx) => {
+        const k = Math.max(0, Math.min(1, this.memLinks * pairs.length * 0.45 - idx * 0.4));
+        if (k <= 0) return;
+        const mx = (a.x + b.x) / 2, my = Math.min(a.y, b.y) - (idx < 5 ? 22 : -10);
+        for (let s = 0; s <= 50 * k; s++) {
+          const u = s / 50;
+          const x = (1 - u) * (1 - u) * a.x + 2 * (1 - u) * u * mx + u * u * b.x - cam.x;
+          const y = (1 - u) * (1 - u) * a.y + 2 * (1 - u) * u * my + u * u * b.y - cam.y;
+          ctx.globalAlpha = 0.35 + 0.5 * (Math.sin(u * 10 - t * 4 + idx) + 1) / 2;
+          px(ctx, idx < 5 ? '#ffd98a' : '#8eeaff', x, y, 2, 2);
+        }
+      });
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+    }
+    for (const m of this.memIslands) {
+      const x = Math.round(m.x - 80 - cam.x);
+      const y = Math.round(m.y - 70 - cam.y + (REDUCED_MOTION ? 0 : Math.sin(t * 0.8 + m.p) * 2));
+      if (x > W + 10 || x + 160 < -10) continue;
+      if (m.lit > 0) {
+        ctx.globalCompositeOperation = 'lighter';
+        const hg = ctx.createRadialGradient(x + 80, y + 66, 4, x + 80, y + 66, 76);
+        hg.addColorStop(0, `rgba(255, 210, 140, ${0.35 * m.lit})`);
+        hg.addColorStop(1, 'rgba(255, 210, 140, 0)');
+        ctx.fillStyle = hg;
+        ctx.fillRect(x, y - 10, 160, 160);
+        ctx.globalCompositeOperation = 'source-over';
+      }
+      ctx.globalAlpha = 0.55 + 0.45 * m.lit;
+      ctx.drawImage(m.img, x, y);
+      ctx.globalAlpha = 1;
+    }
+    // the design canvas lights up with what he's set out to do
+    if (this.canvasRect && this.canvasOn > 0.01) {
+      const r = this.canvasRect;
+      const x = r.bx - cam.x, y = r.by - cam.y;
+      ctx.globalAlpha = this.canvasOn;
+      for (let j = 0; j < r.h; j++) px(ctx, mix('#3a2a6a', '#7a4a8a', j / r.h), x, y + j, r.w, 1);
+      ctx.drawImage(this.canvasImg, Math.round(x + r.w / 2 - 112), Math.round(y - 4));
+      ctx.globalAlpha = 1;
+    }
+    // the Chapter 02 gateway opens onto a new, unexplored world
+    const gx = OVERLOOK.gate - cam.x;
+    if (gx > -120 && gx < W + 120) {
+      const k = this.finaleGate;
+      const top = G - 190 - cam.y, gy = G - cam.y;
+      // the world beyond (seen through the opening)
+      for (let j = 0; j < 190; j++) px(ctx, mix('#fff2c4', '#f5a24a', j / 190), gx - 64, top + j, 128, 1);
+      for (let x = 0; x < 128; x++) {
+        const h = 40 + Math.round(Math.sin(x * 0.08) * 14 + Math.sin(x * 0.21) * 6);
+        px(ctx, '#c88aa0', gx - 64 + x, gy - h, 1, h);
+      }
+      for (const [ix, iy, iw] of [[-40, 60, 22], [10, 40, 30], [36, 78, 16]]) {
+        px(ctx, '#a07a9a', gx + ix, top + iy, iw, 4);
+        for (let j = 0; j < 6; j++) px(ctx, '#a07a9a', gx + ix + j, top + iy + 4 + j, iw - j * 2, 1);
+      }
+      px(ctx, '#e8d0b0', gx - 4, gy - 30, 8, 30);
+      // the doors slide apart
+      const doorW = Math.round(64 * (1 - k));
+      for (const side of [-1, 1]) {
+        if (doorW <= 0) continue;
+        const x0 = side < 0 ? gx - 64 : gx + 64 - doorW;
+        px(ctx, '#7a6a7a', x0, top, doorW, 190);
+        for (let y = top + 8; y < gy; y += 22) px(ctx, '#5a4a5a', x0, y, doorW, 2);
+        px(ctx, '#f5c35b', side < 0 ? x0 + doorW - 2 : x0, top, 2, 190);
+        if (doorW > 20) px(ctx, '#ffd98a', side < 0 ? x0 + doorW - 14 : x0 + 8, top + 90, 6, 10);
+      }
+      if (k > 0.05) {
+        ctx.globalCompositeOperation = 'lighter';
+        for (let i = 0; i < 20; i++) {
+          const life = (t * 0.35 + i / 20) % 1;
+          ctx.globalAlpha = k * (1 - life);
+          px(ctx, i % 2 ? '#ffe8a8' : '#ffffff', gx + Math.sin(i * 9.1 + t) * 50, gy - 10 - life * 170, 1, 1);
+        }
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'source-over';
+      }
+    }
+  }
+
+  drawSchool(ctx, cam) {
+    const W = cam.viewW;
+    const t = this.time;
+    const gy = G - cam.y;
+    Camp.drawCeilingFan(ctx, SCHOOL.x0 + 200 - cam.x, G - 236 - cam.y + 6, REDUCED_MOTION ? 0 : t);
+    Camp.drawCeilingFan(ctx, SCHOOL.x0 + 640 - cam.x, G - 236 - cam.y + 6, REDUCED_MOTION ? 0.5 : t + 0.5);
+    Camp.drawTeacher(ctx, SCHOOL.teacher - cam.x, gy, t, this.teacherWriting);
+    // the blackboard
+    const bx = SCHOOL.x0 + 400 - cam.x, by = G - 186 - cam.y;
+    const B = this.board;
+    const T = B.transform;
+    const fade = Math.max(0, 1 - T * 4);           // chalk fades as the transformation begins
+    if (B.phase !== 'idle' && fade > 0) {
+      ctx.globalAlpha = fade;
+      // left: the teacher's example
+      chalk(ctx, '48 × 5 = ?', bx + 10, by + 8, 1, '#ffffff');
+      const lines = ['× 5 = × 10, then ÷ 2', '48 × 10 = 480', '480 ÷ 2 = 240'];
+      lines.forEach((l, i) => {
+        const k = B.phase === 'demo' ? (B.step > i + 1 ? 1 : B.step === i + 1 ? B.stepT / 1.2 : 0) : 1;
+        chalk(ctx, l, bx + 10, by + 30 + i * 18, k);
+      });
+      if (B.phase !== 'demo' || B.step > 3) chalk(ctx, '240', bx + 86, by + 8, 1, '#ffe28a');
+      // right: the new problem
+      if (B.phase !== 'demo') {
+        px(ctx, '#e8f0e0', bx + 122, by + 8, 1, 92);
+        chalk(ctx, '64 × 5 = ?', bx + 132, by + 8, 1, '#ffffff');
+        chalk(ctx, '64 × 10 = 640', bx + 132, by + 30, B.second / 0.55 * 0.6);
+        if (B.phase === 'solved' || B.phase === 'transform') {
+          chalk(ctx, '× 5 = × 10, then ÷ 2', bx + 132, by + 48, 1, '#8eeaff');
+          chalk(ctx, '640 ÷ 2 = 320', bx + 132, by + 66, 1, '#8eeaff');
+          chalk(ctx, '320 ✓', bx + 132, by + 86, 1, '#9effc8');
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
+    if (T > 0) this.drawBoardTransform(ctx, bx, by, T);
+    if (B.glow > 0.01) {
+      ctx.globalCompositeOperation = 'lighter';
+      const rg = ctx.createRadialGradient(bx + 120, by + 54, 10, bx + 120, by + 54, 170);
+      rg.addColorStop(0, `rgba(160, 220, 255, ${0.28 * B.glow})`);
+      rg.addColorStop(1, 'rgba(160, 220, 255, 0)');
+      ctx.fillStyle = rg;
+      ctx.fillRect(bx - 60, by - 60, 360, 240);
+      ctx.globalCompositeOperation = 'source-over';
+    }
+  }
+
+  // Maths → connected nodes → a user flow → a wireframe → a finished interface.
+  drawBoardTransform(ctx, bx, by, T) {
+    const C = '#e8f0e0';
+    const seg = (a, b) => Math.max(0, Math.min(1, (T - a) / (b - a)));
+    const steps = [[30, 30], [30, 48], [30, 66], [150, 30], [150, 48], [150, 66]];
+    const k1 = seg(0.08, 0.28);    // nodes appear and connect
+    const k2 = seg(0.28, 0.5);     // nodes become flow boxes
+    const k3 = seg(0.5, 0.72);     // boxes gather into a wireframe
+    const k4 = seg(0.72, 0.95);    // the wireframe becomes a polished interface
+    if (k3 < 1) {
+      ctx.globalAlpha = 1 - k3;
+      steps.forEach(([x, y], i) => {
+        if (k1 <= i / 6) return;
+        const w = Math.round(4 + k2 * 30), h = Math.round(4 + k2 * 10);
+        const cx = bx + x + k2 * (i % 3) * 8, cy = by + y + 4;
+        px(ctx, C, cx - w / 2, cy - h / 2, w, h);
+        px(ctx, '#2f4a3a', cx - w / 2 + 1, cy - h / 2 + 1, w - 2, h - 2);
+        if (k2 > 0.5) px(ctx, C, cx - w / 2 + 3, cy - 1, Math.max(1, w - 10), 1);
+        if (i > 0 && k1 > (i + 0.5) / 6) {
+          const [px0, py0] = steps[i - 1];
+          line(ctx, '#8eeaff', bx + px0 + k2 * ((i - 1) % 3) * 8, by + py0 + 4, cx, cy);
+        }
+      });
+      ctx.globalAlpha = 1;
+    }
+    if (k3 > 0) {
+      // the phone wireframe takes shape in the middle of the board
+      const fx = bx + 90, fy = by + 6, fw = 60, fh = 96;
+      ctx.globalAlpha = k3;
+      px(ctx, C, fx, fy, fw, fh);
+      px(ctx, '#2f4a3a', fx + 2, fy + 2, fw - 4, fh - 4);
+      const polish = k4;
+      const col = (a, b) => (polish > 0.5 ? b : a);
+      px(ctx, col(C, '#4fb3a8'), fx + 6, fy + 8, fw - 12, 8);
+      px(ctx, col('#2f4a3a', '#f6f0e6'), fx + 6, fy + 20, fw - 12, 54 * Math.max(0.01, polish));
+      px(ctx, col(C, '#2b2330'), fx + 8, fy + 22, 30, 4);
+      px(ctx, col(C, '#ffd98a'), fx + 8, fy + 30, fw - 16, 18);
+      if (polish < 0.5) { line(ctx, C, fx + 8, fy + 30, fx + fw - 8, fy + 48); line(ctx, C, fx + fw - 8, fy + 30, fx + 8, fy + 48); }
+      px(ctx, col(C, '#c8c0b8'), fx + 8, fy + 54, fw - 20, 3);
+      px(ctx, col(C, '#c8c0b8'), fx + 8, fy + 60, fw - 26, 3);
+      px(ctx, col(C, '#e06a8a'), fx + 8, fy + 78, fw - 16, 10);
+      if (polish > 0.5) px(ctx, '#ffffff', fx + 20, fy + 82, fw - 40, 2);
+      ctx.globalAlpha = 1;
+    }
+    // OBSERVE → UNDERSTAND → RECOGNISE → SOLVE, either side of the new interface
+    const words = ['OBSERVE', 'UNDERSTAND', 'RECOGNISE', 'SOLVE'];
+    const pos = [[bx + 8, by + 28], [bx + 8, by + 56], [bx + 156, by + 28], [bx + 156, by + 56]];
+    words.forEach((w, i) => {
+      const k = seg(0.25 + i * 0.16, 0.33 + i * 0.16);
+      if (k <= 0) return;
+      ctx.globalAlpha = k;
+      chalk(ctx, `${i + 1} ${w}`, pos[i][0], pos[i][1], 1, i === 3 ? '#9effc8' : '#ffe28a');
+      if (i < 3) chalk(ctx, '→', pos[i][0] + (i === 1 ? 74 : 30), pos[i][1] + 12, 1, '#8eeaff');
+      ctx.globalAlpha = 1;
+    });
+  }
+
+  lightMemory(i) {
+    const m = this.memIslands[i];
+    if (!m || m.on) return;
+    m.on = true;
+    if (REDUCED_MOTION) m.lit = 1;
+    this.sparkle(m.x, m.y + 20, 14);
   }
 
   // -------------------------------------------------------------- stage 5
@@ -1326,7 +1655,7 @@ export class WorldRenderer {
     // petals (screen space with parallax) belong to the green parts of the world;
     // the factory has drifting dust in the window light instead
     const ind = industryAt(cam.x + W / 2);
-    const indoors = areaOf(cam.x + W / 2).id === 'studio';
+    const indoors = ['studio', 'classroom'].includes(areaOf(cam.x + W / 2).id);
     const petalCount = indoors ? 0 : Math.round(this.petals.length * (1 - ind));
     for (let i = 0; i < this.motes.length; i++) {
       const m = this.motes[i];
@@ -1347,7 +1676,7 @@ export class WorldRenderer {
 
     // foreground foliage (parallax 1.25) framing the bottom edge (not indoors)
     const bottomY = H + 4;
-    for (const f of (areaOf(cam.x + W / 2).id === 'studio' ? [] : this.fg)) {
+    for (const f of (['studio', 'classroom'].includes(areaOf(cam.x + W / 2).id) ? [] : this.fg)) {
       const x = Math.round(f.x - cam.x * 1.25);
       if (x < -40 || x > W + 40) continue;
       const sway = REDUCED_MOTION ? 0 : Math.sin(t * 1.4 + f.p) * 1.5;
@@ -1414,6 +1743,7 @@ export class WorldRenderer {
       const x = L.x - cam.x, y = L.y - cam.y;
       if (x < -L.r || x > W + L.r || y < -L.r || y > H + L.r) continue;
       if (L.station && !(this.stations[L.station] && this.stations[L.station].on)) continue;
+      if (L.after && !this.seen.has(L.after)) continue;
       let k = REDUCED_MOTION ? 1 : 0.85 + Math.sin(t * 7 + L.x) * 0.06 + Math.sin(t * 13 + L.y) * 0.05;
       if (L.kind === 'beacon') k = REDUCED_MOTION ? 0.6 : 0.25 + 0.75 * Math.max(0, Math.sin(t * 4 + L.x));
       if (L.kind === 'bulb') k = REDUCED_MOTION ? 0.9 : 0.75 + 0.25 * Math.sin(t * 3 + L.x * 0.7);

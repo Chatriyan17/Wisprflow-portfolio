@@ -1025,6 +1025,6 @@ export function paintPlatform(ctx, rand, p) {
   }
 }
 
-export function pixelTextOn(ctx, text, x, y, size, color, shadow) {
-  pixelText(ctx, text, x, y, { size, color, align: 'center', shadow });
+export function pixelTextOn(ctx, text, x, y, size, color, shadow, font) {
+  pixelText(ctx, text, x, y, { size, color, align: 'center', shadow, ...(font ? { font } : {}) });
 }

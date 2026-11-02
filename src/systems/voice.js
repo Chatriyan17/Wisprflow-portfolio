@@ -14,6 +14,7 @@ const PROFILES = {
   // basic ones, and keep their natural pitch: bending pitch is what makes speech sound robotic.
   boy: { prefer: ['prabhat', 'rishi', 'ravi', 'andrew', 'brian', 'guy', 'christopher', 'ryan', 'google uk english male', 'daniel', 'alex', 'aaron', 'david', 'male'], gender: 'male', pitch: 0.98, rate: 1.0 },
   girl: { prefer: ['neerja', 'veena', 'heera', 'ava', 'emma', 'jenny', 'aria', 'sonia', 'libby', 'google uk english female', 'samantha', 'karen', 'zira', 'female'], gender: 'female', pitch: 1.05, rate: 1.02 },
+  mentor: { prefer: ['madhur', 'ravi', 'guy', 'george', 'daniel', 'thomas', 'male'], gender: 'male', pitch: 0.9, rate: 0.94 },
   friend: { prefer: ['kunal', 'ravi', 'eric', 'roger', 'steffan', 'thomas', 'george', 'fred', 'google us english', 'male'], gender: 'male', pitch: 0.92, rate: 0.97 },
 };
 

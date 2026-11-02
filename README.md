@@ -8,6 +8,8 @@ Built so far:
 
 - **Stage 1: World foundation.** The opening village, the two original characters, the camera, both navigation modes, dialogue and interaction.
 - **Stage 2: The Old Workshop** (Chapter 01 · Part 02). The road from the village into an industrial district, the factory hall, the break yard where friends first mention UX, and the gateway to the World of UX.
+- **Stage 7: The Awakening** (Chapter 01 · Final part). The Great Overlook at sunrise: the whole journey lit up and connected, the designer identity, and the gateway to Chapter 02. **Chapter 01 is complete.**
+- **Stage 6: The Mentor's Camp** (Chapter 01 · Part 06). Mentorship from UX Anuji, and a playable school memory that reveals where the design thinking began.
 - **Stage 5: The Knowledge Academy** (Chapter 01 · Part 05). Master of Design in Interaction Design at Lovely Professional University, Punjab: a magical campus with learning halls, a playable interaction-design puzzle, the Foundation Wall and the first signal of the Mentor's Camp.
 - **Stage 4: The First Design Studio** (Chapter 01 · Part 04). Inside Balwa HCM Cloud Suite: the one-person design team, four creative stations, the creative hats, the missing piece, and the door to the Knowledge Academy.
 - **Stage 3: The Discovery Path** (Chapter 01 · Part 03). Through the gateway into a magical forest: the first question, the learning station with the Google UX Design course on Coursera, six industry islands rising and connecting, and the door of the first design studio.
@@ -39,6 +41,24 @@ It deploys as-is to GitHub Pages, Netlify, Vercel or any static host.
 - **Skip to story** opens the whole chapter as plain text, for visitors who'd rather read.
 - `prefers-reduced-motion` is respected: no camera pan, particles or typewriter effect.
 - Both modes share the same world, the same story beats and the same progress.
+
+### What's in Stage 6
+
+- **To the camp.** The lantern path from the campus courtyard leads to an evening forest, with a "Chapter 01 · Part 06 · Discovering the designer within" card. There are fireflies, a stream with a little bridge, the camp sign, and a cutaway cabin full of books, sketchboards and lanterns.
+- **The mentor.** UX Anuji appears only as a calm silhouette with a warm rim light, with no likeness invented. He writes his question on his blackboard: "How do you approach a problem?"
+- **The school memory.** It has its own full classroom (not a popup): morning sunlight, a ceiling fan, a clock, desks, school bags and a big blackboard. He appears as a **younger version of himself**, baked from the same reference sheet. The companion watches from the back of the room.
+- **"The way I think" puzzle.** The teacher demonstrates 48 × 5 step by step (× 5 is the same as × 10, then ÷ 2). A new problem, 64 × 5, appears while the teacher is still writing. The visitor puts the solution steps in order. There's a distractor step, a hint, start again, immediate feedback, a small celebration, and a "Show me how he did it" option. There are no timers. In Explore World you walk up to the blackboard and press E; in Scroll Journey it opens by itself.
+- **The realisation and transformation.** The conversation plays, a moment of silence follows, and then the blackboard transforms: the maths steps become connected nodes, the nodes a user flow, the flow a wireframe, and the wireframe a finished interface. OBSERVE → UNDERSTAND → RECOGNISE → SOLVE is written alongside. The camera pulls back for "Maybe you've been thinking like a designer for much longer than you realised." Then comes the statement *"My design thinking didn't start with design. It started with understanding how problems work."*
+- **Back at the camp.** UX Anuji's closing words, the boy's reply, and the glowing path to *THE NEXT CHAPTER*.
+
+### What's in Stage 7
+
+- **The Great Overlook.** The evening forest opens onto a sunrise. A slow pull-back reveals six miniature floating worlds, one for each part of the journey.
+- **The recap.** Each world lights up in turn with its title and a one-line description. Then they connect with glowing paths into one continuous journey while he sums up what each one taught him.
+- **The designer identity.** On the observation platform a design canvas lights up: *"I'M JUST GETTING STARTED. Understanding problems. Exploring possibilities. Designing meaningful experiences."*
+- **The Chapter 02 gateway.** A huge stone gateway with golden edges opens onto an unexplored world. E (or Scroll Journey) shows *Chapter 01 · Complete: Where it all began*, with the full journey and *Chapter 02 · The Journey Continues*. Chapter 02's content is deliberately left open.
+- **Revisit anything.** Pressing E under a floating world gives its recap and a **Travel there** button, or **Relive the memory** for the classroom. Progress stays saved.
+- **Skip scene.** Every cinematic in the chapter has a *Skip scene* button that plays the rest of it at high speed. Puzzles can always be watched instead of played.
 
 ### What's in Stage 5
 
@@ -126,17 +146,21 @@ src/
     forest.js           Stage 3 painters (forest, learning station, industry islands, studio)
     studio.js           Stage 4 painters (studio interior, creative stations, design wall, academy door)
     campus.js           Stage 5 painters (campus, gates, classroom, library, lab, foundation wall)
+    camp.js             Stage 6 + 7 painters (camp, cabin, mentor, school classroom, overlook, gateway)
     renderer.js         Parallax layers, baked main layer, water/smoke/grass, lighting
     pixel.js            Pixel drawing helpers (dither, discs, crisp pixel text)
   systems/              dialogue, character voices, speech bubbles, story progress + save, audio
   ui/hud.js             Chapter progress, mode switch, toasts, story cards
   ui/labPuzzle.js       The playable interaction-design puzzle (Stage 5)
   ui/learningCards.js   Academy learning cards with small visual examples
+  ui/mathPuzzle.js      "The way I think": the school-memory puzzle (Stage 6)
   cinematics/intro.js   Opening sequence
   cinematics/stage2.js  Stage 2 scenes (workshop talk, catwalk, break yard, memory)
   cinematics/stage3.js  Stage 3 scenes (gateway, first question, course, curiosity)
   cinematics/stage4.js  Stage 4 scenes (studio door, one-person team, stations, hats, missing piece, decision)
   cinematics/stage5.js  Stage 5 scenes (academy door, gates, halls, lab, foundation wall, horizon)
+  cinematics/stage6.js  Stage 6 scenes (camp, mentor, the school memory, transformation, return)
+  cinematics/stage7.js  Stage 7 scenes (overlook, recap, identity, Chapter 02 gateway)
   content/chapter01.js  All story text, chapter locations and dialogue scripts
 assets/sprites/         Baked sprite sheets + animation metadata
 assets/portraits/       Dialogue portraits
@@ -162,6 +186,8 @@ The companion is currently labelled "Companion" in dialogue. Set her name in `CH
 2. ✅ The manufacturing world (The Old Workshop)
 3. ✅ Discovery of UX (Discovery Path, Learning Camp)
 4. ✅ First workplace (Balwa HCM Cloud Suite)
-5. ✅ Education (The Knowledge Academy) · next: mentorship (The Mentor's Camp)
-6. The birth of design skills (Origin Temple puzzle)
-7. Chapter conclusion
+5. ✅ Education (The Knowledge Academy)
+6. ✅ Mentorship and the origin of design thinking (The Mentor's Camp)
+7. ✅ The Awakening: Chapter 01 complete
+
+Next: Chapter 02, behind the gateway at the end of the overlook (`Stage7.chapterTwo` in `src/cinematics/stage7.js`).

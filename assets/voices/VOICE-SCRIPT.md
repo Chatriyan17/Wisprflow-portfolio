@@ -46,6 +46,19 @@ Signs are not voiced.
 | `lab-2.mp3` | Yes. It's about how people interact with something, understand it and experience it. |
 | `foundation-1.mp3` | I started seeing design differently. Every decision had a reason behind it. |
 | `horizon-2.mp3` | Definitely. I was learning the principles, but I also wanted someone experienced to challenge the way I thought. |
+| `camp-arrive-2.mp3` | Yes. I got mentorship from UX Anuji. |
+| `camp-arrive-4.mp3` | He helped me understand where to start, why I should start there, and why blindly following textbook methods isn't always the answer. |
+| `mentor-question-2.mp3` | I never really thought about it. |
+| `school-realise-2.mp3` | I wasn't memorising the calculation. I was understanding how the problem was being solved. |
+| `school-realise-4.mp3` | Exactly! |
+| `school-realise-2-2.mp3` | I think that's where my design skills were born. |
+| `mentor-return-2.mp3` | Now I understand. Design wasn't something I started from zero. I was building on the way I naturally approached problems. |
+| `overlook-arrive-2.mp3` | Yeah. Looking back, every experience taught me something different. |
+| `overlook-arrive-4.mp3` | Especially those. They helped me understand that I wanted to explore something different. |
+| `recap-connect-2.mp3` | Manufacturing taught me about the world of work. Exploring UX opened my curiosity. My first workplace gave me the opportunity to experiment. |
+| `recap-connect-3.mp3` | My master's helped me understand design principles. And mentorship helped me understand how I think. |
+| `identity-2.mp3` | Someone who doesn't just design screens. Someone who understands problems, explores different perspectives and creates meaningful solutions. |
+| `next-adventure-2.mp3` | Let's see where this takes us. |
 
 ## Companion (companion)
 
@@ -86,6 +99,27 @@ Signs are not voiced.
 | `foundation-2.mp3` | Looks like you're beginning to understand the thinking behind design. |
 | `foundation-3.mp3` | You're not just learning how to design anymore. You're learning why. |
 | `horizon-1.mp3` | Looks like there's still more to learn. |
+| `camp-arrive-1.mp3` | You said you wanted someone to guide you. Did you find someone? |
+| `camp-arrive-3.mp3` | What did he help you understand? |
+| `school-watch-1.mp3` | Look at you. You're not copying the answer… you're watching every step. |
+| `school-realise-1.mp3` | Wait! You solved it before the teacher finished? |
+| `school-realise-3.mp3` | So when the problem changed slightly, you already knew what to do? |
+| `school-realise-2-1.mp3` | That's interesting. You were learning the thinking behind the solution. |
+| `school-pullback-1.mp3` | Maybe you've been thinking like a designer for much longer than you realised. |
+| `overlook-arrive-1.mp3` | So, everything started much earlier than you thought? |
+| `overlook-arrive-3.mp3` | Even the manufacturing days? |
+| `recap-connect-1.mp3` | All these experiences brought you here. |
+| `identity-1.mp3` | So, what kind of designer do you want to become? |
+| `next-adventure-1.mp3` | Ready for the next adventure? |
+
+## UX Anuji (mentor, shown as a silhouette)
+
+| File | Line |
+|---|---|
+| `mentor-question-1.mp3` | Before we talk about design, tell me something. How do you usually approach a problem? |
+| `mentor-question-3.mp3` | Then let's go back to where it all started. |
+| `mentor-return-1.mp3` | Sometimes, the skills we need are already there. We just need to recognise them. |
+| `mentor-talk-1.mp3` | Sometimes, the skills we need are already there. We just need to recognise them. |
 
 ## Friend (memory, silhouettes)
 

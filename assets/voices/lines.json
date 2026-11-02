@@ -373,5 +373,150 @@
     "key": "horizon-2",
     "who": "boy",
     "text": "Definitely. I was learning the principles, but I also wanted someone experienced to challenge the way I thought."
+  },
+  {
+    "key": "camp-arrive-1",
+    "who": "girl",
+    "text": "You said you wanted someone to guide you. Did you find someone?"
+  },
+  {
+    "key": "camp-arrive-2",
+    "who": "boy",
+    "text": "Yes. I got mentorship from UX Anuji."
+  },
+  {
+    "key": "camp-arrive-3",
+    "who": "girl",
+    "text": "What did he help you understand?"
+  },
+  {
+    "key": "camp-arrive-4",
+    "who": "boy",
+    "text": "He helped me understand where to start, why I should start there, and why blindly following textbook methods isn't always the answer."
+  },
+  {
+    "key": "mentor-question-1",
+    "who": "mentor",
+    "text": "Before we talk about design, tell me something. How do you usually approach a problem?"
+  },
+  {
+    "key": "mentor-question-2",
+    "who": "boy",
+    "text": "I never really thought about it."
+  },
+  {
+    "key": "mentor-question-3",
+    "who": "mentor",
+    "text": "Then let's go back to where it all started."
+  },
+  {
+    "key": "school-watch-1",
+    "who": "girl",
+    "text": "Look at you. You're not copying the answer… you're watching every step."
+  },
+  {
+    "key": "school-realise-1",
+    "who": "girl",
+    "text": "Wait! You solved it before the teacher finished?"
+  },
+  {
+    "key": "school-realise-2",
+    "who": "boy",
+    "text": "I wasn't memorising the calculation. I was understanding how the problem was being solved."
+  },
+  {
+    "key": "school-realise-3",
+    "who": "girl",
+    "text": "So when the problem changed slightly, you already knew what to do?"
+  },
+  {
+    "key": "school-realise-4",
+    "who": "boy",
+    "text": "Exactly!"
+  },
+  {
+    "key": "school-realise-2-1",
+    "who": "girl",
+    "text": "That's interesting. You were learning the thinking behind the solution."
+  },
+  {
+    "key": "school-realise-2-2",
+    "who": "boy",
+    "text": "I think that's where my design skills were born."
+  },
+  {
+    "key": "school-pullback-1",
+    "who": "girl",
+    "text": "Maybe you've been thinking like a designer for much longer than you realised."
+  },
+  {
+    "key": "mentor-return-1",
+    "who": "mentor",
+    "text": "Sometimes, the skills we need are already there. We just need to recognise them."
+  },
+  {
+    "key": "mentor-return-2",
+    "who": "boy",
+    "text": "Now I understand. Design wasn't something I started from zero. I was building on the way I naturally approached problems."
+  },
+  {
+    "key": "mentor-talk-1",
+    "who": "mentor",
+    "text": "Sometimes, the skills we need are already there. We just need to recognise them."
+  },
+  {
+    "key": "overlook-arrive-1",
+    "who": "girl",
+    "text": "So, everything started much earlier than you thought?"
+  },
+  {
+    "key": "overlook-arrive-2",
+    "who": "boy",
+    "text": "Yeah. Looking back, every experience taught me something different."
+  },
+  {
+    "key": "overlook-arrive-3",
+    "who": "girl",
+    "text": "Even the manufacturing days?"
+  },
+  {
+    "key": "overlook-arrive-4",
+    "who": "boy",
+    "text": "Especially those. They helped me understand that I wanted to explore something different."
+  },
+  {
+    "key": "recap-connect-1",
+    "who": "girl",
+    "text": "All these experiences brought you here."
+  },
+  {
+    "key": "recap-connect-2",
+    "who": "boy",
+    "text": "Manufacturing taught me about the world of work. Exploring UX opened my curiosity. My first workplace gave me the opportunity to experiment."
+  },
+  {
+    "key": "recap-connect-3",
+    "who": "boy",
+    "text": "My master's helped me understand design principles. And mentorship helped me understand how I think."
+  },
+  {
+    "key": "identity-1",
+    "who": "girl",
+    "text": "So, what kind of designer do you want to become?"
+  },
+  {
+    "key": "identity-2",
+    "who": "boy",
+    "text": "Someone who doesn't just design screens. Someone who understands problems, explores different perspectives and creates meaningful solutions."
+  },
+  {
+    "key": "next-adventure-1",
+    "who": "girl",
+    "text": "Ready for the next adventure?"
+  },
+  {
+    "key": "next-adventure-2",
+    "who": "boy",
+    "text": "Let's see where this takes us."
   }
 ]

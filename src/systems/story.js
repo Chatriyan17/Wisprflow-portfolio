@@ -1,4 +1,4 @@
-import { BEATS, TRIGGERS, LANDMARKS, CHECKPOINTS } from '../world/level.js';
+import { BEATS, TRIGGERS, LANDMARKS, CHECKPOINTS, areaOf } from '../world/level.js';
 import { clamp } from '../engine/rng.js';
 import { loadProgress, saveProgress } from './save.js';
 
@@ -43,6 +43,8 @@ export class Story {
   }
 
   update(x, y, mode) {
+    // the school memory lives off to the side of the world: it never counts as progress
+    if (areaOf(x).id === 'classroom') return;
     if (this.lastX === null) this.lastX = x;
     if (x > this.maxX) this.maxX = x;
     for (const c of CHECKPOINTS) {
@@ -93,6 +95,7 @@ export class Story {
       + seg(L.gateway + 60, L.station - 20)
       + (this.maxX > L.workplace - 40 ? 1 : seg(L.station, L.studio - 30) * 0.97)
       + (this.maxX > L.campus - 40 ? 1 : seg(L.workplace + 60, L.academy - 30) * 0.97)
-      + seg(L.campus + 60, L.mentor - 30);
+      + (this.maxX > L.camp - 40 ? 1 : seg(L.campus + 60, L.mentor - 30) * 0.97)
+      + seg(L.camp + 60, L.overlook - 20);
   }
 }

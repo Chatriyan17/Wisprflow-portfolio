@@ -35,7 +35,23 @@ export const TERRAIN = [
   // --- Stage 4: inside the first design studio (a separate interior region)
   [9900, 12320, G, 'studio'],
   // --- Stage 5: the Knowledge Academy campus (outdoors again, its own area)
-  [12320, WORLD.width, G, 'campus'],
+  [12320, 15900, G, 'campus'],
+  // --- Stage 6: the Mentor's Camp (an evening forest) ...
+  [15900, 16460, G, 'campforest'],
+  // 16460..16560: a stream under a little wooden bridge
+  [16560, 17520, G, 'campforest'],
+  // --- Stage 7: ... opening onto the Great Overlook at sunrise
+  [17520, 18200, G, 'overlook'],
+  [18200, 18212, G - 10, 'overlook'],
+  [18212, 18224, G - 20, 'overlook'],
+  [18224, 18236, G - 30, 'overlook'],
+  [18236, 18720, G - 40, 'overlook'],   // the observation platform
+  [18720, 18732, G - 30, 'overlook'],
+  [18732, 18744, G - 20, 'overlook'],
+  [18744, 18756, G - 10, 'overlook'],
+  [18756, 19300, G, 'overlook'],
+  // --- Stage 6 memory: the school classroom (its own space, reached only through the memory)
+  [19300, WORLD.width, G, 'classroom'],
 ];
 
 // Where the industrial look fades in and out (used by art, sky tint and audio).
@@ -80,6 +96,8 @@ export const LAB = { x0: 14060, x1: 14460, station: 14270 };
 export const FOUNDATION = { x0: 14600, x1: 15080 };
 export const MENTOR = { sign: 15560, door: 15660 };
 export const GATE_BARRIER = { x: CAMPUS.gate + 4, y: -800, w: 10, h: 1400, kind: 'campusGate' };
+// The Chapter 02 gateway is closed until the chapter's last conversation.
+export const FINALE_GATE = { x: 19150, y: -800, w: 10, h: 1400, kind: 'finaleGate' };
 
 // Learning objects: optional to explore, each opens a short explanation with an example.
 export const LEARNING = [
@@ -108,17 +126,37 @@ export const PRINCIPLES = [
   { id: 'usability', name: 'Usability', x: 15050 },
 ];
 
+// Stage 6: the Mentor's Camp
+export const CAMP = { x0: 16000, entry: 16100, exitTo: 15600, stream: { x0: 16460, x1: 16560, y: G + 24 }, sign: 16690, cabin: { x0: 16820, x1: 17240 }, mentor: 17110, board: 17030, nextSign: 17390 };
+// the school memory
+export const SCHOOL = { x0: 19420, x1: 20280, entry: 19560, desk: 19700, board: 19940, teacher: 20030, girl: 19480 };
+// Stage 7: the Great Overlook
+export const OVERLOOK = { x0: 17520, platform: { x0: 18236, x1: 18720, top: G - 40 }, canvas: 18560, gate: 19100 };
+// miniature worlds floating above the overlook, one per part of the journey
+export const MEMORIES = [
+  { id: 'workshop', num: '01', name: 'The Old Workshop', x: 17880, y: G - 236 },
+  { id: 'discovery', num: '02', name: 'The Discovery Path', x: 18030, y: G - 268 },
+  { id: 'studio', num: '03', name: 'The First Design Studio', x: 18180, y: G - 232 },
+  { id: 'academy', num: '04', name: 'The Knowledge Academy', x: 18330, y: G - 270 },
+  { id: 'camp', num: '05', name: "The Mentor's Camp", x: 18480, y: G - 236 },
+  { id: 'classroom', num: '06', name: 'The School Classroom', x: 18630, y: G - 272 },
+];
+
 // Separate areas of the world: the camera stays inside the one you're in,
 // and doors move you between them.
 export const AREAS = [
   { id: 'outdoor', min: 0, max: 9870 },
   { id: 'studio', min: INTERIOR.x0 - 20, max: 12320 },
-  { id: 'campus', min: CAMPUS.x0 - 20, max: WORLD.width },
+  { id: 'campus', min: CAMPUS.x0 - 20, max: 15880 },
+  { id: 'camp', min: CAMP.x0 - 20, max: 19300 },
+  { id: 'classroom', min: SCHOOL.x0 - 20, max: WORLD.width },
 ];
 export function areaOf(x) {
   if (x < 9990) return AREAS[0];
   if (x < 12360) return AREAS[1];
-  return AREAS[2];
+  if (x < 15950) return AREAS[2];
+  if (x < 19360) return AREAS[3];
+  return AREAS[4];
 }
 export const STATIONS = [
   { id: 'graphic', num: '01', name: 'Graphic Design', x: 10650 },
@@ -172,6 +210,11 @@ export function buildSolids() {
   // the studio's back wall, and the campus gates (closed until they open)
   solids.push({ x: 12290, y: -800, w: 140, h: 1400, kind: 'wall' });
   solids.push({ ...GATE_BARRIER });
+  // walls between the campus, the camp and the classroom memory; the camp's bridge
+  solids.push({ x: 15880, y: -800, w: 140, h: 1400, kind: 'wall' });
+  solids.push({ x: 19290, y: -800, w: 150, h: 1400, kind: 'wall' });
+  solids.push({ x: CAMP.stream.x0 - 10, y: G, w: CAMP.stream.x1 - CAMP.stream.x0 + 20, h: 8, kind: 'bridge' });
+  solids.push({ ...FINALE_GATE });
   solids.push({ x: BRIDGE.x0, y: BRIDGE.y, w: BRIDGE.x1 - BRIDGE.x0, h: 10, kind: 'bridge' });
   for (const p of PLATFORMS) solids.push({ x: p.x, y: p.y, w: p.w, h: 8, oneWay: true, kind: p.kind });
   for (const c of CRATES) solids.push({ x: c.x, y: G - c.h, w: c.w, h: c.h, kind: 'crate' });
@@ -184,6 +227,7 @@ export function buildSolids() {
 export function groundTopAt(x) {
   if (x >= BRIDGE.x0 && x <= BRIDGE.x1) return BRIDGE.y;
   if (x >= WOOD_BRIDGE.x0 && x <= WOOD_BRIDGE.x1) return WOOD_BRIDGE.y;
+  if (x >= 16450 && x <= 16570) return G;
   if (x >= STAIRS.up && x < CATWALK.x1 + STAIRS.step * STAIRS.count) return CATWALK.top;
   if (x >= CONVEYOR.x0 && x < CONVEYOR.x1) return CONVEYOR.top;
   for (const [x0, x1, top] of TERRAIN) if (x >= x0 && x < x1) return top;
@@ -315,6 +359,31 @@ export const PROPS = [
   { type: 'campusTree', x: 15480, h: 140, r: 40, kind: 'green' },
   { type: 'mentorPath', x: MENTOR.sign },
   { type: 'campusTree', x: 15800, h: 170, r: 48, kind: 'green' },
+  // --- Stage 6: the Mentor's Camp
+  { type: 'campArrival', x: 16100 },
+  { type: 'bigForestTree', x: 16180, h: 200, r: 50, kind: 'green' },
+  { type: 'campLantern', x: 16260 },
+  { type: 'ferns', x: 16290, w: 60 },
+  { type: 'bigForestTree', x: 16380, h: 180, r: 44, kind: 'blossom' },
+  { type: 'campStream', x: 16460 },
+  { type: 'campLantern', x: 16600 },
+  { type: 'mentorSign', x: 16690 },
+  { type: 'mushrooms', x: 16760 },
+  { type: 'cabin', x: 16820 },
+  { type: 'campLantern', x: 17280 },
+  { type: 'nextChapterSign', x: 17390 },
+  { type: 'bigForestTree', x: 17460, h: 210, r: 52, kind: 'green' },
+  // --- Stage 7: the Great Overlook
+  { type: 'overlookRocks', x: 17600 },
+  { type: 'flowers', x: 17680, w: 90 },
+  { type: 'glowFlowers', x: 17820, w: 120 },
+  { type: 'flowers', x: 18020, w: 120 },
+  { type: 'platform', x: OVERLOOK.platform.x0 },
+  { type: 'designCanvas', x: OVERLOOK.canvas },
+  { type: 'glowFlowers', x: 18800, w: 160 },
+  { type: 'chapterGate', x: OVERLOOK.gate },
+  // --- the school memory
+  { type: 'schoolroom', x: SCHOOL.x0 },
 ];
 
 // Light sources for the lighting pass (world coords).
@@ -382,6 +451,18 @@ export const LIGHTS = [
   { x: 14860, y: G - 120, r: 120, kind: 'academy' },
   { x: MENTOR.sign, y: G - 120, r: 80, kind: 'campfire' },
   { x: MENTOR.door + 60, y: G - 20, r: 60, kind: 'campfire' },
+  // stage 6: the camp at dusk
+  ...[16260, 16600, 17280].map((x) => ({ x, y: G - 60, r: 46, kind: 'lantern' })),
+  { x: CAMP.sign, y: G - 110, r: 50, kind: 'lantern' },
+  { x: 16940, y: G - 150, r: 48, kind: 'lantern' },
+  { x: 17140, y: G - 150, r: 48, kind: 'lantern' },
+  { x: 17200, y: G - 20, r: 60, kind: 'campfire' },
+  { x: CAMP.nextSign, y: G - 110, r: 70, kind: 'academy', after: 'mentor-return' },
+  // stage 7: the overlook
+  { x: OVERLOOK.canvas, y: G - 120, r: 90, kind: 'academy', after: 'identity' },
+  { x: OVERLOOK.gate, y: G - 90, r: 120, kind: 'campfire', after: 'next-adventure' },
+  // the school memory: morning sunlight through the windows
+  ...[19520, 19760, 20000, 20220].map((x) => ({ x, y: G - 150, r: 70, kind: 'window' })),
 ];
 
 // string-light bulbs over the break yard (also light sources)
@@ -430,6 +511,13 @@ export const INTERACTABLES = [
   { id: 'lab', x: LAB.station, y: G, label: 'Try the interface', range: 40 },
   ...PRINCIPLES.map((pr) => ({ id: `principle-${pr.id}`, x: pr.x, y: G, label: pr.name, range: 22, principle: pr.id })),
   { id: 'mentor', x: MENTOR.door, y: G, label: 'Explore', range: 46 },
+  // stage 6
+  { id: 'camp-exit', x: CAMP.entry - 20, y: G, label: 'Back to the campus', range: 22 },
+  { id: 'blackboard', x: SCHOOL.board, y: G, label: 'Solve it', range: 50, only: 'puzzle' },
+  { id: 'mentor-talk', x: CAMP.mentor - 30, y: G, label: 'Talk to UX Anuji', range: 30, after: 'mentor-return' },
+  // stage 7
+  ...MEMORIES.map((m) => ({ id: `memory-${m.id}`, x: m.x, y: m.x > 18236 && m.x < 18720 ? G - 40 : G, label: m.name, range: 22, memory: m.id })),
+  { id: 'chapter2', x: OVERLOOK.gate, y: G, label: 'Continue', range: 50, after: 'next-adventure' },
 ];
 
 // Scripted scenes, fired once when the protagonist reaches them (both modes).
@@ -458,6 +546,16 @@ export const TRIGGERS = [
   { id: 'library', x: LIBRARY.x0 + 30 },
   { id: 'lab', x: LAB.station - 40, mode: 'scroll' },
   { id: 'horizon', x: 15400 },
+  // stage 6
+  { id: 'mentor-door', x: MENTOR.door - 6, mode: 'scroll', needs: 'horizon' },
+  { id: 'camp-arrive', x: CAMP.sign - 30 },
+  { id: 'mentor-meet', x: CAMP.mentor - 120 },
+  // stage 7
+  { id: 'overlook-arrive', x: 17700, needs: 'mentor-return' },
+  { id: 'recap', x: 18100, needs: 'overlook-arrive' },
+  { id: 'identity', x: OVERLOOK.canvas - 40, needs: 'recap' },
+  { id: 'next-adventure', x: OVERLOOK.gate - 120, needs: 'identity' },
+  { id: 'chapter2', x: OVERLOOK.gate - 50, mode: 'scroll', needs: 'next-adventure' },
 ];
 
 // Checkpoints for "continue where you left off".
@@ -476,6 +574,8 @@ export const CHECKPOINTS = [
   { id: 'campus', x: CAMPUS.entry, name: 'The Knowledge Academy' },
   { id: 'lab', x: LAB.x0, name: 'the interaction design lab' },
   { id: 'courtyard', x: 15150, name: 'the courtyard' },
+  { id: 'camp', x: CAMP.entry, name: "The Mentor's Camp" },
+  { id: 'overlook', x: 17700, name: 'the Great Overlook' },
 ];
 
 // Story beats: shared by Scroll Journey and Explore World. Fired once each when the
@@ -501,6 +601,8 @@ export const BEATS = [
   { id: 'desks', x: 10600, mode: 'explore', who: 'girl', text: 'Let\'s check out every desk. Press E at each one!' },
   { id: 'classroom-hint', x: CLASSROOM.x0 + 90, mode: 'explore', who: 'girl', text: 'Everything in here has a lesson. Press E to look closer!' },
   { id: 'wall-hint', x: FOUNDATION.x0 - 30, who: 'girl', text: 'Look at that wall… it\'s lighting up!' },
+  { id: 'camp-quiet', x: 16300, who: 'girl', text: 'It\'s so peaceful out here.' },
+  { id: 'sunrise', x: 17600, who: 'girl', text: 'Look… the sun is coming up.' },
 ];
 
 export const LANDMARKS = {
@@ -513,4 +615,7 @@ export const LANDMARKS = {
   academy: 12165,     // doorstep of 05 The Knowledge Academy
   campus: 12520,      // 05 The Knowledge Academy (on campus)
   mentor: 15660,      // doorstep of 06 The Mentor's Camp
+  camp: 16100,        // 06 The Mentor's Camp
+  overlook: 17700,    // 07 The Awakening
+  finale: 19050,      // the Chapter 02 gateway
 };

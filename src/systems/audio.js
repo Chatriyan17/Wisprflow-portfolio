@@ -121,6 +121,12 @@ export class Audio {
 
   setQuiet(on) { this.quiet = on; }
 
+  // a moment of real silence (the realisation)
+  mute(on) {
+    if (!this.ctx || !this.enabled) return;
+    this.master.gain.setTargetAtTime(on ? 0 : 0.9, this.ctx.currentTime, on ? 0.3 : 0.6);
+  }
+
   update() {
     if (!this.enabled || !this.ctx) return;
     const c = this.ctx;
@@ -200,6 +206,12 @@ export class Audio {
         if (vol <= 0.02) break;
         this.tone(90, 0.25, 'triangle', 0.08 * vol, null, 45);
         this.tone(2200, 0.05, 'square', 0.015 * vol);
+        break;
+      case 'bell':
+        [988, 784].forEach((f, i) => { this.tone(f, 1.1, 'sine', 0.03, this.ctx.currentTime + i * 0.5); this.tone(f * 2.01, 0.6, 'sine', 0.008, this.ctx.currentTime + i * 0.5); });
+        break;
+      case 'transform':
+        [262, 330, 392, 494, 523, 659, 784, 988, 1047].forEach((f, i) => this.tone(f, 2.2, 'sine', 0.02, this.ctx.currentTime + i * 0.6));
         break;
       case 'gate':
         this.tone(140, 0.6, 'sawtooth', 0.015, null, 90);

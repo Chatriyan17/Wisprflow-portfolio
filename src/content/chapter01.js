@@ -11,6 +11,8 @@ export const CHARACTERS = {
   sign: { name: '' },
   // Friends appear only as silhouettes in a memory: no names, no designs.
   friend: { name: 'Friend' },
+  // The mentor is shown only as a symbolic silhouette (no likeness).
+  mentor: { name: 'UX Anuji' },
 };
 
 export const CHAPTER_01 = {
@@ -20,13 +22,13 @@ export const CHAPTER_01 = {
   theme: 'From manufacturing to discovering design.',
   objective: 'Discover how curiosity, experimentation and problem-solving led to UX design.',
   locations: [
-    { id: 'workshop', name: 'The Old Workshop', summary: 'Where my professional journey began, in manufacturing companies.' },
-    { id: 'discovery', name: 'The Discovery Path', summary: 'Friends introduced me to the idea of UX.' },
-    { id: 'camp', name: 'The Learning Camp', summary: 'The Google UX Design course.' },
-    { id: 'workplace', name: 'The First Workplace', summary: 'Balwa HCM Cloud Suite.' },
-    { id: 'academy', name: 'The Knowledge Academy', summary: 'Master of Design in Interaction Design, Lovely Professional University, Punjab.' },
-    { id: 'mentor', name: "The Mentor's Camp", summary: 'Mentorship from UX Anuji.' },
-    { id: 'temple', name: 'The Origin Temple', summary: 'Where my problem-solving skills were born.' },
+    { id: 'workshop', name: 'The Old Workshop', summary: "Discovering that manufacturing wasn't the path I wanted." },
+    { id: 'discovery', name: 'The Discovery Path', summary: 'Friends introduce UX. Curiosity begins.' },
+    { id: 'camp', name: 'The Learning Camp', summary: 'The Google UX Design course and exploring different industries.' },
+    { id: 'workplace', name: 'The First Design Studio', summary: 'Balwa HCM Cloud Suite. One designer, multiple creative hats.' },
+    { id: 'academy', name: 'The Knowledge Academy', summary: 'M.Des in Interaction Design at Lovely Professional University, Punjab.' },
+    { id: 'mentor', name: "The Mentor's Camp", summary: 'UX Anuji, and discovering the way I naturally solve problems.' },
+    { id: 'awakening', name: 'The Awakening', summary: 'Connecting my experiences and discovering my design identity.' },
   ],
 };
 
@@ -209,6 +211,83 @@ export const SCRIPTS = {
     { who: 'sign', text: "THE MENTOR'S CAMP" },
     { who: 'sign', text: 'Learning the principles is one thing. Learning how to think is another.' },
   ],
+
+  // ---- Stage 6: The Mentor's Camp ------------------------------------------
+  'camp-arrive': [
+    { who: 'girl', expr: 'curious', text: 'You said you wanted someone to guide you. Did you find someone?' },
+    { who: 'boy', expr: 'smile', text: 'Yes. I got mentorship from UX Anuji.' },
+    { who: 'girl', expr: 'speaking', text: 'What did he help you understand?' },
+    { who: 'boy', expr: 'speaking', text: "He helped me understand where to start, why I should start there, and why blindly following textbook methods isn't always the answer." },
+  ],
+  'mentor-question': [
+    { who: 'mentor', text: 'Before we talk about design, tell me something. How do you usually approach a problem?' },
+    { who: 'boy', expr: 'thinking', text: 'I never really thought about it.' },
+    { who: 'mentor', text: "Then let's go back to where it all started." },
+  ],
+  'school-watch': [
+    { who: 'girl', expr: 'curious', text: "Look at you. You're not copying the answer… you're watching every step." },
+  ],
+  'school-realise': [
+    { who: 'girl', expr: 'surprised', text: 'Wait! You solved it before the teacher finished?' },
+    { who: 'boy', expr: 'smile', text: "I wasn't memorising the calculation. I was understanding how the problem was being solved." },
+    { who: 'girl', expr: 'curious', text: 'So when the problem changed slightly, you already knew what to do?' },
+    { who: 'boy', expr: 'happy', text: 'Exactly!' },
+  ],
+  'school-realise-2': [
+    { who: 'girl', expr: 'thinking', text: "That's interesting. You were learning the thinking behind the solution." },
+    { who: 'boy', expr: 'thinking', text: "I think that's where my design skills were born." },
+  ],
+  'school-pullback': [
+    { who: 'girl', expr: 'smile', text: "Maybe you've been thinking like a designer for much longer than you realised." },
+  ],
+  'mentor-return': [
+    { who: 'mentor', text: 'Sometimes, the skills we need are already there. We just need to recognise them.' },
+    { who: 'boy', expr: 'smile', text: "Now I understand. Design wasn't something I started from zero. I was building on the way I naturally approached problems." },
+  ],
+  'mentor-talk': [
+    { who: 'mentor', text: 'Sometimes, the skills we need are already there. We just need to recognise them.' },
+  ],
+
+  // ---- Stage 7: The Awakening ----------------------------------------------
+  'overlook-arrive': [
+    { who: 'girl', expr: 'curious', text: 'So, everything started much earlier than you thought?' },
+    { who: 'boy', expr: 'thinking', text: 'Yeah. Looking back, every experience taught me something different.' },
+    { who: 'girl', expr: 'speaking', text: 'Even the manufacturing days?' },
+    { who: 'boy', expr: 'smile', text: 'Especially those. They helped me understand that I wanted to explore something different.' },
+  ],
+  'recap-connect': [
+    { who: 'girl', expr: 'smile', text: 'All these experiences brought you here.' },
+    { who: 'boy', expr: 'speaking', text: 'Manufacturing taught me about the world of work. Exploring UX opened my curiosity. My first workplace gave me the opportunity to experiment.' },
+    { who: 'boy', expr: 'smile', text: "My master's helped me understand design principles. And mentorship helped me understand how I think." },
+  ],
+  identity: [
+    { who: 'girl', expr: 'curious', text: 'So, what kind of designer do you want to become?' },
+    { who: 'boy', expr: 'speaking', text: "Someone who doesn't just design screens. Someone who understands problems, explores different perspectives and creates meaningful solutions." },
+  ],
+  'next-adventure': [
+    { who: 'girl', expr: 'wink', text: 'Ready for the next adventure?' },
+    { who: 'boy', expr: 'happy', text: "Let's see where this takes us." },
+  ],
+};
+
+// Stage 7: the journey recap, one floating memory per part of the chapter.
+export const RECAP = {
+  workshop: { title: 'The Old Workshop', text: 'My early career in manufacturing, back in 2022: where I realised I wanted to explore something different.', travel: 3700 },
+  discovery: { title: 'The Discovery Path', text: 'Friends introduced me to UX, and the Google UX Design course on Coursera opened my curiosity.', travel: 6330 },
+  studio: { title: 'The First Design Studio', text: 'Balwa HCM Cloud Suite: one designer, multiple creative hats. Graphic, motion, visual and product design.', travel: 10190 },
+  academy: { title: 'The Knowledge Academy', text: 'Master of Design in Interaction Design at Lovely Professional University, Punjab: understanding the principles behind design.', travel: 12520 },
+  camp: { title: "The Mentor's Camp", text: 'Mentorship from UX Anuji: where to start, why to start there, and how I think.', travel: 16100 },
+  classroom: { title: 'The School Classroom', text: 'Where it really began: understanding how a problem is solved, not just memorising the answer.', relive: true },
+};
+
+// Stage 6: the school memory puzzle. An illustrative example of the method:
+// multiplying by 5 is the same as multiplying by 10, then halving.
+export const MATH_PUZZLE = {
+  example: { problem: '48 × 5 = ?', steps: ['× 5 is the same as × 10, then ÷ 2', '48 × 10 = 480', '480 ÷ 2 = 240'], answer: '240' },
+  problem: '64 × 5 = ?',
+  correct: ['× 5 is the same as × 10, then ÷ 2', '64 × 10 = 640', '640 ÷ 2 = 320'],
+  distractor: '64 + 5 = 69',
+  answer: '320',
 };
 
 // Stage 5: the facts shown on the campus information board.

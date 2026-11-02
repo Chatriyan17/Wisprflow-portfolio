@@ -580,6 +580,10 @@ def bake_portraits():
     print("portraits:", {k: len(v) for k, v in index.items()})
 
 
+# The protagonist as a schoolboy (Stage 6 memory): the very same reference pixels,
+# baked smaller, so he stays recognisably himself.
+CHARACTERS["boy-young"] = {**CHARACTERS["boy"], "height": 60}
+
 if __name__ == "__main__":
     for n, c in CHARACTERS.items():
         bake(n, c)

@@ -7,13 +7,15 @@ import { clamp } from './engine/rng.js';
 import { Character } from './entities/character.js';
 import { Companion } from './entities/companion.js';
 import { WorldRenderer } from './world/renderer.js';
-import { buildSolids, groundTopAt, INTERACTABLES, WATERFALL, CONVEYOR, PORTAL, BREAK, GATE, ISLANDS, STREAM, STATIONS, INTERIOR, CAMPUS, PRINCIPLES, ACADEMY, areaOf } from './world/level.js';
+import { buildSolids, groundTopAt, INTERACTABLES, WATERFALL, CONVEYOR, PORTAL, BREAK, GATE, ISLANDS, STREAM, STATIONS, INTERIOR, CAMPUS, PRINCIPLES, ACADEMY, MENTOR, CAMP, MEMORIES, areaOf } from './world/level.js';
 import { industryAt, gatewayAt, forestAt } from './world/renderer.js';
 import { paintFriendSilhouette } from './world/industrial.js';
 import * as Stage2 from './cinematics/stage2.js';
 import * as Stage3 from './cinematics/stage3.js';
 import * as Stage4 from './cinematics/stage4.js';
 import * as Stage5 from './cinematics/stage5.js';
+import * as Stage6 from './cinematics/stage6.js';
+import * as Stage7 from './cinematics/stage7.js';
 import { learningCard, principleCard, academyInfoCard } from './ui/learningCards.js';
 import { Dialogue } from './systems/dialogue.js';
 import { Bubbles } from './systems/bubbles.js';
@@ -22,7 +24,7 @@ import { Audio } from './systems/audio.js';
 import { VoiceCast } from './systems/voice.js';
 import { HUD } from './ui/hud.js';
 import { playIntro } from './cinematics/intro.js';
-import { SCRIPTS, MODE_HINTS, CHAPTER_01 } from './content/chapter01.js';
+import { SCRIPTS, MODE_HINTS, CHAPTER_01, RECAP } from './content/chapter01.js';
 
 const G = WORLD.ground;
 const LEARN_LIBRARY = new Set(['research', 'interviews', 'empathy-map', 'personas', 'affinity', 'problem']);
@@ -58,9 +60,10 @@ class Game {
       Promise.all([document.fonts.load('8px "Silkscreen"'), document.fonts.load('16px "Pixelify Sans"')]),
       new Promise((r) => setTimeout(r, 2500)),
     ]).catch(() => {});
-    const [boyImg, boyMeta, girlImg, girlMeta] = await Promise.all([
+    const [boyImg, boyMeta, girlImg, girlMeta, youngImg, youngMeta] = await Promise.all([
       loadImage('assets/sprites/boy.png'), loadJSON('assets/sprites/boy.json'),
       loadImage('assets/sprites/girl.png'), loadJSON('assets/sprites/girl.json'),
+      loadImage('assets/sprites/boy-young.png'), loadJSON('assets/sprites/boy-young.json'),
     ]);
     step(45);
     await fontsReady;
@@ -74,6 +77,8 @@ class Game {
 
     this.camera = new Camera(WORLD);
     this.player = new Character({ name: 'boy', sheet: new SpriteSheet(boyImg, boyMeta), x: SCROLL.startX, y: G, w: 14, h: 64 });
+    this.boySheet = this.player.sheet;
+    this.youngSheet = new SpriteSheet(youngImg, youngMeta);
     this.girl = new Companion({ name: 'girl', sheet: new SpriteSheet(girlImg, girlMeta), x: SCROLL.startX - 34, y: G });
     this.girl.leader = this.player;
     this.characters = [this.girl, this.player];
@@ -93,6 +98,7 @@ class Game {
       },
     });
     this.story = new Story({ onBeat: (b) => this.onBeat(b), onTrigger: (t) => this.runScene(t.id) });
+    this.renderer.seen = this.story.seen;
     this.live = document.getElementById('sr-live');
 
     this.buffer = null;
@@ -178,7 +184,7 @@ class Game {
     this.canvas.width = Math.round(w * dpr);
     this.canvas.height = Math.round(h * dpr);
     // room to pull the camera back for wide cinematic shots
-    [this.buffer, this.bctx] = makeCanvas(Math.min(1200, Math.ceil(vw * 1.5)), Math.ceil(vh * 1.5));
+    [this.buffer, this.bctx] = makeCanvas(Math.min(1300, Math.ceil(vw * 1.7)), Math.ceil(vh * 1.7));
     this.applyZoom(true);
     this.updateScrollTrack();
   }
@@ -186,7 +192,7 @@ class Game {
   setZoom(z) { this.zoomTarget = z; }
 
   applyZoom(force = false) {
-    const vw = Math.min(1200, Math.round(this.baseVW * this.zoom));
+    const vw = Math.min(1300, Math.round(this.baseVW * this.zoom));
     const vh = Math.round(this.baseVH * (vw / this.baseVW));
     if (force || vw !== this.camera.viewW || vh !== this.camera.viewH) this.camera.resize(vw, vh);
   }
@@ -246,6 +252,87 @@ class Game {
     this.camera.follow(p, 0, true);
   }
 
+  // Stage 6: the lantern path from the campus to the Mentor's Camp, and back.
+  enterCamp() {
+    this.story.seen.add('mentor-door');
+    this.moveTo(CAMP.entry);
+    this.story.save();
+  }
+
+  exitCamp() { this.moveTo(CAMP.exitTo); }
+
+  // the protagonist as a schoolboy, inside the memory
+  setYoung(on) {
+    const p = this.player;
+    p.sheet = on ? this.youngSheet : this.boySheet;
+    p.anim.sheet = p.sheet;
+    p.h = on ? 50 : 64;
+  }
+
+  setSchool(on) {
+    document.body.classList.toggle('is-school', on);
+    const cap = document.getElementById('memory-caption');
+    cap.textContent = on ? 'A memory · school' : 'A memory · 2022';
+  }
+
+  // Explore World: let the visitor walk up to the blackboard themselves.
+  waitForBoard() {
+    this.bubbles.say(this.girl, 'Your turn. Walk up to the blackboard and press E.', { duration: 5 });
+    return new Promise((resolve) => { this.awaitBoard = { resolve }; });
+  }
+
+  showStatement() { document.body.classList.add('show-statement'); this.live.textContent = "My design thinking didn't start with design. It started with understanding how problems work."; }
+  hideStatement() { document.body.classList.remove('show-statement'); }
+
+  showRecap(title, text) {
+    const el = document.getElementById('recap');
+    el.querySelector('strong').textContent = title;
+    el.querySelector('span').textContent = text;
+    el.classList.remove('is-on');
+    void el.offsetWidth;
+    el.classList.add('is-on');
+    this.live.textContent = `${title}. ${text}`;
+  }
+
+  hideRecap() { document.getElementById('recap').classList.remove('is-on'); }
+
+  openFinaleGate() {
+    this.solids = this.solids.filter((s) => s.kind !== 'finaleGate');
+    this.renderer.finaleTarget = 1;
+  }
+
+  chapterCompleteCard() {
+    return {
+      eyebrow: 'Chapter 01 · Complete',
+      title: 'Where it all began.',
+      html: '<p class="lede">I didn\'t become a designer the day I opened Figma.</p>'
+        + '<p>I was learning to observe, understand patterns and solve problems long before I knew what design was. And that was just the beginning of my journey.</p>'
+        + this.hud.journeyHTML({ progress: 7, complete: true })
+        + '<div class="chapter-next"><p class="chapter-next__eyebrow">Chapter 02</p><p class="chapter-next__title">The Journey Continues</p><p>The next part of the world is still being built.</p></div>',
+    };
+  }
+
+  // A floating memory on the overlook: a quick recap, and a way back there.
+  async openMemory(id) {
+    const r = RECAP[id];
+    const m = MEMORIES.find((q) => q.id === id);
+    const action = r.relive
+      ? '<button type="button" class="pixel-btn" data-travel="relive">Relive the memory ▸</button>'
+      : '<button type="button" class="pixel-btn" data-travel="go">Travel there ▸</button>';
+    const closed = this.hud.openCard({ eyebrow: `Chapter 01 · ${m.num}`, title: r.title, html: `<p class="lede">${r.text}</p><p class="card-travel">${action} <span>Your progress stays saved.</span></p>` });
+    let chosen = null;
+    document.querySelector('#card [data-travel]').addEventListener('click', (e) => { chosen = e.currentTarget.dataset.travel; this.hud.closeCard(); });
+    await closed;
+    if (chosen === 'go') {
+      this.flash = 0.8;
+      this.moveTo(r.travel);
+      if (this.mode === 'scroll') this.setMode('scroll', { silent: true });
+      this.hud.toast(`Back at ${r.title}. Scroll or walk on to return to the overlook.`);
+    } else if (chosen === 'relive') {
+      this.runScene('relive');
+    }
+  }
+
   openCampusGate() {
     this.solids = this.solids.filter((s) => s.kind !== 'campusGate');
     this.renderer.gateTarget = 1;
@@ -266,6 +353,10 @@ class Game {
     if (seen.has('lab-solved')) this.renderer.labSolved = true;
     PRINCIPLES.forEach((pr, i) => { if (seen.has(`lit-${pr.id}`) || seen.has('foundation')) this.renderer.principlesLit[i] = 1; });
     if (seen.has('horizon')) { this.renderer.mentorTarget = 1; this.renderer.mentorSign = 1; }
+    if (seen.has('mentor-meet')) this.renderer.mentorBoard = 3;
+    if (seen.has('recap')) { this.renderer.memIslands.forEach((m) => { m.on = true; m.lit = 1; }); this.renderer.memLinksOn = true; this.renderer.memLinks = 1; }
+    if (seen.has('identity')) { this.renderer.canvasTarget = 1; this.renderer.canvasOn = 1; }
+    if (seen.has('next-adventure')) { this.openFinaleGate(); this.renderer.finaleGate = 1; }
     if (seen.has('gateway') || this.story.maxX > PORTAL.x + 60) this.openGateway();
     const r = this.renderer;
     for (const isl of r.islands) if (this.story.maxX >= isl.at) { isl.shown = true; isl.t = 1; }
@@ -345,6 +436,7 @@ class Game {
 
   bindUI() {
     document.getElementById('skip-intro').addEventListener('click', () => { this.introSkipped = true; });
+    document.getElementById('skip-scene').addEventListener('click', (e) => { if (e.detail > 0) e.currentTarget.blur(); this.skipScene(); });
     // Mouse clicks hand keyboard focus back to the world; keyboard activation keeps focus.
     const release = (e) => { if (e.detail > 0) e.currentTarget.blur(); };
     const modeScroll = document.getElementById('mode-scroll');
@@ -440,6 +532,8 @@ class Game {
     let best = null;
     let bestD = Infinity;
     for (const it of INTERACTABLES) {
+      if (it.after && !this.story.seen.has(it.after)) continue;
+      if (it.only === 'puzzle' && !this.awaitBoard) continue;
       const dx = Math.abs(p.x - it.x);
       const dy = Math.abs(p.y - it.y);
       if (dx <= it.range && dy < 30 && dx < bestD) { best = it; bestD = dx; }
@@ -449,9 +543,16 @@ class Game {
 
   async tryInteract() {
     const it = this.nearest;
+    if (it && it.id === 'blackboard' && this.awaitBoard) {
+      const w = this.awaitBoard;
+      this.awaitBoard = null;
+      this.audio.sfx('interact');
+      w.resolve();
+      return;
+    }
     if (!it || this.busy || this.dialogue.active) return;
     // some interactions are full scenes (they play by themselves in Scroll Journey)
-    const sceneFor = { gateway: 'gateway', course: 'course', studio: 'studio-door', academy: 'academy-door', lab: 'lab' };
+    const sceneFor = { gateway: 'gateway', course: 'course', studio: 'studio-door', academy: 'academy-door', lab: 'lab', mentor: 'mentor-door', chapter2: 'chapter2' };
     if (sceneFor[it.id] || it.station) {
       const id = sceneFor[it.id] || it.id;
       this.story.seen.add(id);
@@ -462,6 +563,8 @@ class Game {
     }
     if (it.id === 'studio-exit') { this.exitStudio(); return; }
     if (it.id === 'campus-exit') { this.exitCampus(); return; }
+    if (it.id === 'camp-exit') { this.exitCamp(); return; }
+    if (it.memory) { this.audio.sfx('chime', MEMORIES.findIndex((m) => m.id === it.memory)); this.openMemory(it.memory); return; }
     this.busy = true;
     this.audio.sfx('interact');
     this.bubbles.clear();
@@ -489,10 +592,11 @@ class Game {
           this.camera.override = null;
           break;
         }
-        case 'mentor':
+        case 'mentor-talk':
           p.facing = 1;
-          await this.say('mentor');
-          await this.enterNextRegion();
+          this.renderer.mentorTalking = true;
+          await this.say('mentor-talk');
+          this.renderer.mentorTalking = false;
           break;
         case 'info-board':
           this.audio.sfx('page');
@@ -515,22 +619,6 @@ class Game {
       document.body.classList.remove('is-busy');
       if (this.mode === 'scroll') p.autopilot = savedAuto;
     }
-  }
-
-  // Stage 6 hook: the path past the courtyard will lead to The Mentor's Camp.
-  // Until that part of the world exists, the path glows and shows what's next.
-  async enterNextRegion() {
-    this.audio.sfx('portal');
-    this.renderer.sparkle(this.player.x + 20, this.player.y - 50, 24);
-    this.flash = 0.6;
-    await new Promise((r) => this.later(0.6, r));
-    await this.hud.openCard({
-      eyebrow: 'Chapter 01 · Up next',
-      title: "The Mentor's Camp",
-      html: '<p class="lede">Learning the principles is one thing. Learning how to think is another.</p>'
-        + '<p>Next: mentorship from UX Anuji. This part of the story opens in the next stage of the world.</p>'
-        + this.hud.journeyHTML({ progress: this.story.progress }),
-    });
   }
 
   // ---------------------------------------------------------------- scenes
@@ -560,6 +648,15 @@ class Game {
       lab: Stage5.lab,
       foundation: Stage5.foundation,
       horizon: Stage5.horizon,
+      'mentor-door': Stage6.mentorDoor,
+      'camp-arrive': Stage6.campArrive,
+      'mentor-meet': Stage6.mentorMeet,
+      relive: Stage6.relive,
+      'overlook-arrive': Stage7.overlookArrive,
+      recap: Stage7.recap,
+      identity: Stage7.identity,
+      'next-adventure': Stage7.nextAdventure,
+      chapter2: Stage7.chapterTwo,
       ...Object.fromEntries(STATIONS.map((st) => [`station-${st.id}`, (g) => Stage4.station(g, st.id)])),
     }[id];
     if (!scene) return;
@@ -577,8 +674,10 @@ class Game {
     } finally {
       this.busy = false;
       this.scripting = false;
+      this.awaitBoard = null;
       document.body.classList.remove('is-busy');
       this.story.save();
+      if (!this.sceneQueue.length) this.endFastForward();
       // keep Scroll Journey in step with where the scene left the protagonist
       if (this.mode === 'scroll') {
         this.scrollTarget = SCROLL.startX + window.scrollY / SCROLL.pxPerWorldPx;
@@ -587,6 +686,24 @@ class Game {
       const next = this.sceneQueue.shift();
       if (next) this.runScene(next);
     }
+  }
+
+  // "Skip scene": play the rest of the current scene at high speed.
+  skipScene() {
+    if (!this.scripting) return;
+    this.fastForward = true;
+    this.dialogue.fast = true;
+    this.voice.stop();
+    this.dialogue.advance();
+    if (this.activePuzzle) this.activePuzzle.solveNow();
+    if (this.hud.cardOpen) this.hud.closeCard();
+    if (this.awaitBoard) { const w = this.awaitBoard; this.awaitBoard = null; w.resolve(); }
+    this.hideStatement();
+  }
+
+  endFastForward() {
+    this.fastForward = false;
+    this.dialogue.fast = false;
   }
 
   setMemory(on) {
@@ -599,7 +716,7 @@ class Game {
       eyebrow: `Chapter ${CHAPTER_01.number} · ${CHAPTER_01.year}`,
       title: CHAPTER_01.title,
       html: this.hud.journeyHTML({ progress: this.story.progress })
-        + '<p style="margin-top:14px">The playable world covers the journey from The Old Workshop through The Discovery Path, The Learning Camp and the first design studio at Balwa HCM Cloud Suite, to The Knowledge Academy at Lovely Professional University and the path to The Mentor\'s Camp. Each place on this map opens as a new part of the story.</p>',
+        + '<p style="margin-top:14px">Chapter 01 is a single connected world, from The Old Workshop to The Awakening. Walk or scroll through it at your own pace. Every scene can be skipped.</p>',
     });
   }
 
@@ -616,12 +733,14 @@ class Game {
   }
 
   update(dt) {
-    for (const fn of [...this.tickers]) fn(dt);
+    const sdt = this.fastForward ? dt * 8 : dt;
+    for (const fn of [...this.tickers]) fn(sdt);
     const p = this.player;
     const playing = this.phase === 'play';
-    const blocked = this.dialogue.active || this.hud.cardOpen || this.busy;
+    const roaming = !!this.awaitBoard && this.mode === 'explore';
+    const blocked = this.dialogue.active || this.hud.cardOpen || (this.busy && !roaming);
 
-    if (playing && !this.scripting) {
+    if (playing && (!this.scripting || roaming)) {
       if (this.mode === 'explore') {
         const c = p.control;
         c.move = blocked ? 0 : this.input.axis();
@@ -646,6 +765,11 @@ class Game {
           else target = Math.min(target, ACADEMY.door - 4);
         } else if (area === 'campus' && target < CAMPUS.entry + 10) {
           this.exitCampus();
+        } else if (area === 'campus' && target > MENTOR.door + 20) {
+          if (this.story.seen.has('mentor-door')) this.enterCamp();
+          else target = Math.min(target, MENTOR.door - 2);
+        } else if (area === 'camp' && target < CAMP.entry + 10) {
+          this.exitCamp();
         }
         p.autopilot = { x: target, tolerance: 2 };
         p.control.jumpHeld = true;
@@ -703,11 +827,11 @@ class Game {
     }
     this.camera.follow(p, dt, false);
     this.renderer.update(dt);
-    this.dialogue.update(dt);
+    this.dialogue.update(sdt);
 
     if (playing) {
       this.story.update(p.x, p.y, this.mode);
-      this.hud.setProgress(this.story.progress);
+      this.hud.setProgress(this.story.progress, this.story.seen.has('chapter-complete'));
       this.nearest = blocked ? null : this.nearestInteractable();
     } else {
       this.nearest = null;
@@ -728,6 +852,23 @@ class Game {
     });
     if (forestAt(cx) > 0) this.audio.setWater(Math.max(clamp(1 - wd / 420, 0, 1), clamp(1 - Math.abs(p.x - (STREAM.x0 + STREAM.x1) / 2) / 300, 0, 1) * 0.6));
     this.audio.update();
+  }
+
+  // The school memory: soft morning sunlight and a dreamy, faded edge.
+  drawMorning(ctx, cam) {
+    const W = cam.viewW, H = cam.viewH;
+    ctx.globalCompositeOperation = 'lighter';
+    const g = ctx.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, 'rgba(255, 236, 190, 0.16)');
+    g.addColorStop(1, 'rgba(255, 220, 170, 0.04)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'source-over';
+    const v = ctx.createRadialGradient(W / 2, H * 0.55, Math.min(W, H) * 0.3, W / 2, H * 0.55, Math.max(W, H) * 0.75);
+    v.addColorStop(0, 'rgba(255, 248, 230, 0)');
+    v.addColorStop(1, 'rgba(255, 248, 230, 0.45)');
+    ctx.fillStyle = v;
+    ctx.fillRect(0, 0, W, H);
   }
 
   // A remembered moment: warm sepia, soft edges, a little dreamy glow.
@@ -788,6 +929,7 @@ class Game {
     this.renderer.drawExclaims(ctx, cam, this.frameDt || 0.016);
     this.renderer.drawFront(ctx, cam);
     if (this.memory > 0.02) this.drawMemoryFilter(ctx, cam);
+    if (areaOf(cam.x + cam.viewW / 2).id === 'classroom') this.drawMorning(ctx, cam);
     if (this.flash > 0) {
       ctx.fillStyle = `rgba(214, 200, 255, ${this.flash * 0.7})`;
       ctx.fillRect(0, 0, cam.viewW, cam.viewH);

@@ -2,7 +2,7 @@ import { CHAPTER_01 } from '../content/chapter01.js';
 
 // How many chapter locations are playable so far
 // (Stage 4: The Old Workshop, The Discovery Path, The Learning Camp, The First Workplace).
-const BUILT_LOCATIONS = 5;
+const BUILT_LOCATIONS = 7;
 
 // DOM HUD: chapter progress, mode switch, sound toggle, controls panel, toasts, story card.
 export class HUD {
@@ -42,10 +42,11 @@ export class HUD {
   }
 
   // progress in location units: 0 = start, 1 = The Old Workshop, 2 = gateway to the Discovery Path
-  setProgress(progress) {
+  setProgress(progress, complete = false) {
     const n = CHAPTER_01.locations.length;
-    if (this.lastProgress !== undefined && Math.abs(this.lastProgress - progress) < 0.002) return;
+    if (this.lastProgress !== undefined && Math.abs(this.lastProgress - progress) < 0.002 && this.lastComplete === complete) return;
     this.lastProgress = progress;
+    this.lastComplete = complete;
     this.fill.style.width = `${(Math.min(progress, n) / n) * 100}%`;
     [...this.pips.children].forEach((li, i) => {
       // only locations that exist in the world can be reached; the next one waits at its doorstep
@@ -57,9 +58,11 @@ export class HUD {
     const locs = CHAPTER_01.locations;
     const i = Math.floor(progress + 0.001);
     const num = (k) => String(k + 1).padStart(2, '0');
-    this.now.textContent = progress < 1
+    this.now.textContent = complete
+      ? 'Chapter 01 complete · The journey continues'
+      : progress < 1
       ? `Prologue · on the way to ${locs[0].name}`
-      : progress >= BUILT_LOCATIONS + 0.97
+      : progress >= BUILT_LOCATIONS + 0.97 && BUILT_LOCATIONS < locs.length
         ? `Gateway to ${num(BUILT_LOCATIONS)} · ${locs[BUILT_LOCATIONS].name}`
         : `${num(Math.min(i, BUILT_LOCATIONS) - 1)} · ${locs[Math.min(i, BUILT_LOCATIONS) - 1].name}`;
   }
@@ -103,13 +106,13 @@ export class HUD {
     if (this.card.open) this.card.close();
   }
 
-  journeyHTML({ progress = 0 } = {}) {
+  journeyHTML({ progress = 0, complete = false } = {}) {
     const c = CHAPTER_01;
     const here = Math.floor(progress + 0.001) - 1;   // index of the location you're in
     const items = c.locations.map((loc, i) => {
       let status = 'Opens soon';
       let cls = '';
-      const atDoor = progress >= BUILT_LOCATIONS + 0.97;
+      const atDoor = progress >= BUILT_LOCATIONS + 0.97 || complete;
       if (i < BUILT_LOCATIONS) {
         if (i === here && !atDoor) { status = 'You are here'; cls = 'is-here'; }
         else if (i < here || atDoor) status = 'Explored';

@@ -106,6 +106,14 @@ export class Dialogue {
 
   update(dt) {
     if (!this.current) return;
+    if (this.fast) {
+      // "Skip scene": show each line in full and move on almost at once
+      if (this.shown < this.current.text.length) { this.shown = this.current.text.length; this.render(); }
+      this.speaking = false;
+      this.linger += dt;
+      if (this.linger > 0.6) { this.linger = 0; this.next(); }
+      return;
+    }
     if (this.shown >= this.current.text.length) {
       // in scenes, move on once the line has been read (or spoken) and had a moment to land
       if (this.auto && !this.speaking) {
