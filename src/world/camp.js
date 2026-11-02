@@ -173,7 +173,8 @@ export function paintNextChapterSign(ctx, x, gy) {
   pixelText(ctx, 'WAS ONLY THE BEGINNING.', x, gy - 78, { size: 8, color: '#f6ead2', align: 'center', shadow: '#3a2a1a' });
 }
 
-// A calm, symbolic mentor: a silhouette with a soft lantern rim light (no likeness).
+// (Unused since UX Anudeep's own sprite was added; kept for reference.)
+// A calm, symbolic mentor: a silhouette with a soft lantern rim light.
 export function drawMentor(ctx, x, gy, t, { talking = false, writing = false } = {}) {
   x = Math.round(x); gy = Math.round(gy);
   const body = '#2a2036', rim = '#ffcf8a';
@@ -411,7 +412,7 @@ const MINI = {
     for (let j = 0; j < 14; j++) px(ctx, '#7a4a30', 22 + j * 1.2, 40 - 14 + j, 58 - j * 2.4, 1);
     px(ctx, '#ffcf7a', 36, 48, 10, 10); px(ctx, '#4a2e22', 56, 50, 10, 18);
     px(ctx, '#ff9a4a', 86, 60, 6, 6); px(ctx, '#ffe28a', 88, 58, 2, 4);
-    px(ctx, '#2a2036', 82, 40, 5, 22); disc(ctx, '#2a2036', 84, 36, 4);
+    px(ctx, '#2a1d30', 82, 52, 5, 10); px(ctx, '#d8642e', 81, 41, 7, 11); disc(ctx, '#e0a070', 84, 36, 4); px(ctx, '#3a2420', 82, 38, 5, 3);
   },
   classroom(ctx) {
     // a school with a big blackboard showing 48 × 5
@@ -424,7 +425,7 @@ const MINI = {
   },
 };
 
-const SHORT = { workshop: 'OLD WORKSHOP', discovery: 'DISCOVERY', studio: 'DESIGN STUDIO', academy: 'ACADEMY', camp: "MENTOR'S CAMP", classroom: 'CLASSROOM' };
+const SHORT = { workshop: 'OLD WORKSHOP', discovery: 'DISCOVERY', studio: 'FIRST WORKPLACE', academy: 'ACADEMY', camp: "MENTOR'S CAMP", classroom: 'CLASSROOM' };
 
 // 160 x 140 canvas; the island is centred at x = 80.
 export function makeMemoryCanvas(id, num, name, rand) {

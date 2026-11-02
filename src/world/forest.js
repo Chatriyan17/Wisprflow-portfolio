@@ -1,5 +1,5 @@
 // Stage 3 painters: the Discovery Forest, the learning station, the six
-// industry islands and the first design studio. Same pixel language as the rest.
+// industry islands and the first workplace. Same pixel language as the rest.
 
 import { px, dither, disc, ellipse, line, mix, pixelText, bayer } from './pixel.js';
 import { COLORS, paintTerrainBlock, paintTree, paintFloatingIsland } from './art.js';
@@ -477,7 +477,7 @@ export function paintStudioSign(ctx, x, gy) {
     px(ctx, c, bx + 3 + o, by + 3 + o, 1, bh - 6 - o * 2);
     px(ctx, c, bx + bw - 4 - o, by + 3 + o, 1, bh - 6 - o * 2);
   }
-  pixelText(ctx, 'THE FIRST DESIGN STUDIO', x, by + 10, { size: 8, color: MAGIC.gold, align: 'center', shadow: '#5a3a2a' });
+  pixelText(ctx, 'THE FIRST WORKPLACE', x, by + 10, { size: 8, color: MAGIC.gold, align: 'center', shadow: '#5a3a2a' });
   pixelText(ctx, 'TIME TO TURN CURIOSITY', x, by + 26, { size: 8, color: MAGIC.cyan, align: 'center', shadow: '#2a4a7a' });
   pixelText(ctx, 'INTO PRACTICE.', x, by + 36, { size: 8, color: MAGIC.cyan, align: 'center', shadow: '#2a4a7a' });
 }

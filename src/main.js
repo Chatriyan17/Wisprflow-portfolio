@@ -22,6 +22,7 @@ import { Bubbles } from './systems/bubbles.js';
 import { Story } from './systems/story.js';
 import { Audio } from './systems/audio.js';
 import { VoiceCast } from './systems/voice.js';
+import { themeFor } from './systems/music.js';
 import { HUD } from './ui/hud.js';
 import { playIntro } from './cinematics/intro.js';
 import { SCRIPTS, MODE_HINTS, CHAPTER_01, RECAP } from './content/chapter01.js';
@@ -60,10 +61,11 @@ class Game {
       Promise.all([document.fonts.load('8px "Silkscreen"'), document.fonts.load('16px "Pixelify Sans"')]),
       new Promise((r) => setTimeout(r, 2500)),
     ]).catch(() => {});
-    const [boyImg, boyMeta, girlImg, girlMeta, youngImg, youngMeta] = await Promise.all([
+    const [boyImg, boyMeta, girlImg, girlMeta, youngImg, youngMeta, mentorImg, mentorMeta] = await Promise.all([
       loadImage('assets/sprites/boy.png'), loadJSON('assets/sprites/boy.json'),
       loadImage('assets/sprites/girl.png'), loadJSON('assets/sprites/girl.json'),
       loadImage('assets/sprites/boy-young.png'), loadJSON('assets/sprites/boy-young.json'),
+      loadImage('assets/sprites/mentor.png'), loadJSON('assets/sprites/mentor.json'),
     ]);
     step(45);
     await fontsReady;
@@ -99,6 +101,7 @@ class Game {
     });
     this.story = new Story({ onBeat: (b) => this.onBeat(b), onTrigger: (t) => this.runScene(t.id) });
     this.renderer.seen = this.story.seen;
+    this.renderer.mentorSheet = new SpriteSheet(mentorImg, mentorMeta);
     this.live = document.getElementById('sr-live');
 
     this.buffer = null;
@@ -849,6 +852,7 @@ class Game {
       conveyor: clamp(1 - Math.abs(p.x - (CONVEYOR.x0 + CONVEYOR.x1) / 2) / 350, 0, 1),
       forest: here.id === 'outdoor' ? forestAt(cx) : here.id === 'campus' ? 0.6 : 0,
       studio: here.id === 'studio' ? 1 : 0,
+      theme: themeFor(here.id, p.x),
     });
     if (forestAt(cx) > 0) this.audio.setWater(Math.max(clamp(1 - wd / 420, 0, 1), clamp(1 - Math.abs(p.x - (STREAM.x0 + STREAM.x1) / 2) / 300, 0, 1) * 0.6));
     this.audio.update();

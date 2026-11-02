@@ -11,8 +11,8 @@ export const CHARACTERS = {
   sign: { name: '' },
   // Friends appear only as silhouettes in a memory: no names, no designs.
   friend: { name: 'Friend' },
-  // The mentor is shown only as a symbolic silhouette (no likeness).
-  mentor: { name: 'UX Anuji' },
+  // The mentor, drawn from his own character sheet (reference/mentor-character-sheet.webp).
+  mentor: { name: 'UX Anudeep', portrait: 'mentor' },
 };
 
 export const CHAPTER_01 = {
@@ -25,9 +25,9 @@ export const CHAPTER_01 = {
     { id: 'workshop', name: 'The Old Workshop', summary: "Discovering that manufacturing wasn't the path I wanted." },
     { id: 'discovery', name: 'The Discovery Path', summary: 'Friends introduce UX. Curiosity begins.' },
     { id: 'camp', name: 'The Learning Camp', summary: 'The Google UX Design course and exploring different industries.' },
-    { id: 'workplace', name: 'The First Design Studio', summary: 'Balwa HCM Cloud Suite. One designer, multiple creative hats.' },
+    { id: 'workplace', name: 'The First Workplace', summary: 'Valluva HCM Cloud Suite, an IT company. One designer, multiple creative hats.' },
     { id: 'academy', name: 'The Knowledge Academy', summary: 'M.Des in Interaction Design at Lovely Professional University, Punjab.' },
-    { id: 'mentor', name: "The Mentor's Camp", summary: 'UX Anuji, and discovering the way I naturally solve problems.' },
+    { id: 'mentor', name: "The Mentor's Camp", summary: 'UX Anudeep, and discovering the way I naturally solve problems.' },
     { id: 'awakening', name: 'The Awakening', summary: 'Connecting my experiences and discovering my design identity.' },
   ],
 };
@@ -114,11 +114,11 @@ export const SCRIPTS = {
     { who: 'girl', expr: 'laugh', text: "Looks like we've found something worth exploring." },
   ],
   studio: [
-    { who: 'sign', text: 'THE FIRST DESIGN STUDIO' },
+    { who: 'sign', text: 'THE FIRST WORKPLACE · VALLUVA HCM CLOUD SUITE' },
     { who: 'sign', text: 'Time to turn curiosity into practice.' },
   ],
   'studio-door': [
-    { who: 'sign', text: 'THE FIRST DESIGN STUDIO' },
+    { who: 'sign', text: 'THE FIRST WORKPLACE · VALLUVA HCM CLOUD SUITE' },
     { who: 'sign', text: 'Time to turn curiosity into practice.' },
   ],
   'island-healthcare': [{ who: 'sign', text: 'HEALTHCARE · Products for patients, doctors and care teams.' }],
@@ -128,12 +128,12 @@ export const SCRIPTS = {
   'island-transport': [{ who: 'sign', text: "TRANSPORTATION · Products that help people get where they're going." }],
   'island-technology': [{ who: 'sign', text: 'TECHNOLOGY · Tools that help people create and connect.' }],
 
-  // ---- Stage 4: The First Design Studio (Balwa HCM Cloud Suite) ------------
+  // ---- Stage 4: The First Workplace (Valluva HCM Cloud Suite, an IT company) -
   'studio-enter': [
     { who: 'girl', expr: 'curious', text: 'So, where did this new journey take you?' },
-    { who: 'boy', expr: 'smile', text: 'I got placed at a company called Balwa HCM Cloud Suite.' },
-    { who: 'girl', expr: 'speaking', text: 'Your first design workplace?' },
-    { who: 'boy', expr: 'happy', text: 'Yes. This was where I started applying what I had learned.' },
+    { who: 'boy', expr: 'smile', text: 'I got placed at a company called Valluva HCM Cloud Suite.' },
+    { who: 'girl', expr: 'speaking', text: 'Your first design job?' },
+    { who: 'boy', expr: 'happy', text: 'Yes. It was an IT company, and this was where I started applying what I had learned.' },
   ],
   'one-team': [
     { who: 'girl', expr: 'curious', text: 'How big was the design team?' },
@@ -215,14 +215,14 @@ export const SCRIPTS = {
   // ---- Stage 6: The Mentor's Camp ------------------------------------------
   'camp-arrive': [
     { who: 'girl', expr: 'curious', text: 'You said you wanted someone to guide you. Did you find someone?' },
-    { who: 'boy', expr: 'smile', text: 'Yes. I got mentorship from UX Anuji.' },
+    { who: 'boy', expr: 'smile', text: 'Yes. I got mentorship from UX Anudeep.' },
     { who: 'girl', expr: 'speaking', text: 'What did he help you understand?' },
     { who: 'boy', expr: 'speaking', text: "He helped me understand where to start, why I should start there, and why blindly following textbook methods isn't always the answer." },
   ],
   'mentor-question': [
-    { who: 'mentor', text: 'Before we talk about design, tell me something. How do you usually approach a problem?' },
+    { who: 'mentor', expr: 'curious', text: 'Before we talk about design, tell me something. How do you usually approach a problem?' },
     { who: 'boy', expr: 'thinking', text: 'I never really thought about it.' },
-    { who: 'mentor', text: "Then let's go back to where it all started." },
+    { who: 'mentor', expr: 'explaining', text: "Then let's go back to where it all started." },
   ],
   'school-watch': [
     { who: 'girl', expr: 'curious', text: "Look at you. You're not copying the answer… you're watching every step." },
@@ -241,11 +241,11 @@ export const SCRIPTS = {
     { who: 'girl', expr: 'smile', text: "Maybe you've been thinking like a designer for much longer than you realised." },
   ],
   'mentor-return': [
-    { who: 'mentor', text: 'Sometimes, the skills we need are already there. We just need to recognise them.' },
+    { who: 'mentor', expr: 'smile', text: 'Sometimes, the skills we need are already there. We just need to recognise them.' },
     { who: 'boy', expr: 'smile', text: "Now I understand. Design wasn't something I started from zero. I was building on the way I naturally approached problems." },
   ],
   'mentor-talk': [
-    { who: 'mentor', text: 'Sometimes, the skills we need are already there. We just need to recognise them.' },
+    { who: 'mentor', expr: 'happy', text: 'Sometimes, the skills we need are already there. We just need to recognise them.' },
   ],
 
   // ---- Stage 7: The Awakening ----------------------------------------------
@@ -274,9 +274,9 @@ export const SCRIPTS = {
 export const RECAP = {
   workshop: { title: 'The Old Workshop', text: 'My early career in manufacturing, back in 2022: where I realised I wanted to explore something different.', travel: 3700 },
   discovery: { title: 'The Discovery Path', text: 'Friends introduced me to UX, and the Google UX Design course on Coursera opened my curiosity.', travel: 6330 },
-  studio: { title: 'The First Design Studio', text: 'Balwa HCM Cloud Suite: one designer, multiple creative hats. Graphic, motion, visual and product design.', travel: 10190 },
+  studio: { title: 'The First Workplace', text: 'Valluva HCM Cloud Suite, an IT company: one designer, multiple creative hats. Graphic, motion, visual and product design.', travel: 10190 },
   academy: { title: 'The Knowledge Academy', text: 'Master of Design in Interaction Design at Lovely Professional University, Punjab: understanding the principles behind design.', travel: 12520 },
-  camp: { title: "The Mentor's Camp", text: 'Mentorship from UX Anuji: where to start, why to start there, and how I think.', travel: 16100 },
+  camp: { title: "The Mentor's Camp", text: 'Mentorship from UX Anudeep: where to start, why to start there, and how I think.', travel: 16100 },
   classroom: { title: 'The School Classroom', text: 'Where it really began: understanding how a problem is solved, not just memorising the answer.', relive: true },
 };
 

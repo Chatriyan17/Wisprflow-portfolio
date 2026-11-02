@@ -9,10 +9,10 @@ Built so far:
 - **Stage 1: World foundation.** The opening village, the two original characters, the camera, both navigation modes, dialogue and interaction.
 - **Stage 2: The Old Workshop** (Chapter 01 · Part 02). The road from the village into an industrial district, the factory hall, the break yard where friends first mention UX, and the gateway to the World of UX.
 - **Stage 7: The Awakening** (Chapter 01 · Final part). The Great Overlook at sunrise: the whole journey lit up and connected, the designer identity, and the gateway to Chapter 02. **Chapter 01 is complete.**
-- **Stage 6: The Mentor's Camp** (Chapter 01 · Part 06). Mentorship from UX Anuji, and a playable school memory that reveals where the design thinking began.
+- **Stage 6: The Mentor's Camp** (Chapter 01 · Part 06). Mentorship from UX Anudeep, and a playable school memory that reveals where the design thinking began.
 - **Stage 5: The Knowledge Academy** (Chapter 01 · Part 05). Master of Design in Interaction Design at Lovely Professional University, Punjab: a magical campus with learning halls, a playable interaction-design puzzle, the Foundation Wall and the first signal of the Mentor's Camp.
-- **Stage 4: The First Design Studio** (Chapter 01 · Part 04). Inside Balwa HCM Cloud Suite: the one-person design team, four creative stations, the creative hats, the missing piece, and the door to the Knowledge Academy.
-- **Stage 3: The Discovery Path** (Chapter 01 · Part 03). Through the gateway into a magical forest: the first question, the learning station with the Google UX Design course on Coursera, six industry islands rising and connecting, and the door of the first design studio.
+- **Stage 4: The First Workplace** (Chapter 01 · Part 04). Inside Valluva HCM Cloud Suite: the one-person design team, four creative stations, the creative hats, the missing piece, and the door to the Knowledge Academy.
+- **Stage 3: The Discovery Path** (Chapter 01 · Part 03). Through the gateway into a magical forest: the first question, the learning station with the Google UX Design course on Coursera, six industry islands rising and connecting, and the door of the first workplace.
 
 ## Run it
 
@@ -45,11 +45,11 @@ It deploys as-is to GitHub Pages, Netlify, Vercel or any static host.
 ### What's in Stage 6
 
 - **To the camp.** The lantern path from the campus courtyard leads to an evening forest, with a "Chapter 01 · Part 06 · Discovering the designer within" card. There are fireflies, a stream with a little bridge, the camp sign, and a cutaway cabin full of books, sketchboards and lanterns.
-- **The mentor.** UX Anuji appears only as a calm silhouette with a warm rim light, with no likeness invented. He writes his question on his blackboard: "How do you approach a problem?"
+- **The mentor.** UX Anudeep appears as himself, cut from his own character sheet (`reference/mentor-character-sheet.webp`), with his dialogue portraits taken from its expression panels. He writes his question on his blackboard: "How do you approach a problem?"
 - **The school memory.** It has its own full classroom (not a popup): morning sunlight, a ceiling fan, a clock, desks, school bags and a big blackboard. He appears as a **younger version of himself**, baked from the same reference sheet. The companion watches from the back of the room.
 - **"The way I think" puzzle.** The teacher demonstrates 48 × 5 step by step (× 5 is the same as × 10, then ÷ 2). A new problem, 64 × 5, appears while the teacher is still writing. The visitor puts the solution steps in order. There's a distractor step, a hint, start again, immediate feedback, a small celebration, and a "Show me how he did it" option. There are no timers. In Explore World you walk up to the blackboard and press E; in Scroll Journey it opens by itself.
 - **The realisation and transformation.** The conversation plays, a moment of silence follows, and then the blackboard transforms: the maths steps become connected nodes, the nodes a user flow, the flow a wireframe, and the wireframe a finished interface. OBSERVE → UNDERSTAND → RECOGNISE → SOLVE is written alongside. The camera pulls back for "Maybe you've been thinking like a designer for much longer than you realised." Then comes the statement *"My design thinking didn't start with design. It started with understanding how problems work."*
-- **Back at the camp.** UX Anuji's closing words, the boy's reply, and the glowing path to *THE NEXT CHAPTER*.
+- **Back at the camp.** UX Anudeep's closing words, the boy's reply, and the glowing path to *THE NEXT CHAPTER*.
 
 ### What's in Stage 7
 
@@ -72,7 +72,7 @@ It deploys as-is to GitHub Pages, Netlify, Vercel or any static host.
 
 ### What's in Stage 4
 
-- **Into the studio.** The studio door opens, forest sparks turn into little design elements and drifting pages become design documents. A "Chapter 01 · Part 04 · Balwa HCM Cloud Suite" card plays, and the pair walk into a warm, colourful creative studio with the company name on the wall.
+- **Into the studio.** The studio door opens, forest sparks turn into little design elements and drifting pages become design documents. A "Chapter 01 · Part 04 · Valluva HCM Cloud Suite" card plays, and the pair walk into a warm, colourful IT-company office with the company name on the wall.
 - **The one-person design team.** The camera pulls back over four quiet, empty desks. "Well... I was the whole design team." A beat, a surprised companion with a "!", then "Pretty much!" As he names each discipline, a hat pops above his head and keeps changing.
 - **Four creative stations** (graphic, motion, visual, product). Walk up and press E, or let Scroll Journey stop at each. The monitors wake, the camera eases in, and the work comes alive: a poster assembling itself, an animation timeline with a moving playhead, a moodboard building tile by tile, and a wireframe turning into a finished interface while a user flow draws itself. Each station is then marked discovered and earns its hat.
 - **One designer. Multiple creative hats.** Once all four are found, the four hat badges orbit him under the title card, and the way to the back of the studio opens.
@@ -86,7 +86,7 @@ It deploys as-is to GitHub Pages, Netlify, Vercel or any static host.
 - **"Everything starts with a question."** A sign and a conversation at the forest entrance.
 - **The learning station.** A study nook under the trees, with a vintage computer showing the Google UX Design course on Coursera. Using it plays the conversation and opens a panel of what he started to discover: understanding UX, user-centred design, research, problem identification, wireframing and prototyping. They're presented as first steps, not mastery, and six discovery cards float out around the desk.
 - **The world of possibilities.** Healthcare, Education, Finance, E-commerce, Transportation and Technology islands rise one by one as he walks, each with a discovery chime. On the stone hill the camera pulls back, the conversation plays, and glowing pathways connect every world. Each island can also be inspected with E from below.
-- **The first design studio.** A cozy creative workspace with a neon sign: *THE FIRST DESIGN STUDIO · Time to turn curiosity into practice.* Its door (E) is the hook for Stage 4: `Game.enterNextRegion()`.
+- **The first workplace.** A cosy office at the end of the forest with a neon sign: *THE FIRST WORKPLACE · Time to turn curiosity into practice.* Its door (E) is the hook for Stage 4: `Game.enterNextRegion()`.
 
 ### What's in Stage 2
 
@@ -128,6 +128,12 @@ To rebuild after changing a reference sheet (requires Pillow, numpy, scipy):
 ```bash
 python3 tools/bake_sprites.py
 ```
+
+## Music
+
+Each part of the world has its own short composed piece: the village, the Old Workshop, the forest, the first workplace, the academy, the camp, the school memory and the overlook. They crossfade as you travel. They're written in `src/systems/music.js`: melodies, chords and bass lines in plain notation, played by synthesised instruments with a warm reverb.
+
+To use recorded music instead, put audio files in `assets/music/` and list them in `assets/music/manifest.json`, for example `{ "tracks": { "village": "village.mp3", "factory": "workshop.mp3" } }`. A listed track replaces the composed piece for that region; regions without one keep theirs.
 
 ## Project structure
 
@@ -185,7 +191,7 @@ The companion is currently labelled "Companion" in dialogue. Set her name in `CH
 1. ✅ World foundation
 2. ✅ The manufacturing world (The Old Workshop)
 3. ✅ Discovery of UX (Discovery Path, Learning Camp)
-4. ✅ First workplace (Balwa HCM Cloud Suite)
+4. ✅ First workplace (Valluva HCM Cloud Suite)
 5. ✅ Education (The Knowledge Academy)
 6. ✅ Mentorship and the origin of design thinking (The Mentor's Camp)
 7. ✅ The Awakening: Chapter 01 complete

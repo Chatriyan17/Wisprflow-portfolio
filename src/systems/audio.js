@@ -1,14 +1,7 @@
+import { Music } from './music.js';
 // Tiny procedural chiptune audio: a soft ambient bed, waterfall noise and SFX.
 // Starts muted; the visitor opts in with the sound toggle (or M).
 
-const NOTE = (n) => 440 * Math.pow(2, (n - 69) / 12);
-const CHORDS = [
-  [53, 57, 60, 64],   // Fmaj7
-  [52, 55, 59, 62],   // Em7
-  [50, 53, 57, 60],   // Dm7
-  [48, 52, 55, 59],   // Cmaj7
-];
-const MELODY_SCALE = [72, 74, 76, 79, 81, 84];
 
 export class Audio {
   constructor() {
@@ -27,22 +20,8 @@ export class Audio {
     this.master.gain.value = 0.0;
     this.master.connect(c.destination);
 
-    // ambient pad
-    this.padGain = c.createGain();
-    this.padGain.gain.value = 0.05;
-    const lp = c.createBiquadFilter();
-    lp.type = 'lowpass';
-    lp.frequency.value = 900;
-    this.padGain.connect(lp).connect(this.master);
-    this.pad = CHORDS[0].map((n) => {
-      const o = c.createOscillator();
-      o.type = 'triangle';
-      o.frequency.value = NOTE(n);
-      o.detune.value = Math.random() * 8 - 4;
-      o.connect(this.padGain);
-      o.start();
-      return o;
-    });
+    // the soundtrack (composed pieces per region, see music.js)
+    this.music = new Music(c, this.master);
 
     // waterfall noise
     const len = c.sampleRate * 2;
@@ -144,7 +123,6 @@ export class Audio {
       }
       this.nextType = t + 1.4 + Math.random() * 3;
     }
-    this.padGain.gain.setTargetAtTime(0.05 * (this.quiet ? 0.45 : 1) * (1 - (R.industry || 0) * 0.6), t, 0.8);
     if ((R.forest || 0) > 0.3 && t > (this.nextBird || 0)) {
       // birdsong in the discovery forest
       const f = 2200 + Math.random() * 1400;
@@ -167,20 +145,9 @@ export class Audio {
       }
       this.nextClank = t + 2 + Math.random() * 4;
     }
-    if (t > this.nextChord) {
-      this.chordIndex = (this.chordIndex + 1) % CHORDS.length;
-      CHORDS[this.chordIndex].forEach((n, i) => this.pad[i].frequency.setTargetAtTime(NOTE(n), t, 0.8));
-      this.nextChord = t + 6;
-    }
-    if (t > this.nextNote && Math.random() > R.industry * 0.85) {
-      // gentle music-box notes
-      const n = MELODY_SCALE[Math.floor(Math.random() * MELODY_SCALE.length)];
-      this.tone(NOTE(n), 0.9, 'sine', 0.035, t);
-      if (Math.random() < 0.35) this.tone(NOTE(n + 7), 0.7, 'sine', 0.02, t + 0.25);
-      this.nextNote = t + 0.9 + Math.random() * 1.6;
-    } else if (t > this.nextNote) {
-      this.nextNote = t + 0.9 + Math.random() * 1.6;
-    }
+    this.music.setLevel(this.quiet ? 0.35 : 1);
+    if (R.theme) this.music.play(R.theme);
+    this.music.update();
   }
 
   tone(freq, dur, type = 'square', vol = 0.05, at = null, slideTo = null) {

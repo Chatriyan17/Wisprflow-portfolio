@@ -32,7 +32,7 @@ export const TERRAIN = [
   [8300, 8524, G - 22, 'forest'],  // the hill at the heart of the world of possibilities
   [8524, 8544, G - 11, 'forest'],
   [8544, 9900, G, 'forest'],
-  // --- Stage 4: inside the first design studio (a separate interior region)
+  // --- Stage 4: inside the first workplace, Valluva HCM Cloud Suite (a separate interior region)
   [9900, 12320, G, 'studio'],
   // --- Stage 5: the Knowledge Academy campus (outdoors again, its own area)
   [12320, 15900, G, 'campus'],
@@ -136,7 +136,7 @@ export const OVERLOOK = { x0: 17520, platform: { x0: 18236, x1: 18720, top: G - 
 export const MEMORIES = [
   { id: 'workshop', num: '01', name: 'The Old Workshop', x: 17880, y: G - 236 },
   { id: 'discovery', num: '02', name: 'The Discovery Path', x: 18030, y: G - 268 },
-  { id: 'studio', num: '03', name: 'The First Design Studio', x: 18180, y: G - 232 },
+  { id: 'studio', num: '03', name: 'The First Workplace', x: 18180, y: G - 232 },
   { id: 'academy', num: '04', name: 'The Knowledge Academy', x: 18330, y: G - 270 },
   { id: 'camp', num: '05', name: "The Mentor's Camp", x: 18480, y: G - 236 },
   { id: 'classroom', num: '06', name: 'The School Classroom', x: 18630, y: G - 272 },
@@ -498,7 +498,7 @@ export const INTERACTABLES = [
   // stage 3
   { id: 'course', x: 7426, y: G, label: 'Use computer', range: 34 },
   ...ISLANDS.map((i) => ({ id: `island-${i.id}`, x: i.x, y: i.x > 8290 && i.x < 8530 ? G - 22 : G, label: `Look at ${i.name}`, range: 22, island: i.id })),
-  { id: 'studio', x: 9650, y: G, label: 'Enter studio', range: 44 },
+  { id: 'studio', x: 9650, y: G, label: 'Go inside', range: 44 },
   // stage 4
   { id: 'studio-exit', x: 10150, y: G, label: 'Go outside', range: 26 },
   ...STATIONS.map((st) => ({ id: `station-${st.id}`, x: st.x - 10, y: G, label: `${st.name} station`, range: 40, station: st.id })),
@@ -514,7 +514,7 @@ export const INTERACTABLES = [
   // stage 6
   { id: 'camp-exit', x: CAMP.entry - 20, y: G, label: 'Back to the campus', range: 22 },
   { id: 'blackboard', x: SCHOOL.board, y: G, label: 'Solve it', range: 50, only: 'puzzle' },
-  { id: 'mentor-talk', x: CAMP.mentor - 30, y: G, label: 'Talk to UX Anuji', range: 30, after: 'mentor-return' },
+  { id: 'mentor-talk', x: CAMP.mentor - 30, y: G, label: 'Talk to UX Anudeep', range: 30, after: 'mentor-return' },
   // stage 7
   ...MEMORIES.map((m) => ({ id: `memory-${m.id}`, x: m.x, y: m.x > 18236 && m.x < 18720 ? G - 40 : G, label: m.name, range: 22, memory: m.id })),
   { id: 'chapter2', x: OVERLOOK.gate, y: G, label: 'Continue', range: 50, after: 'next-adventure' },
@@ -569,7 +569,7 @@ export const CHECKPOINTS = [
   { id: 'station', x: 7300, name: 'the learning station' },
   { id: 'possibilities', x: 7900, name: 'the world of possibilities' },
   { id: 'studio', x: 9300, name: 'the path to the studio' },
-  { id: 'workplace', x: 10190, name: 'the first design studio' },
+  { id: 'workplace', x: 10190, name: 'Valluva HCM Cloud Suite' },
   { id: 'academy-door', x: 11900, name: 'the Knowledge Academy door' },
   { id: 'campus', x: CAMPUS.entry, name: 'The Knowledge Academy' },
   { id: 'lab', x: LAB.x0, name: 'the interaction design lab' },
@@ -597,7 +597,7 @@ export const BEATS = [
   { id: 'brook', x: 6780, mode: 'explore', who: 'girl', text: 'Careful on the little bridge!' },
   { id: 'nook', x: 7240, who: 'girl', text: 'Look, a little study nook under the trees.' },
   { id: 'rising', x: 7900, who: 'boy', text: 'Wait… is the ground moving?' },
-  { id: 'studio-seen', x: 9160, who: 'girl', text: 'There\'s a studio up ahead!' },
+  { id: 'studio-seen', x: 9160, who: 'girl', text: 'There\'s an office up ahead!' },
   { id: 'desks', x: 10600, mode: 'explore', who: 'girl', text: 'Let\'s check out every desk. Press E at each one!' },
   { id: 'classroom-hint', x: CLASSROOM.x0 + 90, mode: 'explore', who: 'girl', text: 'Everything in here has a lesson. Press E to look closer!' },
   { id: 'wall-hint', x: FOUNDATION.x0 - 30, who: 'girl', text: 'Look at that wall… it\'s lighting up!' },

@@ -7,7 +7,7 @@ const out = ['# Voice script', '',
   'Record each line as an `.mp3` named exactly as shown, put it in `assets/voices/`,',
   'then run `python3 tools/voice_manifest.py`. Lines without a recording use the browser voice.',
   'Signs are not voiced.', ''];
-const ROLE = { boy: ' (protagonist)', girl: ' (companion)', mentor: ' (mentor, shown as a silhouette)', friend: ' (memory, silhouettes)' };
+const ROLE = { boy: ' (protagonist)', girl: ' (companion)', mentor: ' (mentor)', friend: ' (memory, silhouettes)' };
 for (const who of ['boy', 'girl', 'mentor', 'friend']) {
   out.push(`## ${CHARACTERS[who].name}${ROLE[who]}`, '');
   out.push('| File | Line |', '|---|---|');

@@ -23,8 +23,8 @@ Signs are not voiced.
 | `curiosity-2.mp3` | That's what got me curious. |
 | `curiosity-2-1.mp3` | What fascinated me was that I could learn something new from every industry while building a product. |
 | `curiosity-2-3.mp3` | Exactly. It was about understanding people, their problems and finding better ways to solve them. |
-| `studio-enter-2.mp3` | I got placed at a company called Balwa HCM Cloud Suite. |
-| `studio-enter-4.mp3` | Yes. This was where I started applying what I had learned. |
+| `studio-enter-2.mp3` | I got placed at a company called Valluva HCM Cloud Suite. |
+| `studio-enter-4.mp3` | Yes. It was an IT company, and this was where I started applying what I had learned. |
 | `one-team-2.mp3` | Well... I was the whole design team. |
 | `one-team-2-2.mp3` | Pretty much! |
 | `one-team-3-1.mp3` | Everything! Graphic design, motion design, visual design and product design. |
@@ -46,7 +46,7 @@ Signs are not voiced.
 | `lab-2.mp3` | Yes. It's about how people interact with something, understand it and experience it. |
 | `foundation-1.mp3` | I started seeing design differently. Every decision had a reason behind it. |
 | `horizon-2.mp3` | Definitely. I was learning the principles, but I also wanted someone experienced to challenge the way I thought. |
-| `camp-arrive-2.mp3` | Yes. I got mentorship from UX Anuji. |
+| `camp-arrive-2.mp3` | Yes. I got mentorship from UX Anudeep. |
 | `camp-arrive-4.mp3` | He helped me understand where to start, why I should start there, and why blindly following textbook methods isn't always the answer. |
 | `mentor-question-2.mp3` | I never really thought about it. |
 | `school-realise-2.mp3` | I wasn't memorising the calculation. I was understanding how the problem was being solved. |
@@ -82,7 +82,7 @@ Signs are not voiced.
 | `curiosity-2-2.mp3` | So UX wasn't just about designing screens? |
 | `curiosity-2-4.mp3` | Looks like we've found something worth exploring. |
 | `studio-enter-1.mp3` | So, where did this new journey take you? |
-| `studio-enter-3.mp3` | Your first design workplace? |
+| `studio-enter-3.mp3` | Your first design job? |
 | `one-team-1.mp3` | How big was the design team? |
 | `one-team-2-1.mp3` | Wait. The whole team? |
 | `one-team-2-3.mp3` | So, what were you working on? |
@@ -112,7 +112,7 @@ Signs are not voiced.
 | `identity-1.mp3` | So, what kind of designer do you want to become? |
 | `next-adventure-1.mp3` | Ready for the next adventure? |
 
-## UX Anuji (mentor, shown as a silhouette)
+## UX Anudeep (mentor)
 
 | File | Line |
 |---|---|

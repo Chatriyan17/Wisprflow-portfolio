@@ -5,7 +5,7 @@ import { mountMathPuzzle } from '../ui/mathPuzzle.js';
 const G = WORLD.ground;
 const AUTO = 2.4;
 
-// Stage 6 scenes: to the Mentor's Camp, meeting UX Anuji, the school memory with
+// Stage 6 scenes: to the Mentor's Camp, meeting UX Anudeep, the school memory with
 // its playable puzzle, the realisation, the transformation, and the way back.
 
 function wait(game, seconds) {

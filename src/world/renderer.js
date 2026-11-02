@@ -884,7 +884,7 @@ export class WorldRenderer {
       // the mentor, by his blackboard
       const mx = CAMP.mentor - cam.x;
       if (mx > -40 && mx < W + 40) {
-        Camp.drawMentor(ctx, mx, gy, t, { talking: this.mentorTalking, writing: this.mentorWriting });
+        this.drawMentorSprite(ctx, mx, gy, t);
         const bx = CAMP.cabin.x0 + 175 - cam.x, by = G - 176 + 66 - cam.y;
         chalk(ctx, 'HOW DO YOU', bx + 6, by + 6, this.mentorBoard || 0);
         chalk(ctx, 'APPROACH A', bx + 6, by + 18, (this.mentorBoard || 0) - 1);
@@ -905,6 +905,21 @@ export class WorldRenderer {
       this.drawOverlook(ctx, cam);
     }
     if (area === 'classroom') this.drawSchool(ctx, cam);
+  }
+
+  // UX Anudeep, from his character sheet: facing the board and the visitor (left).
+  drawMentorSprite(ctx, x, gy, t) {
+    const sh = this.mentorSheet;
+    if (!sh) return;
+    const talking = this.mentorTalking || this.mentorWriting;
+    const frames = sh.frames(talking ? 'talk' : 'idle');
+    const fps = talking ? 6 : 2.5;
+    const frame = frames[Math.floor(t * fps) % frames.length];
+    // soft contact shadow
+    ctx.globalAlpha = 0.3;
+    px(ctx, '#1d0f1c', x - 12, gy - 2, 24, 3);
+    ctx.globalAlpha = 1;
+    sh.draw(ctx, frame, x, gy, true);
   }
 
   drawOverlook(ctx, cam) {
@@ -1263,6 +1278,15 @@ export class WorldRenderer {
       ctx.globalAlpha = 1;
     }
     if (cam.x + W < INTERIOR.x0) return;
+    // the server rack's status lights
+    const rx = INTERIOR.x0 - 20 + 482 + 4 - cam.x;
+    if (rx > -40 && rx < W + 10) {
+      for (let r = 0; r < 8; r++) {
+        const on = Math.sin(t * (3 + r) + r * 1.7) > 0;
+        px(ctx, on ? '#5ef0a0' : '#2a5a3a', rx, G - 85 + r * 11 - cam.y, 2, 2);
+        px(ctx, Math.sin(t * 7 + r) > 0.6 ? '#ffd98a' : '#5a4a2a', rx + 4, G - 85 + r * 11 - cam.y, 2, 2);
+      }
+    }
     // the four stations
     for (const st of STATIONS) {
       const s = this.stations[st.id];

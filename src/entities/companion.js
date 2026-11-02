@@ -51,7 +51,15 @@ export class Companion extends Character {
     // Follow the leader up and down ledges.
     c.jump = false;
     c.jumpHeld = true;
-    if (this.onGround && this.lastHitWall) c.jump = true;
+    if (this.onGround && this.lastHitWall) {
+      // a ledge she can climb: hop. A wall (or a closed gate): just wait beside it.
+      if (this.canHop()) c.jump = true;
+      else this.blockDir = this.lastHitWall;
+    }
+    if (this.blockDir) {
+      if (Math.sign(dx) === this.blockDir) { c.move = 0; c.run = false; c.jump = false; if (Math.abs(this.vx) < 5) this.facing = L.x >= this.x ? 1 : -1; }
+      else this.blockDir = 0;
+    }
     const leaderUp = L.groundSolid && (L.groundSolid.oneWay || L.groundSolid.kind === 'conveyor');
     if (this.onGround && vertical > 18 && Math.abs(L.x - this.x) < 90 && L.onGround && leaderUp) c.jump = true;
     c.drop = this.onGround && L.onGround && L.y - this.y > 20 && Math.abs(L.x - this.x) < 60;

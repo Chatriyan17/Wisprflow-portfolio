@@ -57,7 +57,7 @@ export async function studioDoor(game) {
   await wait(game, 0.35);
   game.offTick(open);
   game.enterStudio();
-  game.showChapterCard({ eyebrow: 'Chapter 01 · Part 04', title: 'The First Design Studio', meta: 'Balwa HCM Cloud Suite' });
+  game.showChapterCard({ eyebrow: 'Chapter 01 · Part 04', title: 'The First Workplace', meta: 'Valluva HCM Cloud Suite · an IT company' });
   await Promise.all([fade(game, player, 1, 0.5), fade(game, girl, 1, 0.5)]);
   girl.scripted = false;
   audio.sfx('sparkle');
@@ -133,7 +133,7 @@ export async function hats(game) {
   const grow = (dt) => { renderer.hats.orbit = Math.min(1, renderer.hats.orbit + dt * 1.5); };
   game.onTick(grow);
   audio.sfx('hats');
-  game.showChapterCard({ eyebrow: 'Balwa HCM Cloud Suite', title: 'One designer. Multiple creative hats.', meta: '' });
+  game.showChapterCard({ eyebrow: 'Valluva HCM Cloud Suite', title: 'One designer. Multiple creative hats.', meta: '' });
   await wait(game, REDUCED_MOTION ? 1.5 : 4.2);
   game.offTick(grow);
   const shrink = (dt) => {

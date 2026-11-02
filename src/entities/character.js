@@ -36,6 +36,12 @@ export class Character {
     this.events = [];
   }
 
+  // Is the thing we just bumped into low enough to jump onto?
+  canHop() {
+    const s = this.lastHitSolid;
+    return !!s && this.y - s.y < 60;
+  }
+
   emit(type, data = {}) { this.events.push({ type, x: this.x, y: this.y, ...data }); }
 
   // Steer towards an autopilot target (used by Scroll Journey and cinematics).
@@ -57,8 +63,8 @@ export class Character {
     c.run = a.run ?? Math.abs(dx) > 90;
     // far behind a fast scroll: hurry so the story keeps up with the visitor
     c.boost = a.run === false ? 1 : clamp(Math.abs(dx) / 260, 1, 2.6);
-    // hop up small ledges automatically
-    if (this.lastHitWall && this.onGround) c.jump = true;
+    // hop up small ledges automatically (never try to jump a tall wall)
+    if (this.lastHitWall && this.onGround && this.canHop()) c.jump = true;
   }
 
   update(dt, solids) {
@@ -106,6 +112,7 @@ export class Character {
     const fallSpeed = this.vy;
     const res = moveAndCollide(this, solids, dt);
     this.lastHitWall = res.hitWall;
+    this.lastHitSolid = res.hitWall ? res.hitSolid : null;
     if (res.landed) {
       if (fallSpeed > 260) this.landTimer = 0.16;
       this.emit('land', { impact: fallSpeed });

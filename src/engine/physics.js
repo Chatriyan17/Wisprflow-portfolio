@@ -31,6 +31,7 @@ export function moveAndCollide(body, solids, dt) {
       r = bodyRect(body);
       continue;
     }
+    result.hitSolid = s;
     if (body.vx > 0) {
       body.x = s.x - body.w / 2 - 0.01;
       result.hitWall = 1;

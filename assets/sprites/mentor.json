@@ -1,0 +1,61 @@
+{
+  "image": "mentor.png",
+  "frameWidth": 74,
+  "frameHeight": 84,
+  "columns": 8,
+  "spriteHeight": 80,
+  "spriteWidth": 74,
+  "anchor": {
+    "x": 37.0,
+    "y": 84
+  },
+  "faces": "right",
+  "animations": {
+    "idle": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "talk": [
+      4,
+      5,
+      6,
+      7
+    ],
+    "front_idle": [
+      8,
+      9,
+      10,
+      11
+    ],
+    "front_talk": [
+      12,
+      13,
+      14,
+      15
+    ],
+    "front": [
+      8
+    ],
+    "walk": [
+      0
+    ],
+    "run": [
+      0
+    ],
+    "jump": [
+      0
+    ],
+    "fall": [
+      0
+    ],
+    "land": [
+      0
+    ],
+    "back": [
+      16
+    ]
+  },
+  "source": "reference/mentor-character-sheet.webp"
+}

@@ -3,6 +3,7 @@ import { REDUCED_MOTION } from '../config.js';
 
 const CHARS_PER_SEC = 42;
 // expressions available on the companion's reference sheet
+const MENTOR_EXPR = new Set(['neutral', 'smile', 'happy', 'laugh', 'surprised', 'thinking', 'speaking', 'explaining', 'curious', 'serious']);
 const GIRL_EXPR = new Set(['neutral', 'smile', 'laugh', 'surprised', 'thinking', 'speaking', 'curious', 'wink']);
 
 // Reusable RPG dialogue box. play(lines) resolves when the last line is dismissed.
@@ -25,8 +26,8 @@ export class Dialogue {
 
     this.el.addEventListener('click', () => this.advance());
     // preload portraits
-    for (const who of ['boy', 'girl']) {
-      for (const e of ['neutral', 'smile', 'speaking', 'curious', 'wink', 'laugh', 'thinking']) {
+    for (const who of ['boy', 'girl', 'mentor']) {
+      for (const e of ['neutral', 'smile', 'speaking', 'curious', 'laugh', 'thinking', ...(who === 'mentor' ? ['explaining', 'happy'] : ['wink'])]) {
         const img = new Image();
         img.src = `assets/portraits/${who}-${e}.png`;
       }
@@ -59,7 +60,7 @@ export class Dialogue {
     this.nameEl.textContent = who.name || '';
     this.nameEl.hidden = !who.name;
     if (who.portrait) {
-      const have = who.portrait === 'girl' ? GIRL_EXPR : null;
+      const have = who.portrait === 'girl' ? GIRL_EXPR : who.portrait === 'mentor' ? MENTOR_EXPR : null;
       const expr = !line.expr ? 'neutral' : have && !have.has(line.expr) ? 'smile' : line.expr;
       this.portrait.src = `assets/portraits/${who.portrait}-${expr}.png`;
       this.portrait.alt = `${who.name}, ${line.expr || 'neutral'} expression`;

@@ -715,10 +715,6 @@ body.is-memory .dialogue__text { font-style: italic; }
 body.phase-play.is-busy .skip-scene { opacity: 1; pointer-events: auto; }
 @media (max-width: 860px) { .skip-scene { top: 132px; } }
 
-.dialogue[data-speaker='mentor'] .dialogue__portrait {
-  background: radial-gradient(circle at 50% 36%, #2a2036 0 20%, transparent 21%), radial-gradient(ellipse at 50% 100%, #2a2036 0 46%, transparent 47%), linear-gradient(#5a3a28, #3a2418);
-}
-.dialogue[data-speaker='mentor'] .dialogue__portrait img { visibility: hidden; }
 .dialogue[data-speaker='mentor'] .dialogue__name { color: var(--gold); }
 
 body.is-school .memory-caption { opacity: 1; color: #fff8e0; text-shadow: 0 2px 0 rgba(60, 40, 20, 0.7); top: auto; bottom: calc(150px + var(--safe-b)); }

@@ -20,5 +20,17 @@
     "speaking",
     "curious",
     "wink"
+  ],
+  "mentor": [
+    "neutral",
+    "smile",
+    "happy",
+    "laugh",
+    "surprised",
+    "thinking",
+    "speaking",
+    "explaining",
+    "curious",
+    "serious"
   ]
 }

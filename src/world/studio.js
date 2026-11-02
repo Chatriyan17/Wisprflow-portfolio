@@ -1,4 +1,4 @@
-// Stage 4 painters: the first design studio (Balwa HCM Cloud Suite).
+// Stage 4 painters: the first workplace, Valluva HCM Cloud Suite (an IT company).
 // Warm wood, muted purple, peach, brick red, cream and teal accents: a real
 // creative workspace translated into pixel art, not a generic office.
 
@@ -155,28 +155,45 @@ export function paintStudioInterior(ctx, rand, x0, x1, gy) {
   px(ctx, ST.tealLight, rx + 19, gy - 49, 14, 9);
   px(ctx, ST.cream, rx - 30, gy - 40, 10, 4);
   plant(ctx, rx - 36, gy - 36, 0.5);
-  // wall sign: BALWA HCM CLOUD SUITE (subtle, pinned letters with a cloud mark)
+  // wall sign: VALLUVA HCM CLOUD SUITE (subtle, pinned letters with a cloud mark)
   const sy = gy - 158;
   px(ctx, '#3a2a44', rx - 96, sy - 6, 192, 40);
   px(ctx, '#4a3656', rx - 95, sy - 5, 190, 38);
   for (let i = 0; i < 3; i++) disc(ctx, ST.tealLight, rx - 80 + i * 6, sy + 10 - (i === 1 ? 3 : 0), 5);
   px(ctx, ST.tealLight, rx - 86, sy + 10, 24, 6);
-  pixelText(ctx, 'BALWA', rx - 54, sy - 2, { size: 16, color: ST.cream, shadow: '#2a1d30' });
+  pixelText(ctx, 'VALLUVA', rx - 54, sy - 2, { size: 16, color: ST.cream, shadow: '#2a1d30' });
   pixelText(ctx, 'HCM CLOUD SUITE', rx - 54, sy + 18, { size: 8, color: ST.peach, shadow: '#2a1d30' });
 
-  // --- lounge: bookshelf, sofa, coffee table, rug
+  // --- it's an IT company: a bookshelf, a developer's desk with code on screen, a server rack
   bookshelf(ctx, rand, x0 + 320, gy);
-  const sx = x0 + 410;
-  px(ctx, ST.ink, sx - 1, gy - 30, 62, 30);
-  px(ctx, '#7a5ab8', sx, gy - 29, 60, 22);
-  px(ctx, '#9a7ad0', sx, gy - 29, 60, 3);
-  px(ctx, '#6a4aa8', sx + 4, gy - 20, 24, 10);
-  px(ctx, '#6a4aa8', sx + 32, gy - 20, 24, 10);
-  px(ctx, ST.peach, sx + 8, gy - 26, 8, 7);
-  px(ctx, ST.woodDark, sx + 2, gy - 7, 4, 7);
-  px(ctx, ST.woodDark, sx + 54, gy - 7, 4, 7);
-  ellipse(ctx, '#b8654a', sx + 30, gy - 2, 52, 3);
-  ellipse(ctx, '#d8865a', sx + 30, gy - 2, 44, 2);
+  const dx = x0 + 420;
+  px(ctx, ST.ink, dx - 30, gy - 36, 66, 6);
+  px(ctx, ST.woodLight, dx - 29, gy - 36, 64, 2);
+  px(ctx, ST.woodDark, dx - 26, gy - 30, 4, 30);
+  px(ctx, ST.woodDark, dx + 26, gy - 30, 4, 30);
+  for (const mx of [dx - 26, dx + 4]) {
+    px(ctx, ST.ink, mx - 1, gy - 70, 30, 24);
+    px(ctx, '#14182a', mx, gy - 69, 28, 22);
+    for (let r = 0; r < 6; r++) {
+      const ind = (r % 3) * 3;
+      px(ctx, ['#8eeaff', '#9effc8', '#ffd98a', '#ff9ad5'][(r + (mx > dx ? 1 : 0)) % 4], mx + 2 + ind, gy - 67 + r * 3, 6 + ((r * 7) % 12), 1);
+    }
+    px(ctx, ST.screenEdge, mx + 12, gy - 46, 4, 6);
+  }
+  px(ctx, ST.ink, dx - 12, gy - 40, 26, 4);
+  px(ctx, '#d8d0c4', dx - 11, gy - 40, 24, 3);
+  px(ctx, '#3a3346', dx - 6, gy - 58, 14, 22);   // chair back
+  px(ctx, ST.ink, dx, gy - 36, 3, 28);
+  // server rack with blinking lights (the blinking is drawn by the renderer)
+  const sx = x0 + 482;
+  px(ctx, ST.ink, sx - 1, gy - 92, 30, 92);
+  px(ctx, '#2a2a36', sx, gy - 91, 28, 90);
+  for (let r = 0; r < 8; r++) {
+    px(ctx, '#3a3a4a', sx + 2, gy - 88 + r * 11, 24, 9);
+    px(ctx, '#4a4a5a', sx + 2, gy - 88 + r * 11, 24, 1);
+    for (let k = 0; k < 5; k++) px(ctx, '#1a1a24', sx + 12 + k * 3, gy - 85 + r * 11, 2, 4);
+  }
+  pixelText(ctx, 'HCM', sx + 14, gy - 104, { size: 8, color: ST.tealLight, align: 'center', shadow: ST.ink });
 
   // --- right side: printer, water cooler, plants
   const pr = x0 + 1555;

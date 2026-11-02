@@ -442,6 +442,9 @@ def bake(name, cfg):
     cell_h = sh + CELL_PAD_TOP
     cell_w += cell_w % 2
 
+    if "rig" not in cfg:
+        return bake_standing(name, cfg, poses, cell_w, cell_h)
+
     # palette shared by every frame of this character
     total_w = sum(p.width for p in poses.values())
     strip = Image.new("RGB", (total_w, sh), (0, 0, 0))
@@ -542,6 +545,70 @@ def bake(name, cfg):
 
 
 # Dialogue portraits: cropped as-is from the expression panels of each sheet.
+def bake_standing(name, cfg, poses, cell_w, cell_h):
+    """A character who stands and talks (no walking rig): idle breathing, talking
+    head-nods, plus front and back views. Every frame is the original pixels."""
+    frames, anims = [], {}
+
+    def add(anim, img):
+        anims.setdefault(anim, []).append(len(frames))
+        frames.append(img)
+
+    def split(img, frac):
+        a = np.asarray(img).copy()
+        hh = int(img.height * frac)
+        head = a.copy(); head[hh:] = 0
+        body = a.copy(); body[:hh] = 0
+        return Image.fromarray(body, "RGBA"), Image.fromarray(head, "RGBA")
+
+    for view, prefix in (("side", ""), ("front", "front_")):
+        pose = poses[view]
+        pw, ph = pose.size
+        body, head = split(pose, 0.42)
+        still = compose(cell_w, cell_h, pw, ph, [(pose, 0, 0)])
+        nod = compose(cell_w, cell_h, pw, ph, [(body, 0, 0), (head, 0, 1)])
+        for f in (still, still, nod, nod):
+            add(prefix + "idle" if prefix else "idle", f)
+        for f in (still, nod, still, nod):
+            add(prefix + "talk", f)
+    anims["front"] = anims["front_idle"][:1]
+    for alias in ("walk", "run", "jump", "fall", "land"):
+        anims[alias] = anims["idle"][:1]
+    bw, bh = poses["back"].size
+    add("back", compose(cell_w, cell_h, bw, bh, [(poses["back"], 0, 0)]))
+
+    cols = 8
+    rows = math.ceil(len(frames) / cols)
+    sheet_img = Image.new("RGBA", (cols * cell_w, rows * cell_h), (0, 0, 0, 0))
+    for i, f in enumerate(frames):
+        sheet_img.alpha_composite(f, ((i % cols) * cell_w, (i // cols) * cell_h))
+    sheet_img.save(os.path.join(OUT, f"{name}.png"), optimize=True)
+    meta = {
+        "image": f"{name}.png", "frameWidth": cell_w, "frameHeight": cell_h, "columns": cols,
+        "spriteHeight": poses["side"].height, "spriteWidth": cell_w,
+        "anchor": {"x": cell_w / 2, "y": cell_h}, "faces": "right",
+        "animations": anims, "source": f"reference/{cfg['sheet']}",
+    }
+    with open(os.path.join(OUT, f"{name}.json"), "w") as fh_:
+        json.dump(meta, fh_, indent=2)
+    print(f"{name}: {len(frames)} frames (standing), cell {cell_w}x{cell_h}")
+
+
+# The mentor, UX Anudeep: cut straight from his character sheet.
+CHARACTERS["mentor"] = {
+    "sheet": "mentor-character-sheet.webp",
+    "bg": (72, 35, 41),
+    "bg_tol": 16,
+    "height": 80,
+    "erode": 1,
+    "poses": {
+        "front": (526, 110, 667, 476, 471, False),
+        "side": (676, 110, 777, 477, 472, True),     # sheet faces left -> flip to face right
+        "back": (794, 108, 933, 476, 471, False),
+    },
+    "palette": 48,
+}
+
 PORTRAITS = {
     "boy": {
         "sheet": "boy-character-sheet.webp",
@@ -561,6 +628,16 @@ PORTRAITS = {
             "thinking": (1010, 248, 1132, 398), "speaking": (1144, 248, 1262, 398),
             "curious": (1273, 248, 1391, 398), "wink": (1401, 248, 1521, 398),
         },
+    },
+}
+
+
+_MX = [1040, 1146, 1248, 1353, 1463]
+PORTRAITS["mentor"] = {
+    "sheet": "mentor-character-sheet.webp",
+    "cells": {
+        **{e: (x - 50, 160, x + 50, 292) for e, x in zip(["neutral", "smile", "happy", "laugh", "surprised"], _MX)},
+        **{e: (x - 50, 342, x + 50, 478) for e, x in zip(["thinking", "speaking", "explaining", "curious", "serious"], _MX)},
     },
 }
 
