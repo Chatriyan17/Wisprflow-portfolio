@@ -166,6 +166,12 @@ export class Audio {
     o.stop(t + dur + 0.05);
   }
 
+  // a short filtered noise burst (steam, impacts)
+  noise(dur, type, freq, vol, at = null) {
+    if (!this.music) return;
+    this.music.noiseHit(at ?? this.ctx.currentTime, this.master, { type, freq, dur, vol });
+  }
+
   sfx(name, vol = 1) {
     if (!this.enabled || !this.ctx) return;
     switch (name) {
@@ -252,6 +258,97 @@ export class Audio {
         [1320, 1760, 2093, 2637].forEach((f, i) => this.tone(f, 0.18, 'sine', 0.03, this.ctx.currentTime + i * 0.06));
         break;
       case 'poof': this.tone(500, 0.15, 'triangle', 0.03, null, 1000); break;
+      // --- the Four-Armed Creative Golem ---
+      case 'clank':
+        this.tone(1500, 0.07, 'square', 0.018);
+        this.tone(820, 0.16, 'triangle', 0.03, this.ctx.currentTime + 0.01);
+        this.tone(150, 0.2, 'triangle', 0.05, null, 90);
+        break;
+      case 'steam': this.noise(0.6, 'highpass', 3200, 0.05); break;
+      case 'whirr':
+        this.tone(110, 0.7, 'sawtooth', 0.018, null, 440);
+        this.tone(220, 0.7, 'square', 0.008, null, 880);
+        break;
+      case 'stomp':
+        this.tone(70, 0.35, 'triangle', 0.09, null, 38);
+        this.noise(0.25, 'lowpass', 400, 0.09);
+        break;
+      case 'powerup':
+        [262, 392, 523, 784].forEach((f, i) => this.tone(f, 0.12, 'square', 0.02, this.ctx.currentTime + i * 0.05));
+        break;
+      case 'boss':
+        [196, 233, 262, 311, 392].forEach((f, i) => this.tone(f, 0.22, 'square', 0.03, this.ctx.currentTime + i * 0.09));
+        this.tone(98, 0.8, 'sawtooth', 0.03, this.ctx.currentTime + 0.45);
+        break;
+      case 'laugh':
+        // a goofy mechanical "ho-ho-ho"
+        [392, 349, 311].forEach((f, i) => this.tone(f, 0.09, 'square', 0.028, this.ctx.currentTime + i * 0.13, f * 0.85));
+        break;
+      case 'warn':
+        this.tone(880, 0.08, 'square', 0.025);
+        this.tone(880, 0.08, 'square', 0.025, this.ctx.currentTime + 0.18);
+        break;
+      case 'wave':
+        this.tone(90, 0.9, 'triangle', 0.05, null, 55);
+        this.noise(0.8, 'bandpass', 600, 0.05);
+        break;
+      case 'bonk':
+        this.tone(320, 0.12, 'square', 0.035, null, 160);
+        this.tone(500, 0.25, 'sine', 0.03, this.ctx.currentTime + 0.08, 900);
+        break;
+      case 'splat':
+        this.noise(0.25, 'lowpass', 900, 0.08);
+        this.tone(260, 0.15, 'sine', 0.03, null, 120);
+        break;
+      case 'prism':
+        [1319, 1568, 1976, 2349, 2637].forEach((f, i) => this.tone(f, 0.25, 'sine', 0.018, this.ctx.currentTime + i * 0.04));
+        break;
+      case 'holo':
+        this.tone(440, 0.35, 'sawtooth', 0.012, null, 1760);
+        this.tone(1760, 0.2, 'sine', 0.015, this.ctx.currentTime + 0.3);
+        break;
+      case 'reel':
+        for (let i = 0; i < 12; i++) this.tone(2200 - i * 80, 0.012, 'square', 0.012, this.ctx.currentTime + i * 0.05);
+        break;
+      case 'place':
+        this.tone(660, 0.06, 'square', 0.028);
+        this.tone(990, 0.12, 'sine', 0.03, this.ctx.currentTime + 0.05);
+        break;
+      case 'wrong': this.tone(240, 0.18, 'triangle', 0.04, null, 190); break;
+      case 'disable':
+        this.noise(0.35, 'highpass', 2500, 0.06);
+        this.tone(880, 0.6, 'square', 0.02, null, 110);
+        break;
+      case 'bucket':
+        this.tone(1180, 0.35, 'triangle', 0.035, null, 1050);
+        this.tone(300, 0.2, 'square', 0.02, this.ctx.currentTime + 0.03, 200);
+        this.noise(0.3, 'lowpass', 700, 0.06);
+        break;
+      case 'thumb':
+        this.tone(1319, 0.4, 'sine', 0.03);
+        this.tone(1760, 0.5, 'sine', 0.022, this.ctx.currentTime + 0.1);
+        break;
+      case 'powerdown': this.tone(700, 1.2, 'sawtooth', 0.018, null, 70); break;
+      case 'sitdown': {
+        // a slide-whistle "whoooop", a clunk and a little boing
+        const t0 = this.ctx.currentTime;
+        this.tone(1000, 0.75, 'sine', 0.035, t0, 160);
+        this.tone(110, 0.3, 'triangle', 0.08, t0 + 0.75, 60);
+        this.noise(0.4, 'lowpass', 500, 0.08, t0 + 0.75);
+        this.tone(380, 0.35, 'sine', 0.03, t0 + 0.85, 760);
+        this.noise(0.7, 'highpass', 3000, 0.04, t0 + 0.95);
+        break;
+      }
+      case 'lightson':
+        this.tone(60, 0.12, 'square', 0.035);
+        [784, 988, 1175, 1568].forEach((f, i) => this.tone(f, 0.7, 'sine', 0.02, this.ctx.currentTime + 0.15 + i * 0.07));
+        break;
+      case 'victory': {
+        const t0 = this.ctx.currentTime;
+        [[523, 0], [523, 0.12], [523, 0.24], [659, 0.36], [784, 0.6], [1047, 0.84]].forEach(([f, d]) => this.tone(f, d === 0.84 ? 0.8 : 0.14, 'square', 0.03, t0 + d));
+        [1319, 1568, 2093].forEach((f, i) => this.tone(f, 1.2, 'sine', 0.018, t0 + 0.84 + i * 0.08));
+        break;
+      }
       case 'start':
         [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.16, 'square', 0.03, this.ctx.currentTime + i * 0.08));
         break;

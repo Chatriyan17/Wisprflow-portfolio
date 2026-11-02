@@ -75,7 +75,16 @@ It deploys as-is to GitHub Pages, Netlify, Vercel or any static host.
 - **Into the studio.** The studio door opens, forest sparks turn into little design elements and drifting pages become design documents. A "Chapter 01 · Part 04 · Valluva HCM Cloud Suite" card plays, and the pair walk into a warm, colourful IT-company office with the company name on the wall.
 - **The one-person design team.** The camera pulls back over four quiet, empty desks. "Well... I was the whole design team." A beat, a surprised companion with a "!", then "Pretty much!" As he names each discipline, a hat pops above his head and keeps changing.
 - **Four creative stations** (graphic, motion, visual, product). Walk up and press E, or let Scroll Journey stop at each. The monitors wake, the camera eases in, and the work comes alive: a poster assembling itself, an animation timeline with a moving playhead, a moodboard building tile by tile, and a wireframe turning into a finished interface while a user flow draws itself. Each station is then marked discovered and earns its hat.
-- **One designer. Multiple creative hats.** Once all four are found, the four hat badges orbit him under the title card, and the way to the back of the studio opens.
+- **One designer. Multiple creative hats.** Once all four are found, the four hat badges orbit him under the title card.
+- **Boss battle: the Four-Armed Creative Golem.** An ancient machine of dark iron, wood and copper sits in the corner, built from every creative tool in the office. When you approach it after the four stations, it wakes up. It is about 2.5 times the boy's height, and each of its four arms animates on its own: a giant paintbrush (graphic), a film reel with a timeline (motion), a rotating colour prism (visual) and a holographic interface projector (product). Steam, gears and glowing amber eyes; overwhelming but a little goofy (it laughs when you slip).
+  - Four creative-system indicators replace a health bar. Each challenge shuts down one arm, and each arm reacts in its own way. The paintbrush drops a paint bucket, the reel plays a tiny animation and freezes, the prism's colours turn into four little stars, and the projector shows a tiny success screen.
+  - **Phase 1 · Poster Assembly:** put three poster pieces into their matching outlines.
+  - **Phase 2 · Motion Timing:** jump over two slow energy waves (SPACE, the big JUMP button, or tap the world). Each wave has a clear warning: the reel winds up and a glowing path runs to his feet.
+  - **Phase 3 · Visual Hierarchy:** arrange three elements into Primary, Secondary and Supporting, with a visual reference.
+  - **Phase 4 · Connect the Flow:** link START → DETAILS → CONFIRMATION.
+  - **Easy by design:** no health, no game over, no timers and unlimited retries. A hint appears straight after the first slip. Puzzles work by drag-and-drop, by tapping a piece and then its spot, or with the keyboard (Tab + Enter). "Skip battle" continues the story.
+  - **Victory:** it looks at its empty arms, looks at the boy and gives a thumbs-up. Its eyes dim and its arms drop. Its chest opens and four glowing creative symbols orbit the boy. It sits down with a slide-whistle clunk, and the studio lights come back on. "BOSS DEFEATED! One designer. Four creative hats." The victory dialogue plays and the way to the back of the studio opens.
+  - Progress is saved per phase. A battle left halfway resumes at the next arm. The introduction only plays once. Afterwards, the **Boss Book** on a lectern beside the resting golem (E) replays any single challenge.
 - **The missing piece.** At the design wall, which shows all four disciplines, the room dims, the camera moves in slowly and the conversation about wanting guidance plays.
 - **The decision.** The Knowledge Academy sign and a glowing doorway. Its door (E) is the hook for Stage 5: `Game.enterNextRegion()`.
 - The interior is its own space. Scroll Journey steps in and out of it as you scroll past the door, and in Explore World there is a "Go outside" door by the entrance.
@@ -151,6 +160,7 @@ src/
     industrial.js       Stage 2 painters (concrete, factory hall, machines, break yard, gateway, skyline)
     forest.js           Stage 3 painters (forest, learning station, industry islands, studio)
     studio.js           Stage 4 painters (studio interior, creative stations, design wall, academy door)
+    golem.js            The Four-Armed Creative Golem: drawn in code, four independent arms, reactions, waves
     campus.js           Stage 5 painters (campus, gates, classroom, library, lab, foundation wall)
     camp.js             Stage 6 + 7 painters (camp, cabin, mentor, school classroom, overlook, gateway)
     renderer.js         Parallax layers, baked main layer, water/smoke/grass, lighting
@@ -160,10 +170,12 @@ src/
   ui/labPuzzle.js       The playable interaction-design puzzle (Stage 5)
   ui/learningCards.js   Academy learning cards with small visual examples
   ui/mathPuzzle.js      "The way I think": the school-memory puzzle (Stage 6)
+  ui/bossChallenges.js  The golem's puzzle challenges (poster, hierarchy, flow)
   cinematics/intro.js   Opening sequence
   cinematics/stage2.js  Stage 2 scenes (workshop talk, catwalk, break yard, memory)
   cinematics/stage3.js  Stage 3 scenes (gateway, first question, course, curiosity)
   cinematics/stage4.js  Stage 4 scenes (studio door, one-person team, stations, hats, missing piece, decision)
+  cinematics/boss.js    Stage 4 boss battle (awakening, four phases, victory, Boss Book replays)
   cinematics/stage5.js  Stage 5 scenes (academy door, gates, halls, lab, foundation wall, horizon)
   cinematics/stage6.js  Stage 6 scenes (camp, mentor, the school memory, transformation, return)
   cinematics/stage7.js  Stage 7 scenes (overlook, recap, identity, Chapter 02 gateway)

@@ -148,6 +148,29 @@
     <p id="recap" class="recap" aria-hidden="true"><strong></strong><span></span></p>
     <p id="memory-caption" class="memory-caption" aria-hidden="true">A memory · 2022</p>
 
+    <!-- Boss battle: the Four-Armed Creative Golem (Stage 4) -->
+    <section id="boss-hud" class="boss-hud" aria-label="Boss battle" hidden>
+      <p class="boss-hud__eyebrow">Boss battle</p>
+      <p class="boss-hud__name">The Four-Armed Creative Golem</p>
+      <ul class="boss-hud__systems" id="boss-systems">
+        <li data-sys="graphic"><span class="boss-hud__dot" aria-hidden="true"></span>Graphic</li>
+        <li data-sys="motion"><span class="boss-hud__dot" aria-hidden="true"></span>Motion</li>
+        <li data-sys="visual"><span class="boss-hud__dot" aria-hidden="true"></span>Visual</li>
+        <li data-sys="product"><span class="boss-hud__dot" aria-hidden="true"></span>Product</li>
+      </ul>
+      <p class="boss-hud__count" id="boss-count">4 creative systems active</p>
+    </section>
+    <section id="boss-panel" class="boss-panel" aria-labelledby="boss-panel-title" hidden>
+      <header class="boss-panel__head">
+        <p class="boss-panel__eyebrow" id="boss-panel-eyebrow"></p>
+        <h2 class="boss-panel__title" id="boss-panel-title"></h2>
+      </header>
+      <div class="boss-panel__body" id="boss-panel-body"></div>
+    </section>
+    <div id="boss-tip" class="boss-tip" role="status" aria-live="polite" hidden></div>
+    <button type="button" id="boss-jump" class="pixel-btn boss-jump" hidden>▲ Jump <kbd>Space</kbd></button>
+    <div id="boss-banner" class="boss-banner" aria-hidden="true"><p class="boss-banner__big"></p><p class="boss-banner__sub"></p></div>
+
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <p id="sr-live" class="sr-only" aria-live="polite"></p>
   </div>

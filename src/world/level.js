@@ -166,6 +166,8 @@ export const STATIONS = [
 ];
 export const DESIGN_WALL = { x: 11780 };
 export const ACADEMY = { sign: 11990, door: 12165 };
+// The Four-Armed Creative Golem sits in the corner between the desks and the design wall.
+export const GOLEM = { x: 11650, arena: 11520, girl: 11468, book: 11572 };
 export const STATION_GATE = { x: 11690, y: -800, w: 10, h: 1400, kind: 'stationGate' };
 
 // Until the gateway is opened, the world beyond it is out of reach.
@@ -502,6 +504,7 @@ export const INTERACTABLES = [
   // stage 4
   { id: 'studio-exit', x: 10150, y: G, label: 'Go outside', range: 26 },
   ...STATIONS.map((st) => ({ id: `station-${st.id}`, x: st.x - 10, y: G, label: `${st.name} station`, range: 40, station: st.id })),
+  { id: 'boss-book', x: GOLEM.book, y: G, label: 'Boss Book', range: 22, after: 'golem-defeated' },
   { id: 'design-wall', x: 11780, y: G, label: 'Look at the wall', range: 40 },
   { id: 'academy', x: 12165, y: G, label: 'Explore', range: 46 },
   // stage 5
@@ -536,7 +539,8 @@ export const TRIGGERS = [
   { id: 'studio-enter', x: 10290 },
   { id: 'one-team', x: 10520 },
   ...STATIONS.map((st) => ({ id: `station-${st.id}`, x: st.x - 40, mode: 'scroll' })),
-  { id: 'missing-piece', x: 11760, needs: 'hats' },
+  { id: 'golem', x: 11470, needs: 'hats' },
+  { id: 'missing-piece', x: 11760, needs: 'golem-defeated' },
   { id: 'decision', x: 11990, needs: 'missing-piece' },
   // stage 5
   { id: 'academy-door', x: 12150, mode: 'scroll', needs: 'decision' },
@@ -570,6 +574,7 @@ export const CHECKPOINTS = [
   { id: 'possibilities', x: 7900, name: 'the world of possibilities' },
   { id: 'studio', x: 9300, name: 'the path to the studio' },
   { id: 'workplace', x: 10190, name: 'Valluva HCM Cloud Suite' },
+  { id: 'golem', x: 11470, name: 'the Creative Golem' },
   { id: 'academy-door', x: 11900, name: 'the Knowledge Academy door' },
   { id: 'campus', x: CAMPUS.entry, name: 'The Knowledge Academy' },
   { id: 'lab', x: LAB.x0, name: 'the interaction design lab' },
@@ -599,6 +604,7 @@ export const BEATS = [
   { id: 'rising', x: 7900, who: 'boy', text: 'Wait… is the ground moving?' },
   { id: 'studio-seen', x: 9160, who: 'girl', text: 'There\'s an office up ahead!' },
   { id: 'desks', x: 10600, mode: 'explore', who: 'girl', text: 'Let\'s check out every desk. Press E at each one!' },
+  { id: 'golem-seen', x: 11330, who: 'girl', text: 'What is that huge old machine in the corner…?' },
   { id: 'classroom-hint', x: CLASSROOM.x0 + 90, mode: 'explore', who: 'girl', text: 'Everything in here has a lesson. Press E to look closer!' },
   { id: 'wall-hint', x: FOUNDATION.x0 - 30, who: 'girl', text: 'Look at that wall… it\'s lighting up!' },
   { id: 'camp-quiet', x: 16300, who: 'girl', text: 'It\'s so peaceful out here.' },

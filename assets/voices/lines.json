@@ -240,6 +240,26 @@
     "text": "And I was also working on product design."
   },
   {
+    "key": "golem-wake-1",
+    "who": "girl",
+    "text": "Wait… did that old machine just move?"
+  },
+  {
+    "key": "golem-wake-2",
+    "who": "boy",
+    "text": "It's built from every creative tool in the office! Let's switch off its four arms, one at a time."
+  },
+  {
+    "key": "golem-victory-1",
+    "who": "girl",
+    "text": "Wait! You handled all four disciplines?"
+  },
+  {
+    "key": "golem-victory-2",
+    "who": "boy",
+    "text": "Pretty much. I was the whole design team!"
+  },
+  {
     "key": "missing-piece-1",
     "who": "girl",
     "text": "You were doing so many different things. Didn't that feel exciting?"

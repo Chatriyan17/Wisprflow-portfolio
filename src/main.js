@@ -7,7 +7,9 @@ import { clamp } from './engine/rng.js';
 import { Character } from './entities/character.js';
 import { Companion } from './entities/companion.js';
 import { WorldRenderer } from './world/renderer.js';
-import { buildSolids, groundTopAt, INTERACTABLES, WATERFALL, CONVEYOR, PORTAL, BREAK, GATE, ISLANDS, STREAM, STATIONS, INTERIOR, CAMPUS, PRINCIPLES, ACADEMY, MENTOR, CAMP, MEMORIES, areaOf } from './world/level.js';
+import { buildSolids, groundTopAt, INTERACTABLES, WATERFALL, CONVEYOR, PORTAL, BREAK, GATE, ISLANDS, STREAM, STATIONS, INTERIOR, CAMPUS, PRINCIPLES, ACADEMY, MENTOR, CAMP, MEMORIES, GOLEM, areaOf } from './world/level.js';
+import { Golem } from './world/golem.js';
+import * as Boss from './cinematics/boss.js';
 import { industryAt, gatewayAt, forestAt } from './world/renderer.js';
 import { paintFriendSilhouette } from './world/industrial.js';
 import * as Stage2 from './cinematics/stage2.js';
@@ -102,6 +104,8 @@ class Game {
     this.story = new Story({ onBeat: (b) => this.onBeat(b), onTrigger: (t) => this.runScene(t.id) });
     this.renderer.seen = this.story.seen;
     this.renderer.mentorSheet = new SpriteSheet(mentorImg, mentorMeta);
+    this.golem = new Golem(GOLEM.x);
+    this.golem.onEvent = (e) => { if (e === 'bucket') this.audio.sfx('bucket'); };
     this.live = document.getElementById('sr-live');
 
     this.buffer = null;
@@ -351,7 +355,10 @@ class Game {
     for (const st of STATIONS) {
       if (seen.has(`station-${st.id}`)) { this.renderer.activateStation(st.id); this.renderer.stations[st.id].t = 10; this.renderer.stations[st.id].found = true; }
     }
-    if (seen.has('hats')) this.openStationGate();
+    // the golem: dormant, half-beaten (a battle left midway picks up again), or resting
+    this.golem.restore(seen);
+    if (seen.has('golem') && !seen.has('golem-defeated')) seen.delete('golem');
+    if (seen.has('golem-defeated') || seen.has('missing-piece')) this.openStationGate();
     if (seen.has('campus-arrive')) { this.openCampusGate(); this.renderer.gateOpen = 1; }
     if (seen.has('lab-solved')) this.renderer.labSolved = true;
     PRINCIPLES.forEach((pr, i) => { if (seen.has(`lit-${pr.id}`) || seen.has('foundation')) this.renderer.principlesLit[i] = 1; });
@@ -407,7 +414,7 @@ class Game {
     document.body.classList.toggle('mode-scroll', mode === 'scroll');
     document.body.classList.toggle('mode-explore', mode === 'explore');
     this.hud.setMode(mode);
-    this.input.captureScrollKeys = mode === 'explore';
+    this.input.captureScrollKeys = mode === 'explore' || !!this.bossActive;
     if (mode === 'scroll') {
       this.updateScrollTrack();
       const y = (clamp(this.player.x, SCROLL.startX, SCROLL.endX) - SCROLL.startX) * SCROLL.pxPerWorldPx;
@@ -469,6 +476,17 @@ class Game {
         this.hud.toast('You\'re in Explore World. Switch to Scroll Journey to scroll.');
       }
     }, { passive: false });
+
+    // the golem's motion challenge: a big jump button, and tapping the world jumps too
+    const jumpBtn = document.getElementById('boss-jump');
+    const tapJump = () => { this.input.setVirtual('jump', true); setTimeout(() => this.input.setVirtual('jump', false), 90); };
+    jumpBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); jumpBtn.classList.add('is-down'); this.input.setVirtual('jump', true); });
+    const jumpUp = () => { jumpBtn.classList.remove('is-down'); this.input.setVirtual('jump', false); };
+    jumpBtn.addEventListener('pointerup', jumpUp);
+    jumpBtn.addEventListener('pointercancel', jumpUp);
+    jumpBtn.addEventListener('pointerleave', jumpUp);
+    jumpBtn.addEventListener('click', (e) => { if (e.detail === 0) tapJump(); });
+    this.canvas.addEventListener('pointerdown', () => { if (this.bossJump) tapJump(); });
 
     // touch controls
     for (const btn of document.querySelectorAll('#touch button')) {
@@ -601,6 +619,15 @@ class Game {
           await this.say('mentor-talk');
           this.renderer.mentorTalking = false;
           break;
+        case 'boss-book': {
+          this.audio.sfx('page');
+          let choice = null;
+          const shown = this.hud.openCard(Boss.bossBookCard(this));
+          document.querySelectorAll('#card-body [data-replay]').forEach((b) => b.addEventListener('click', () => { choice = b.dataset.replay; this.hud.closeCard(); }));
+          await shown;
+          if (choice) { this.bossReplay = choice; this.later(0.05, () => this.runScene('golem-replay')); }
+          break;
+        }
         case 'info-board':
           this.audio.sfx('page');
           await this.hud.openCard(academyInfoCard());
@@ -642,6 +669,8 @@ class Game {
       'one-team': Stage4.oneTeam,
       hats: Stage4.hats,
       'missing-piece': Stage4.missingPiece,
+      golem: Boss.golem,
+      'golem-replay': Boss.golemReplay,
       decision: Stage4.decision,
       'academy-door': Stage5.academyDoor,
       'campus-arrive': Stage5.campusArrive,
@@ -782,6 +811,17 @@ class Game {
       }
     }
 
+    // the golem's motion challenge: jumping is the only control (both modes)
+    if (playing && this.bossJump) {
+      const c = p.control;
+      c.move = 0;
+      c.run = false;
+      c.jump = !this.dialogue.active && (this.input.wasPressed('jump') || this.input.wasPressed('up'));
+      c.jumpHeld = true;
+      p.autopilot = null;
+    }
+    this.golem.update(sdt, p, this.girl);
+
     this.girl.think(dt);
     for (const ch of this.characters) ch.update(dt, this.solids);
 
@@ -852,7 +892,7 @@ class Game {
       conveyor: clamp(1 - Math.abs(p.x - (CONVEYOR.x0 + CONVEYOR.x1) / 2) / 350, 0, 1),
       forest: here.id === 'outdoor' ? forestAt(cx) : here.id === 'campus' ? 0.6 : 0,
       studio: here.id === 'studio' ? 1 : 0,
-      theme: themeFor(here.id, p.x),
+      theme: this.bossMusic ? 'boss' : themeFor(here.id, p.x),
     });
     if (forestAt(cx) > 0) this.audio.setWater(Math.max(clamp(1 - wd / 420, 0, 1), clamp(1 - Math.abs(p.x - (STREAM.x0 + STREAM.x1) / 2) / 300, 0, 1) * 0.6));
     this.audio.update();
@@ -927,8 +967,10 @@ class Game {
         paintFriendSilhouette(ctx, fx - cam.x, G - cam.y, -1, Math.min(1, this.memory * 1.2), talking ? t * 9 + i * 2 : t * 1.5 + i);
       });
     }
+    this.golem.draw(ctx, cam);
     this.renderer.drawHats(ctx, cam, this.player);
     for (const ch of this.characters) ch.draw(ctx, cam, this.solids);
+    this.golem.drawFront(ctx, cam, this.player);
     this.renderer.drawHatsFront(ctx, cam, this.player);
     this.renderer.drawExclaims(ctx, cam, this.frameDt || 0.016);
     this.renderer.drawFront(ctx, cam);

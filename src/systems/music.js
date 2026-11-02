@@ -59,6 +59,12 @@ export const THEMES = {
       '5 - - 6 5 - 3 -', '7 - - 1\' 2\' - 7 -', '1\' - 7 - 6 - 3 -', '4 - 6 - 5 - - .'],
     lead: 'flute', arp: 'bell', bass: 'half', pad: 1, drums: 'swell',
   },
+  boss: {      // playful, mechanical: the Four-Armed Creative Golem
+    bpm: 132, root: 62, scale: 'minor', chords: [1, 1, 6, 7, 1, 1, 4, 5],
+    melody: ['1 . 1 3 5 . 3 .', '1\' - 7 5 6 5 3 .', '6, . 1 3 6 . 5 3', '7, - 2 4 5 - 4 2',
+      '1 . 1 3 5 . 6 7', '1\' - 7 5 6 - 5 .', '4 . 6 1\' 6 4 2 .', '5 - 7 - 5 . 5, .'],
+    lead: 'square', arp: 'pluck', bass: 'eighths', pad: 0.25, drums: 'beat',
+  },
 };
 
 const SCALES = { major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10] };

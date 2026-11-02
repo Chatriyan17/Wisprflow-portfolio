@@ -152,6 +152,15 @@ export const SCRIPTS = {
   'station-motion': [{ who: 'boy', expr: 'speaking', text: 'I also explored motion design, bringing visuals to life through animation.' }],
   'station-visual': [{ who: 'boy', expr: 'thinking', text: 'Visual design was another part of my work. I started understanding how visual elements work together.' }],
   'station-product': [{ who: 'boy', expr: 'smile', text: 'And I was also working on product design.' }],
+  // The Four-Armed Creative Golem (the Stage 4 boss battle)
+  'golem-wake': [
+    { who: 'girl', expr: 'surprised', text: 'Wait… did that old machine just move?' },
+    { who: 'boy', expr: 'laugh', text: "It's built from every creative tool in the office! Let's switch off its four arms, one at a time." },
+  ],
+  'golem-victory': [
+    { who: 'girl', expr: 'surprised', text: 'Wait! You handled all four disciplines?' },
+    { who: 'boy', expr: 'laugh', text: 'Pretty much. I was the whole design team!' },
+  ],
   'missing-piece': [
     { who: 'girl', expr: 'curious', text: "You were doing so many different things. Didn't that feel exciting?" },
     { who: 'boy', expr: 'smile', text: 'It did. I was learning a lot by doing different kinds of work.' },
@@ -336,4 +345,20 @@ export const MODE_HINTS = {
   scroll: "Scroll down and we'll walk the path together.",
   explore: '← → to walk, SPACE to jump. Press E near things!',
   touch: 'Use the buttons to walk and jump. Tap E near things!',
+};
+
+// The boss battle: one challenge per creative discipline. Each completed
+// challenge shuts down one of the golem's four arms.
+export const BOSS = {
+  name: 'The Four-Armed Creative Golem',
+  phases: [
+    { id: 'graphic', num: 1, title: 'Poster Assembly', discipline: 'Graphic Design', arm: 'Paintbrush arm',
+      girl: 'Its paintbrush flung a poster at you! Put each piece in its matching outline.', offline: 'Paintbrush arm offline! It dropped its paint bucket.' },
+    { id: 'motion', num: 2, title: 'Motion Timing', discipline: 'Motion Design', arm: 'Film reel arm',
+      girl: 'Energy waves from the film reel! Jump when the glow reaches your feet.', offline: 'Film reel arm frozen!' },
+    { id: 'visual', num: 3, title: 'Visual Hierarchy', discipline: 'Visual Design', arm: 'Colour prism arm',
+      girl: 'The prism scrambled a page! Biggest and boldest goes first.', offline: 'Colour prism arm offline! Its colours turned into stars.' },
+    { id: 'product', num: 4, title: 'Connect the Flow', discipline: 'Product Design', arm: 'Interface projector arm',
+      girl: 'Last arm! Link the screens in the order a user moves through them.', offline: 'Interface projector offline! Success screen.' },
+  ],
 };

@@ -142,7 +142,7 @@ export async function hats(game) {
   };
   game.onTick(shrink);
   game.story.seen.add('hats');
-  game.openStationGate();
+  // the way on stays closed: the old machine in the corner is about to wake up
   game.story.save();
 }
 

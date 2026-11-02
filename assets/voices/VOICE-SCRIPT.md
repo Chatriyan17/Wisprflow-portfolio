@@ -32,6 +32,8 @@ Signs are not voiced.
 | `station-motion-1.mp3` | I also explored motion design, bringing visuals to life through animation. |
 | `station-visual-1.mp3` | Visual design was another part of my work. I started understanding how visual elements work together. |
 | `station-product-1.mp3` | And I was also working on product design. |
+| `golem-wake-2.mp3` | It's built from every creative tool in the office! Let's switch off its four arms, one at a time. |
+| `golem-victory-2.mp3` | Pretty much. I was the whole design team! |
 | `missing-piece-2.mp3` | It did. I was learning a lot by doing different kinds of work. |
 | `missing-piece-2-1.mp3` | But somewhere, I felt I was still missing something. |
 | `missing-piece-2-3.mp3` | I wanted someone to guide me. Someone who could tell me whether I was doing things correctly, point out my mistakes and help me improve. |
@@ -86,6 +88,8 @@ Signs are not voiced.
 | `one-team-1.mp3` | How big was the design team? |
 | `one-team-2-1.mp3` | Wait. The whole team? |
 | `one-team-2-3.mp3` | So, what were you working on? |
+| `golem-wake-1.mp3` | Wait… did that old machine just move? |
+| `golem-victory-1.mp3` | Wait! You handled all four disciplines? |
 | `missing-piece-1.mp3` | You were doing so many different things. Didn't that feel exciting? |
 | `missing-piece-2-2.mp3` | What was missing? |
 | `missing-piece-2-4.mp3` | So you wanted to grow beyond just doing the work? |
