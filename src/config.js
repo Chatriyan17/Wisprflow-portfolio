@@ -6,7 +6,7 @@ export const VIEW = {
 };
 
 export const WORLD = {
-  width: 9900,
+  width: 12320,
   height: 420,
   ground: 300,         // top of the main ground
 };
@@ -27,7 +27,7 @@ export const PHYSICS = {
 
 export const SCROLL = {
   startX: 380,
-  endX: 9630,
+  endX: 12165,
   pxPerWorldPx: 2.1,   // page-scroll pixels per world pixel travelled
 };
 

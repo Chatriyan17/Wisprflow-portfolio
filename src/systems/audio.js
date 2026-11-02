@@ -119,12 +119,26 @@ export class Audio {
 
   setRegion(r) { this.region = r; }
 
+  setQuiet(on) { this.quiet = on; }
+
   update() {
     if (!this.enabled || !this.ctx) return;
     const c = this.ctx;
     const t = c.currentTime;
     this.waterGain.gain.setTargetAtTime(this.water * 0.08, t, 0.3);
     const R = this.region || { industry: 0, gateway: 0, conveyor: 0, forest: 0 };
+    if ((R.studio || 0) > 0.5 && !this.quiet && t > (this.nextType || 0)) {
+      // studio ambience: bursts of keyboard typing, the odd mouse click
+      if (Math.random() < 0.75) {
+        const n = 4 + Math.floor(Math.random() * 8);
+        for (let i = 0; i < n; i++) this.tone(1800 + Math.random() * 900, 0.018, 'square', 0.006, t + i * (0.07 + Math.random() * 0.06));
+      } else {
+        this.tone(2600, 0.012, 'square', 0.01, t);
+        this.tone(2200, 0.012, 'square', 0.008, t + 0.09);
+      }
+      this.nextType = t + 1.4 + Math.random() * 3;
+    }
+    this.padGain.gain.setTargetAtTime(0.05 * (this.quiet ? 0.45 : 1) * (1 - (R.industry || 0) * 0.6), t, 0.8);
     if ((R.forest || 0) > 0.3 && t > (this.nextBird || 0)) {
       // birdsong in the discovery forest
       const f = 2200 + Math.random() * 1400;
@@ -133,7 +147,6 @@ export class Audio {
       this.nextBird = t + 1.5 + Math.random() * 3.5;
     }
     // birdsong-like music box fades out in the factory; machines hum instead
-    this.padGain.gain.setTargetAtTime(0.05 * (1 - R.industry * 0.6), t, 0.8);
     this.humGain.gain.setTargetAtTime(0.03 * R.industry, t, 0.8);
     this.beltGain.gain.setTargetAtTime(0.05 * R.conveyor * R.industry, t, 0.3);
     this.portalGain.gain.setTargetAtTime(0.012 * R.gateway * (0.7 + 0.3 * Math.sin(t * 2)), t, 0.2);
@@ -187,6 +200,26 @@ export class Audio {
         if (vol <= 0.02) break;
         this.tone(90, 0.25, 'triangle', 0.08 * vol, null, 45);
         this.tone(2200, 0.05, 'square', 0.015 * vol);
+        break;
+      case 'door':
+        this.tone(240, 0.12, 'triangle', 0.04, null, 180);
+        this.tone(660, 0.3, 'sine', 0.02, this.ctx.currentTime + 0.12, 990);
+        break;
+      case 'surprise':
+        this.tone(520, 0.08, 'square', 0.03, null, 880);
+        this.tone(880, 0.12, 'square', 0.025, this.ctx.currentTime + 0.09, 1320);
+        break;
+      case 'station':
+        this.tone(330, 0.08, 'square', 0.02);
+        [660, 990, 1320].forEach((f, i) => this.tone(f, 0.12, 'sine', 0.022, this.ctx.currentTime + 0.08 + i * 0.06));
+        break;
+      case 'hat':
+        this.tone(784, 0.1, 'square', 0.025, null, 1568);
+        this.tone(1568, 0.25, 'sine', 0.02, this.ctx.currentTime + 0.1);
+        break;
+      case 'hats':
+        [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.6, 'square', 0.018, this.ctx.currentTime + i * 0.12));
+        [1319, 1568].forEach((f, i) => this.tone(f, 0.9, 'sine', 0.02, this.ctx.currentTime + 0.5 + i * 0.15));
         break;
       case 'discover':
         [880, 1109, 1319].forEach((f, i) => this.tone(f, 0.5, 'sine', 0.03, this.ctx.currentTime + i * 0.07));

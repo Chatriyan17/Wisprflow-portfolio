@@ -23,6 +23,20 @@ Signs are not voiced.
 | `curiosity-2.mp3` | That's what got me curious. |
 | `curiosity-2-1.mp3` | What fascinated me was that I could learn something new from every industry while building a product. |
 | `curiosity-2-3.mp3` | Exactly. It was about understanding people, their problems and finding better ways to solve them. |
+| `studio-enter-2.mp3` | I got placed at a company called Balwa HCM Cloud Suite. |
+| `studio-enter-4.mp3` | Yes. This was where I started applying what I had learned. |
+| `one-team-2.mp3` | Well... I was the whole design team. |
+| `one-team-2-2.mp3` | Pretty much! |
+| `one-team-3-1.mp3` | Everything! Graphic design, motion design, visual design and product design. |
+| `station-graphic-1.mp3` | I worked on graphic design too. |
+| `station-motion-1.mp3` | I also explored motion design, bringing visuals to life through animation. |
+| `station-visual-1.mp3` | Visual design was another part of my work. I started understanding how visual elements work together. |
+| `station-product-1.mp3` | And I was also working on product design. |
+| `missing-piece-2.mp3` | It did. I was learning a lot by doing different kinds of work. |
+| `missing-piece-2-1.mp3` | But somewhere, I felt I was still missing something. |
+| `missing-piece-2-3.mp3` | I wanted someone to guide me. Someone who could tell me whether I was doing things correctly, point out my mistakes and help me improve. |
+| `missing-piece-2-5.mp3` | Exactly. |
+| `decision-1.mp3` | I realised I needed stronger foundations. That's when I decided to pursue my master's in design. |
 
 ## Companion (companion)
 
@@ -45,6 +59,15 @@ Signs are not voiced.
 | `curiosity-1.mp3` | You realise there are so many worlds to explore, right? |
 | `curiosity-2-2.mp3` | So UX wasn't just about designing screens? |
 | `curiosity-2-4.mp3` | Looks like we've found something worth exploring. |
+| `studio-enter-1.mp3` | So, where did this new journey take you? |
+| `studio-enter-3.mp3` | Your first design workplace? |
+| `one-team-1.mp3` | How big was the design team? |
+| `one-team-2-1.mp3` | Wait. The whole team? |
+| `one-team-2-3.mp3` | So, what were you working on? |
+| `missing-piece-1.mp3` | You were doing so many different things. Didn't that feel exciting? |
+| `missing-piece-2-2.mp3` | What was missing? |
+| `missing-piece-2-4.mp3` | So you wanted to grow beyond just doing the work? |
+| `decision-2.mp3` | Then let's find a place where you can sharpen those skills. |
 
 ## Friend (memory, silhouettes)
 

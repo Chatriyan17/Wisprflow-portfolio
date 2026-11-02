@@ -10,6 +10,7 @@ export class Camera {
     this.lookAhead = 0;
     this.override = null;    // {x, y} target used by cinematics / peeks
     this.rate = 4.5;
+    this.bounds = null;      // optional { min, max } horizontal limits (e.g. inside a building)
   }
 
   resize(w, h) {
@@ -41,8 +42,10 @@ export class Camera {
   }
 
   clampToWorld() {
-    const maxX = this.world.width - this.viewW;
-    this.x = clamp(this.x, 0, Math.max(0, maxX));
+    const lo = this.bounds ? this.bounds.min : 0;
+    const hi = this.bounds ? this.bounds.max : this.world.width;
+    const maxX = hi - this.viewW;
+    this.x = clamp(this.x, lo, Math.max(lo, maxX));
     const maxY = this.world.height - this.viewH;
     // Tall (portrait) views show more sky instead of more ground.
     this.y = maxY < 0 ? maxY : clamp(this.y, -160, maxY);

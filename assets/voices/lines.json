@@ -168,5 +168,120 @@
     "key": "curiosity-2-4",
     "who": "girl",
     "text": "Looks like we've found something worth exploring."
+  },
+  {
+    "key": "studio-enter-1",
+    "who": "girl",
+    "text": "So, where did this new journey take you?"
+  },
+  {
+    "key": "studio-enter-2",
+    "who": "boy",
+    "text": "I got placed at a company called Balwa HCM Cloud Suite."
+  },
+  {
+    "key": "studio-enter-3",
+    "who": "girl",
+    "text": "Your first design workplace?"
+  },
+  {
+    "key": "studio-enter-4",
+    "who": "boy",
+    "text": "Yes. This was where I started applying what I had learned."
+  },
+  {
+    "key": "one-team-1",
+    "who": "girl",
+    "text": "How big was the design team?"
+  },
+  {
+    "key": "one-team-2",
+    "who": "boy",
+    "text": "Well... I was the whole design team."
+  },
+  {
+    "key": "one-team-2-1",
+    "who": "girl",
+    "text": "Wait. The whole team?"
+  },
+  {
+    "key": "one-team-2-2",
+    "who": "boy",
+    "text": "Pretty much!"
+  },
+  {
+    "key": "one-team-2-3",
+    "who": "girl",
+    "text": "So, what were you working on?"
+  },
+  {
+    "key": "one-team-3-1",
+    "who": "boy",
+    "text": "Everything! Graphic design, motion design, visual design and product design."
+  },
+  {
+    "key": "station-graphic-1",
+    "who": "boy",
+    "text": "I worked on graphic design too."
+  },
+  {
+    "key": "station-motion-1",
+    "who": "boy",
+    "text": "I also explored motion design, bringing visuals to life through animation."
+  },
+  {
+    "key": "station-visual-1",
+    "who": "boy",
+    "text": "Visual design was another part of my work. I started understanding how visual elements work together."
+  },
+  {
+    "key": "station-product-1",
+    "who": "boy",
+    "text": "And I was also working on product design."
+  },
+  {
+    "key": "missing-piece-1",
+    "who": "girl",
+    "text": "You were doing so many different things. Didn't that feel exciting?"
+  },
+  {
+    "key": "missing-piece-2",
+    "who": "boy",
+    "text": "It did. I was learning a lot by doing different kinds of work."
+  },
+  {
+    "key": "missing-piece-2-1",
+    "who": "boy",
+    "text": "But somewhere, I felt I was still missing something."
+  },
+  {
+    "key": "missing-piece-2-2",
+    "who": "girl",
+    "text": "What was missing?"
+  },
+  {
+    "key": "missing-piece-2-3",
+    "who": "boy",
+    "text": "I wanted someone to guide me. Someone who could tell me whether I was doing things correctly, point out my mistakes and help me improve."
+  },
+  {
+    "key": "missing-piece-2-4",
+    "who": "girl",
+    "text": "So you wanted to grow beyond just doing the work?"
+  },
+  {
+    "key": "missing-piece-2-5",
+    "who": "boy",
+    "text": "Exactly."
+  },
+  {
+    "key": "decision-1",
+    "who": "boy",
+    "text": "I realised I needed stronger foundations. That's when I decided to pursue my master's in design."
+  },
+  {
+    "key": "decision-2",
+    "who": "girl",
+    "text": "Then let's find a place where you can sharpen those skills."
   }
 ]

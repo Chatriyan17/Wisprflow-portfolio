@@ -8,6 +8,7 @@ Built so far:
 
 - **Stage 1: World foundation.** The opening village, the two original characters, the camera, both navigation modes, dialogue and interaction.
 - **Stage 2: The Old Workshop** (Chapter 01 · Part 02). The road from the village into an industrial district, the factory hall, the break yard where friends first mention UX, and the gateway to the World of UX.
+- **Stage 4: The First Design Studio** (Chapter 01 · Part 04). Inside Balwa HCM Cloud Suite: the one-person design team, four creative stations, the creative hats, the missing piece, and the door to the Knowledge Academy.
 - **Stage 3: The Discovery Path** (Chapter 01 · Part 03). Through the gateway into a magical forest: the first question, the learning station with the Google UX Design course on Coursera, six industry islands rising and connecting, and the door of the first design studio.
 
 ## Run it
@@ -37,6 +38,16 @@ It deploys as-is to GitHub Pages, Netlify, Vercel or any static host.
 - **Skip to story** opens the whole chapter as plain text, for visitors who'd rather read.
 - `prefers-reduced-motion` is respected: no camera pan, particles or typewriter effect.
 - Both modes share the same world, the same story beats and the same progress.
+
+### What's in Stage 4
+
+- **Into the studio.** The studio door opens, forest sparks turn into little design elements and drifting pages become design documents. A "Chapter 01 · Part 04 · Balwa HCM Cloud Suite" card plays, and the pair walk into a warm, colourful creative studio with the company name on the wall.
+- **The one-person design team.** The camera pulls back over four quiet, empty desks. "Well... I was the whole design team." A beat, a surprised companion with a "!", then "Pretty much!" As he names each discipline, a hat pops above his head and keeps changing.
+- **Four creative stations** (graphic, motion, visual, product). Walk up and press E, or let Scroll Journey stop at each. The monitors wake, the camera eases in, and the work comes alive: a poster assembling itself, an animation timeline with a moving playhead, a moodboard building tile by tile, and a wireframe turning into a finished interface while a user flow draws itself. Each station is then marked discovered and earns its hat.
+- **One designer. Multiple creative hats.** Once all four are found, the four hat badges orbit him under the title card, and the way to the back of the studio opens.
+- **The missing piece.** At the design wall, which shows all four disciplines, the room dims, the camera moves in slowly and the conversation about wanting guidance plays.
+- **The decision.** The Knowledge Academy sign and a glowing doorway. Its door (E) is the hook for Stage 5: `Game.enterNextRegion()`.
+- The interior is its own space. Scroll Journey steps in and out of it as you scroll past the door, and in Explore World there is a "Go outside" door by the entrance.
 
 ### What's in Stage 3
 
@@ -102,6 +113,7 @@ src/
     art.js              Procedural 16-bit painters (sky, mountains, trees, house…)
     industrial.js       Stage 2 painters (concrete, factory hall, machines, break yard, gateway, skyline)
     forest.js           Stage 3 painters (forest, learning station, industry islands, studio)
+    studio.js           Stage 4 painters (studio interior, creative stations, design wall, academy door)
     renderer.js         Parallax layers, baked main layer, water/smoke/grass, lighting
     pixel.js            Pixel drawing helpers (dither, discs, crisp pixel text)
   systems/              dialogue, character voices, speech bubbles, story progress + save, audio
@@ -109,6 +121,7 @@ src/
   cinematics/intro.js   Opening sequence
   cinematics/stage2.js  Stage 2 scenes (workshop talk, catwalk, break yard, memory)
   cinematics/stage3.js  Stage 3 scenes (gateway, first question, course, curiosity)
+  cinematics/stage4.js  Stage 4 scenes (studio door, one-person team, stations, hats, missing piece, decision)
   content/chapter01.js  All story text, chapter locations and dialogue scripts
 assets/sprites/         Baked sprite sheets + animation metadata
 assets/portraits/       Dialogue portraits
@@ -133,7 +146,7 @@ The companion is currently labelled "Companion" in dialogue. Set her name in `CH
 1. ✅ World foundation
 2. ✅ The manufacturing world (The Old Workshop)
 3. ✅ Discovery of UX (Discovery Path, Learning Camp)
-4. First workplace (Balwa HCM Cloud Suite)
+4. ✅ First workplace (Balwa HCM Cloud Suite)
 5. Education and mentorship (Knowledge Academy, Mentor's Camp)
 6. The birth of design skills (Origin Temple puzzle)
 7. Chapter conclusion

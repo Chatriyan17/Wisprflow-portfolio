@@ -1,8 +1,8 @@
 import { CHAPTER_01 } from '../content/chapter01.js';
 
 // How many chapter locations are playable so far
-// (Stage 3: The Old Workshop, The Discovery Path, The Learning Camp).
-const BUILT_LOCATIONS = 3;
+// (Stage 4: The Old Workshop, The Discovery Path, The Learning Camp, The First Workplace).
+const BUILT_LOCATIONS = 4;
 
 // DOM HUD: chapter progress, mode switch, sound toggle, controls panel, toasts, story card.
 export class HUD {

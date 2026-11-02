@@ -31,7 +31,9 @@ export const TERRAIN = [
   [8280, 8300, G - 11, 'forest'],
   [8300, 8524, G - 22, 'forest'],  // the hill at the heart of the world of possibilities
   [8524, 8544, G - 11, 'forest'],
-  [8544, WORLD.width, G, 'forest'],
+  [8544, 9900, G, 'forest'],
+  // --- Stage 4: inside the first design studio (a separate interior region)
+  [9900, WORLD.width, G, 'studio'],
 ];
 
 // Where the industrial look fades in and out (used by art, sky tint and audio).
@@ -65,6 +67,18 @@ export const ISLANDS = [
   { id: 'transport', name: 'Transportation', x: 8654, y: G - 228, at: 8270 },
   { id: 'technology', name: 'Technology', x: 8768, y: G - 150, at: 8350 },
 ];
+// Stage 4: the studio interior lives to the right of the forest, behind its own walls.
+export const INTERIOR = { x0: 10100, x1: WORLD.width - 30, entry: 10190, exitTo: 9640 };
+export const STATIONS = [
+  { id: 'graphic', num: '01', name: 'Graphic Design', x: 10650 },
+  { id: 'motion', num: '02', name: 'Motion Design', x: 10930 },
+  { id: 'visual', num: '03', name: 'Visual Design', x: 11210 },
+  { id: 'product', num: '04', name: 'Product Design', x: 11490 },
+];
+export const DESIGN_WALL = { x: 11780 };
+export const ACADEMY = { sign: 11990, door: 12165 };
+export const STATION_GATE = { x: 11690, y: -800, w: 10, h: 1400, kind: 'stationGate' };
+
 // Until the gateway is opened, the world beyond it is out of reach.
 export const PORTAL_WALL = { x: 6172, y: -800, w: 10, h: 1400, kind: 'portalWall' };
 
@@ -101,6 +115,9 @@ export function buildSolids() {
   solids.push({ x: CATWALK.x0 + 6, y: G - 58, w: CATWALK.x1 - CATWALK.x0 - 12, h: 58, kind: 'generator' });
   solids.push({ x: WOOD_BRIDGE.x0, y: WOOD_BRIDGE.y, w: WOOD_BRIDGE.x1 - WOOD_BRIDGE.x0, h: 8, kind: 'bridge' });
   solids.push({ ...PORTAL_WALL });
+  // the forest ends at the studio; the studio interior has its own walls
+  solids.push({ x: 9870, y: -800, w: 260, h: 1400, kind: 'wall' });
+  solids.push({ ...STATION_GATE });
   solids.push({ x: BRIDGE.x0, y: BRIDGE.y, w: BRIDGE.x1 - BRIDGE.x0, h: 10, kind: 'bridge' });
   for (const p of PLATFORMS) solids.push({ x: p.x, y: p.y, w: p.w, h: 8, oneWay: true, kind: p.kind });
   for (const c of CRATES) solids.push({ x: c.x, y: G - c.h, w: c.w, h: c.h, kind: 'crate' });
@@ -215,6 +232,12 @@ export const PROPS = [
   { type: 'glowFlowers', x: 9460, w: 80 },
   { type: 'studio', x: 9560 },
   { type: 'bigForestTree', x: 9810, h: 190, r: 50, kind: 'green' },
+  // --- Stage 4: inside the studio
+  { type: 'studioInterior', x: 10100 },
+  ...STATIONS.map((st) => ({ type: 'creativeStation', x: st.x, id: st.id, num: st.num, name: st.name })),
+  { type: 'designWall', x: 11780 },
+  { type: 'academySign', x: 11990 },
+  { type: 'academyDoor', x: 12165 },
 ];
 
 // Light sources for the lighting pass (world coords).
@@ -265,6 +288,12 @@ export const LIGHTS = [
   { x: 9610, y: G - 70, r: 40, kind: 'window' },
   { x: 9700, y: G - 70, r: 40, kind: 'window' },
   { x: 9650, y: G - 150, r: 50, kind: 'window' },
+  // stage 4: studio pendants, station screens (lit when switched on), academy glow
+  ...[10260, 10520, 10790, 11070, 11350, 11620, 11880].map((x) => ({ x, y: G - 172, r: 60, kind: 'hanglamp' })),
+  ...STATIONS.map((st) => ({ x: st.x, y: G - 66, r: 46, kind: 'screen', station: st.id })),
+  { x: 10300, y: G - 140, r: 46, kind: 'neon' },
+  { x: 11990, y: G - 130, r: 70, kind: 'academy' },
+  { x: 12165, y: G - 60, r: 110, kind: 'academy' },
 ];
 
 // string-light bulbs over the break yard (also light sources)
@@ -300,7 +329,12 @@ export const INTERACTABLES = [
   // stage 3
   { id: 'course', x: 7426, y: G, label: 'Use computer', range: 34 },
   ...ISLANDS.map((i) => ({ id: `island-${i.id}`, x: i.x, y: i.x > 8290 && i.x < 8530 ? G - 22 : G, label: `Look at ${i.name}`, range: 22, island: i.id })),
-  { id: 'studio', x: 9650, y: G, label: 'Explore', range: 44 },
+  { id: 'studio', x: 9650, y: G, label: 'Enter studio', range: 44 },
+  // stage 4
+  { id: 'studio-exit', x: 10150, y: G, label: 'Go outside', range: 26 },
+  ...STATIONS.map((st) => ({ id: `station-${st.id}`, x: st.x - 10, y: G, label: `${st.name} station`, range: 40, station: st.id })),
+  { id: 'design-wall', x: 11780, y: G, label: 'Look at the wall', range: 40 },
+  { id: 'academy', x: 12165, y: G, label: 'Explore', range: 46 },
 ];
 
 // Scripted scenes, fired once when the protagonist reaches them (both modes).
@@ -314,6 +348,13 @@ export const TRIGGERS = [
   { id: 'first-question', x: 6600 },
   { id: 'course', x: 7404, mode: 'scroll' },
   { id: 'curiosity', x: 8404, maxY: G - 18 },
+  // stage 4
+  { id: 'studio-door', x: 9616, mode: 'scroll' },
+  { id: 'studio-enter', x: 10290 },
+  { id: 'one-team', x: 10520 },
+  ...STATIONS.map((st) => ({ id: `station-${st.id}`, x: st.x - 40, mode: 'scroll' })),
+  { id: 'missing-piece', x: 11760, needs: 'hats' },
+  { id: 'decision', x: 11990, needs: 'missing-piece' },
 ];
 
 // Checkpoints for "continue where you left off".
@@ -326,7 +367,9 @@ export const CHECKPOINTS = [
   { id: 'forest', x: 6330, name: 'The Discovery Path' },
   { id: 'station', x: 7300, name: 'the learning station' },
   { id: 'possibilities', x: 7900, name: 'the world of possibilities' },
-  { id: 'studio', x: 9300, name: 'the design studio' },
+  { id: 'studio', x: 9300, name: 'the path to the studio' },
+  { id: 'workplace', x: 10190, name: 'the first design studio' },
+  { id: 'academy-door', x: 11900, name: 'the Knowledge Academy door' },
 ];
 
 // Story beats: shared by Scroll Journey and Explore World. Fired once each when the
@@ -349,6 +392,7 @@ export const BEATS = [
   { id: 'nook', x: 7240, who: 'girl', text: 'Look, a little study nook under the trees.' },
   { id: 'rising', x: 7900, who: 'boy', text: 'Wait… is the ground moving?' },
   { id: 'studio-seen', x: 9160, who: 'girl', text: 'There\'s a studio up ahead!' },
+  { id: 'desks', x: 10600, mode: 'explore', who: 'girl', text: 'Let\'s check out every desk. Press E at each one!' },
 ];
 
 export const LANDMARKS = {
@@ -357,4 +401,6 @@ export const LANDMARKS = {
   gateway: 6150,      // 02 The Discovery Path (through the gateway)
   station: 7420,      // 03 The Learning Camp (the learning station)
   studio: 9650,       // doorstep of 04 The First Workplace
+  workplace: 10190,   // 04 The First Workplace (inside the studio)
+  academy: 12165,     // doorstep of 05 The Knowledge Academy
 };

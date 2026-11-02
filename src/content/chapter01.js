@@ -115,12 +115,62 @@ export const SCRIPTS = {
     { who: 'sign', text: 'THE FIRST DESIGN STUDIO' },
     { who: 'sign', text: 'Time to turn curiosity into practice.' },
   ],
+  'studio-door': [
+    { who: 'sign', text: 'THE FIRST DESIGN STUDIO' },
+    { who: 'sign', text: 'Time to turn curiosity into practice.' },
+  ],
   'island-healthcare': [{ who: 'sign', text: 'HEALTHCARE · Products for patients, doctors and care teams.' }],
   'island-education': [{ who: 'sign', text: 'EDUCATION · Products that help people learn and teach.' }],
   'island-finance': [{ who: 'sign', text: 'FINANCE · Products that help people manage and move money.' }],
   'island-ecommerce': [{ who: 'sign', text: 'E-COMMERCE · Products that help people discover and buy.' }],
   'island-transport': [{ who: 'sign', text: "TRANSPORTATION · Products that help people get where they're going." }],
   'island-technology': [{ who: 'sign', text: 'TECHNOLOGY · Tools that help people create and connect.' }],
+
+  // ---- Stage 4: The First Design Studio (Balwa HCM Cloud Suite) ------------
+  'studio-enter': [
+    { who: 'girl', expr: 'curious', text: 'So, where did this new journey take you?' },
+    { who: 'boy', expr: 'smile', text: 'I got placed at a company called Balwa HCM Cloud Suite.' },
+    { who: 'girl', expr: 'speaking', text: 'Your first design workplace?' },
+    { who: 'boy', expr: 'happy', text: 'Yes. This was where I started applying what I had learned.' },
+  ],
+  'one-team': [
+    { who: 'girl', expr: 'curious', text: 'How big was the design team?' },
+    { who: 'boy', expr: 'thinking', text: 'Well... I was the whole design team.' },
+  ],
+  // ...a short comedic pause, then:
+  'one-team-2': [
+    { who: 'girl', expr: 'surprised', text: 'Wait. The whole team?' },
+    { who: 'boy', expr: 'laugh', text: 'Pretty much!' },
+    { who: 'girl', expr: 'curious', text: 'So, what were you working on?' },
+  ],
+  'one-team-3': [
+    { who: 'boy', expr: 'happy', text: 'Everything! Graphic design, motion design, visual design and product design.' },
+  ],
+  'station-graphic': [{ who: 'boy', expr: 'smile', text: 'I worked on graphic design too.' }],
+  'station-motion': [{ who: 'boy', expr: 'speaking', text: 'I also explored motion design, bringing visuals to life through animation.' }],
+  'station-visual': [{ who: 'boy', expr: 'thinking', text: 'Visual design was another part of my work. I started understanding how visual elements work together.' }],
+  'station-product': [{ who: 'boy', expr: 'smile', text: 'And I was also working on product design.' }],
+  'missing-piece': [
+    { who: 'girl', expr: 'curious', text: "You were doing so many different things. Didn't that feel exciting?" },
+    { who: 'boy', expr: 'smile', text: 'It did. I was learning a lot by doing different kinds of work.' },
+  ],
+  // ...a pause, then:
+  'missing-piece-2': [
+    { who: 'boy', expr: 'thinking', text: 'But somewhere, I felt I was still missing something.' },
+    { who: 'girl', expr: 'neutral', text: 'What was missing?' },
+    { who: 'boy', expr: 'speaking', text: 'I wanted someone to guide me. Someone who could tell me whether I was doing things correctly, point out my mistakes and help me improve.' },
+    { who: 'girl', expr: 'smile', text: 'So you wanted to grow beyond just doing the work?' },
+    { who: 'boy', expr: 'smile', text: 'Exactly.' },
+  ],
+  decision: [
+    { who: 'boy', expr: 'thinking', text: "I realised I needed stronger foundations. That's when I decided to pursue my master's in design." },
+    { who: 'girl', expr: 'smile', text: "Then let's find a place where you can sharpen those skills." },
+  ],
+  'design-wall': [{ who: 'sign', text: 'Graphic, motion, visual and product design: one wall, one designer.' }],
+  academy: [
+    { who: 'sign', text: 'THE KNOWLEDGE ACADEMY' },
+    { who: 'sign', text: "Sometimes, doing more isn't enough. You need to understand more." },
+  ],
 };
 
 // What the course opened up: presented as discoveries, not mastery.

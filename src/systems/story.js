@@ -63,6 +63,7 @@ export class Story {
     for (const t of TRIGGERS) {
       if (this.seen.has(t.id)) continue;
       if (t.mode && t.mode !== mode) continue;
+      if (t.needs && !this.seen.has(t.needs)) continue;
       if (t.maxY !== undefined && y > t.maxY) continue;
       if (x >= t.x && this.lastX < t.x + 60) {
         this.seen.add(t.id);
@@ -90,6 +91,7 @@ export class Story {
     return seg(L.start, L.workshop)
       + (throughGateway ? 1 : seg(L.workshop, L.gateway - 40) * 0.999)
       + seg(L.gateway + 60, L.station - 20)
-      + seg(L.station, L.studio - 30);
+      + (this.maxX > L.workplace - 40 ? 1 : seg(L.station, L.studio - 30) * 0.97)
+      + seg(L.workplace + 60, L.academy - 30);
   }
 }
