@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Chatriyan's Portfolio World</title>
+  <meta name="description" content="An interactive pixel-art portfolio. Chapter 01, The Beginning: from manufacturing to discovering design." />
+  <meta name="theme-color" content="#2a1730" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles/main.css" />
+</head>
+<body class="mode-scroll phase-loading">
+  <canvas id="world" role="img" aria-label="A pixel-art fantasy world at sunset. The protagonist and his companion stand at the start of a path that leads to the Old Workshop."></canvas>
+
+  <!-- Spacer that gives the page its scroll length in Scroll Journey mode -->
+  <div id="scroll-track" aria-hidden="true"></div>
+
+  <div id="ui">
+    <!-- Loading -->
+    <div id="loader" class="loader" role="status">
+      <div class="loader__bar"><span></span></div>
+      <p>Loading world…</p>
+    </div>
+
+    <!-- Intro title card -->
+    <div id="title-card" class="title-card" aria-hidden="true">
+      <p class="title-card__eyebrow">Chatriyan's Portfolio World</p>
+      <h1 class="title-card__title">Chapter 01<span>The Beginning</span></h1>
+      <p class="title-card__meta">2022 · From manufacturing to discovering design</p>
+    </div>
+
+    <button id="skip-intro" class="pixel-btn skip-intro" type="button">Skip intro ▸</button>
+
+    <!-- Press any key -->
+    <div id="press-start" class="press-start" aria-live="polite">
+      <p class="press-start__label">Press any key to begin</p>
+      <p class="press-start__hint">or tap anywhere</p>
+    </div>
+
+    <!-- Top HUD: chapter progress + toggles -->
+    <header id="hud-top" class="hud-top">
+      <div class="chapter" aria-label="Chapter progress">
+        <p class="chapter__label">Chapter 01 · <strong>The Beginning</strong></p>
+        <div class="chapter__track">
+          <div class="chapter__fill" id="progress-fill"></div>
+          <ol class="chapter__pips" id="progress-pips"></ol>
+        </div>
+        <p class="chapter__now" id="progress-now">Prologue</p>
+      </div>
+      <div class="hud-actions">
+        <div class="mode-switch" role="group" aria-label="Navigation mode">
+          <button type="button" class="mode-switch__btn" id="mode-scroll" aria-pressed="true">
+            <span aria-hidden="true">⇣</span> Scroll<span class="wide-only"> Journey</span>
+          </button>
+          <button type="button" class="mode-switch__btn" id="mode-explore" aria-pressed="false">
+            <span aria-hidden="true">✦</span> Explore<span class="wide-only"> World</span>
+          </button>
+        </div>
+        <button type="button" class="icon-btn" id="sound-toggle" aria-pressed="false" aria-label="Sound off. Turn sound on" title="Sound (M)">
+          <span class="icon-sound" aria-hidden="true"></span>
+        </button>
+        <button type="button" class="pixel-btn pixel-btn--small" id="story-open" title="Read the story without playing"><span class="wide-only">Skip to story</span><span class="narrow-only">Story</span></button>
+      </div>
+    </header>
+
+    <!-- Floating controls HUD -->
+    <aside id="controls" class="controls" aria-label="World controls">
+      <button type="button" class="controls__head" id="controls-toggle" aria-expanded="true">
+        <span>World controls</span><span class="controls__tag" id="controls-tag">Scroll</span>
+      </button>
+      <div class="controls__body" id="controls-body">
+        <div class="controls__explore">
+          <div class="controls__row">
+            <div class="keys-arrows" aria-hidden="true">
+              <kbd class="k-up">↑</kbd><kbd class="k-left">←</kbd><kbd class="k-down">↓</kbd><kbd class="k-right">→</kbd>
+            </div>
+            <div class="keys-wasd" aria-hidden="true"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></div>
+            <span class="controls__what">Move</span>
+          </div>
+          <div class="controls__row"><kbd class="k-wide">Space</kbd><span class="controls__what">Jump</span></div>
+          <div class="controls__row"><kbd>E</kbd><span class="controls__what">Interact</span></div>
+          <div class="controls__row"><kbd class="k-wide">Shift</kbd><span class="controls__what">Run</span></div>
+          <p class="controls__note">Arrow keys also work.</p>
+        </div>
+        <div class="controls__scroll">
+          <div class="controls__row"><span class="mouse" aria-hidden="true"><span></span></span><span class="controls__what">Scroll to travel</span></div>
+          <div class="controls__row"><kbd>E</kbd><span class="controls__what">Interact</span></div>
+          <p class="controls__note">Press ← → or A D to explore freely.</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- World-anchored speech bubbles + interaction prompts -->
+    <div id="bubbles" class="bubbles" aria-hidden="true"></div>
+    <button type="button" id="interact-prompt" class="interact-prompt" hidden>
+      <kbd>E</kbd><span id="interact-label">Interact</span>
+    </button>
+
+    <!-- RPG dialogue box -->
+    <section id="dialogue" class="dialogue" hidden aria-live="off">
+      <div class="dialogue__portrait"><img id="dialogue-portrait" alt="" /></div>
+      <div class="dialogue__body">
+        <p class="dialogue__name" id="dialogue-name"></p>
+        <p class="dialogue__text" id="dialogue-text"></p>
+      </div>
+      <button type="button" class="dialogue__next" id="dialogue-next" aria-label="Continue">▼</button>
+    </section>
+
+    <!-- Story card (map, signs) -->
+    <dialog id="card" class="card">
+      <div class="card__inner">
+        <header class="card__head">
+          <p class="card__eyebrow" id="card-eyebrow"></p>
+          <h2 class="card__title" id="card-title"></h2>
+        </header>
+        <div class="card__body" id="card-body"></div>
+        <button type="button" class="pixel-btn" id="card-close">Close <kbd>Esc</kbd></button>
+      </div>
+    </dialog>
+
+    <!-- Touch controls -->
+    <div id="touch" class="touch" aria-hidden="true">
+      <div class="touch__dpad">
+        <button type="button" data-action="left" aria-label="Move left">◀</button>
+        <button type="button" data-action="right" aria-label="Move right">▶</button>
+      </div>
+      <div class="touch__buttons">
+        <button type="button" data-action="interact" class="touch__e" aria-label="Interact">E</button>
+        <button type="button" data-action="jump" class="touch__a" aria-label="Jump">▲</button>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <p id="sr-live" class="sr-only" aria-live="polite"></p>
+  </div>
+
+  <noscript>
+    <div class="noscript">
+      <h1>Chatriyan's Portfolio World</h1>
+      <p>This portfolio is an interactive pixel-art world and needs JavaScript to run.</p>
+    </div>
+  </noscript>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "boy": [
+    "neutral",
+    "smile",
+    "happy",
+    "laugh",
+    "surprised",
+    "thinking",
+    "speaking",
+    "curious",
+    "wink",
+    "sad"
+  ],
+  "girl": [
+    "neutral",
+    "smile",
+    "laugh",
+    "surprised",
+    "thinking",
+    "speaking",
+    "curious",
+    "wink"
+  ]
+}
