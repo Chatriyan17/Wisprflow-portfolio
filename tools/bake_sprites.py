@@ -39,7 +39,7 @@ CHARACTERS = {
         "sheet": "boy-character-sheet.webp",
         "bg": (75, 36, 38),
         "bg_tol": 14,
-        "height": 104,          # target sprite height in world pixels
+        "height": 78,           # target sprite height in world pixels
         "erode": 1,
         "poses": {
             # name: (x0, y0, x1, y1, sole_y, flip)
@@ -54,7 +54,7 @@ CHARACTERS = {
         "sheet": "girl-character-sheet.webp",
         "bg": (250, 207, 195),
         "bg_tol": 28,
-        "height": 94,
+        "height": 70,
         "erode": 3,
         "poses": {
             "front": (440, 56, 602, 462, 457, False),

@@ -1,13 +1,13 @@
 {
   "image": "girl.png",
-  "frameWidth": 66,
-  "frameHeight": 98,
+  "frameWidth": 56,
+  "frameHeight": 74,
   "columns": 8,
-  "spriteHeight": 98,
-  "spriteWidth": 66,
+  "spriteHeight": 74,
+  "spriteWidth": 56,
   "anchor": {
-    "x": 33.0,
-    "y": 98
+    "x": 28.0,
+    "y": 74
   },
   "faces": "right",
   "animations": {

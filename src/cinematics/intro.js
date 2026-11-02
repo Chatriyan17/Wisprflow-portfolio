@@ -68,7 +68,7 @@ export async function playIntro(game) {
     await wait(0.3);
 
     // 2. the protagonist appears on the starting platform
-    renderer.sparkle(player.x, G - 50, 18);
+    renderer.sparkle(player.x, G - 38, 18);
     audio.sfx('sparkle');
     await wait(0.25);
     player.visible = true;
@@ -91,7 +91,7 @@ export async function playIntro(game) {
     // enter from just off the left edge of the screen (or from behind the big tree)
     girl.x = Math.max(40, Math.min(player.x - 150, camera.x - 24));
     let arrived = false;
-    girl.autopilot = { x: player.x - 44, run: player.x - girl.x > 170, tolerance: 2, onArrive: () => { arrived = true; } };
+    girl.autopilot = { x: player.x - 34, run: player.x - girl.x > 170, tolerance: 2, onArrive: () => { arrived = true; } };
     await until(() => arrived);
     girl.autopilot = null;
     girl.facing = 1;
@@ -116,7 +116,7 @@ export async function playIntro(game) {
     player.facing = 1;
     girl.visible = true;
     girl.autopilot = null;
-    girl.x = player.x - 44;
+    girl.x = player.x - 34;
     girl.y = G;
     girl.facing = 1;
     camera.follow(player, 0, true);

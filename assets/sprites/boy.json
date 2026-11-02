@@ -1,13 +1,13 @@
 {
   "image": "boy.png",
-  "frameWidth": 62,
-  "frameHeight": 108,
+  "frameWidth": 54,
+  "frameHeight": 82,
   "columns": 8,
-  "spriteHeight": 108,
-  "spriteWidth": 62,
+  "spriteHeight": 82,
+  "spriteWidth": 54,
   "anchor": {
-    "x": 31.0,
-    "y": 108
+    "x": 27.0,
+    "y": 82
   },
   "faces": "right",
   "animations": {

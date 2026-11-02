@@ -57,8 +57,8 @@ class Game {
     step(90);
 
     this.camera = new Camera(WORLD);
-    this.player = new Character({ name: 'boy', sheet: new SpriteSheet(boyImg, boyMeta), x: SCROLL.startX, y: G, w: 18, h: 86 });
-    this.girl = new Companion({ name: 'girl', sheet: new SpriteSheet(girlImg, girlMeta), x: SCROLL.startX - 44, y: G });
+    this.player = new Character({ name: 'boy', sheet: new SpriteSheet(boyImg, boyMeta), x: SCROLL.startX, y: G, w: 14, h: 64 });
+    this.girl = new Companion({ name: 'girl', sheet: new SpriteSheet(girlImg, girlMeta), x: SCROLL.startX - 34, y: G });
     this.girl.leader = this.player;
     this.characters = [this.girl, this.player];
 
@@ -415,7 +415,7 @@ class Game {
       this.promptFor = it.id;
       el.hidden = false;
     }
-    const pt = this.toScreen(it.x, it.y - 112);
+    const pt = this.toScreen(it.x, it.y - 90);
     el.style.left = `${Math.round(pt.x)}px`;
     el.style.top = `${Math.round(pt.y)}px`;
   }

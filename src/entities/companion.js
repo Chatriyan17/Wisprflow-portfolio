@@ -4,10 +4,10 @@ import { Character } from './character.js';
 // (with a little "poof") if he gets too far ahead.
 export class Companion extends Character {
   constructor(opts) {
-    super({ ...opts, w: 16, h: 78 });
+    super({ ...opts, w: 12, h: 58 });
     this.leader = null;
     this.scripted = false;
-    this.followGap = 40;
+    this.followGap = 32;
     this.stuckTime = 0;
   }
 
