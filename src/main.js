@@ -7,12 +7,14 @@ import { clamp } from './engine/rng.js';
 import { Character } from './entities/character.js';
 import { Companion } from './entities/companion.js';
 import { WorldRenderer } from './world/renderer.js';
-import { buildSolids, groundTopAt, INTERACTABLES, WATERFALL, CONVEYOR, PORTAL, BREAK, GATE, ISLANDS, STREAM, STATIONS, INTERIOR } from './world/level.js';
+import { buildSolids, groundTopAt, INTERACTABLES, WATERFALL, CONVEYOR, PORTAL, BREAK, GATE, ISLANDS, STREAM, STATIONS, INTERIOR, CAMPUS, PRINCIPLES, ACADEMY, areaOf } from './world/level.js';
 import { industryAt, gatewayAt, forestAt } from './world/renderer.js';
 import { paintFriendSilhouette } from './world/industrial.js';
 import * as Stage2 from './cinematics/stage2.js';
 import * as Stage3 from './cinematics/stage3.js';
 import * as Stage4 from './cinematics/stage4.js';
+import * as Stage5 from './cinematics/stage5.js';
+import { learningCard, principleCard, academyInfoCard } from './ui/learningCards.js';
 import { Dialogue } from './systems/dialogue.js';
 import { Bubbles } from './systems/bubbles.js';
 import { Story } from './systems/story.js';
@@ -23,6 +25,7 @@ import { playIntro } from './cinematics/intro.js';
 import { SCRIPTS, MODE_HINTS, CHAPTER_01 } from './content/chapter01.js';
 
 const G = WORLD.ground;
+const LEARN_LIBRARY = new Set(['research', 'interviews', 'empathy-map', 'personas', 'affinity', 'problem']);
 const IS_TOUCH = matchMedia('(pointer: coarse)').matches;
 
 class Game {
@@ -217,19 +220,35 @@ class Game {
     p.x = INTERIOR.entry; p.y = G; p.vx = 0; p.vy = 0;
     g.x = INTERIOR.entry - 34; g.y = G; g.vx = 0; g.facing = 1;
     this.story.seen.add('studio-door');
-    this.story.lastX = p.x;
-    this.camera.bounds = { min: INTERIOR.x0 - 20, max: WORLD.width };
-    this.camera.follow(p, 0, true);
+    this.moveTo(INTERIOR.entry);
     this.story.save();
   }
 
-  exitStudio() {
+  exitStudio() { this.moveTo(INTERIOR.exitTo); }
+
+  // Stage 5: through the academy doorway onto the campus, and back.
+  enterCampus() {
+    this.story.seen.add('academy-door');
+    this.moveTo(CAMPUS.entry);
+    this.story.save();
+  }
+
+  exitCampus() { this.moveTo(CAMPUS.exitTo); }
+
+  // Put both characters at x (in whichever area that is) and frame the camera there.
+  moveTo(x) {
     const p = this.player, g = this.girl;
-    p.x = INTERIOR.exitTo; p.y = G; p.vx = 0;
-    g.x = INTERIOR.exitTo - 34; g.y = G; g.vx = 0;
+    p.x = x; p.y = G; p.vx = 0; p.vy = 0;
+    g.x = x - 34; g.y = G; g.vx = 0; g.facing = 1;
     this.story.lastX = p.x;
-    this.camera.bounds = { min: 0, max: 9870 };
+    const a = areaOf(x);
+    this.camera.bounds = { min: a.min, max: a.max };
     this.camera.follow(p, 0, true);
+  }
+
+  openCampusGate() {
+    this.solids = this.solids.filter((s) => s.kind !== 'campusGate');
+    this.renderer.gateTarget = 1;
   }
 
   openStationGate() {
@@ -243,6 +262,10 @@ class Game {
       if (seen.has(`station-${st.id}`)) { this.renderer.activateStation(st.id); this.renderer.stations[st.id].t = 10; this.renderer.stations[st.id].found = true; }
     }
     if (seen.has('hats')) this.openStationGate();
+    if (seen.has('campus-arrive')) { this.openCampusGate(); this.renderer.gateOpen = 1; }
+    if (seen.has('lab-solved')) this.renderer.labSolved = true;
+    PRINCIPLES.forEach((pr, i) => { if (seen.has(`lit-${pr.id}`) || seen.has('foundation')) this.renderer.principlesLit[i] = 1; });
+    if (seen.has('horizon')) { this.renderer.mentorTarget = 1; this.renderer.mentorSign = 1; }
     if (seen.has('gateway') || this.story.maxX > PORTAL.x + 60) this.openGateway();
     const r = this.renderer;
     for (const isl of r.islands) if (this.story.maxX >= isl.at) { isl.shown = true; isl.t = 1; }
@@ -428,7 +451,7 @@ class Game {
     const it = this.nearest;
     if (!it || this.busy || this.dialogue.active) return;
     // some interactions are full scenes (they play by themselves in Scroll Journey)
-    const sceneFor = { gateway: 'gateway', course: 'course', studio: 'studio-door' };
+    const sceneFor = { gateway: 'gateway', course: 'course', studio: 'studio-door', academy: 'academy-door', lab: 'lab' };
     if (sceneFor[it.id] || it.station) {
       const id = sceneFor[it.id] || it.id;
       this.story.seen.add(id);
@@ -438,6 +461,7 @@ class Game {
       return;
     }
     if (it.id === 'studio-exit') { this.exitStudio(); return; }
+    if (it.id === 'campus-exit') { this.exitCampus(); return; }
     this.busy = true;
     this.audio.sfx('interact');
     this.bubbles.clear();
@@ -465,13 +489,26 @@ class Game {
           this.camera.override = null;
           break;
         }
-        case 'academy':
+        case 'mentor':
           p.facing = 1;
-          await this.say('academy');
+          await this.say('mentor');
           await this.enterNextRegion();
           break;
+        case 'info-board':
+          this.audio.sfx('page');
+          await this.hud.openCard(academyInfoCard());
+          break;
         default:
-          await this.say(it.id);
+          if (it.learn) {
+            this.audio.sfx(it.learn === 'research' || LEARN_LIBRARY.has(it.learn) ? 'page' : 'chalk');
+            await this.hud.openCard(learningCard(it.learn));
+          } else if (it.principle) {
+            const pr = PRINCIPLES.find((q) => q.id === it.principle);
+            this.audio.sfx('chime');
+            await this.hud.openCard(principleCard(pr.id, pr.name));
+          } else {
+            await this.say(it.id);
+          }
       }
     } finally {
       this.busy = false;
@@ -480,8 +517,8 @@ class Game {
     }
   }
 
-  // Stage 5 hook: the academy doorway will lead into The Knowledge Academy.
-  // Until that part of the world exists, the doorway glows and shows what's next.
+  // Stage 6 hook: the path past the courtyard will lead to The Mentor's Camp.
+  // Until that part of the world exists, the path glows and shows what's next.
   async enterNextRegion() {
     this.audio.sfx('portal');
     this.renderer.sparkle(this.player.x + 20, this.player.y - 50, 24);
@@ -489,9 +526,9 @@ class Game {
     await new Promise((r) => this.later(0.6, r));
     await this.hud.openCard({
       eyebrow: 'Chapter 01 · Up next',
-      title: 'The Knowledge Academy',
-      html: '<p class="lede">Sometimes, doing more isn\'t enough. You need to understand more.</p>'
-        + "<p>Next: a master's degree in design, and the foundations behind the work. This part of the story opens in the next stage of the world.</p>"
+      title: "The Mentor's Camp",
+      html: '<p class="lede">Learning the principles is one thing. Learning how to think is another.</p>'
+        + '<p>Next: mentorship from UX Anuji. This part of the story opens in the next stage of the world.</p>'
         + this.hud.journeyHTML({ progress: this.story.progress }),
     });
   }
@@ -515,6 +552,14 @@ class Game {
       hats: Stage4.hats,
       'missing-piece': Stage4.missingPiece,
       decision: Stage4.decision,
+      'academy-door': Stage5.academyDoor,
+      'campus-arrive': Stage5.campusArrive,
+      'campus-enter': Stage5.campusEnter,
+      fundamentals: Stage5.fundamentals,
+      library: Stage5.library,
+      lab: Stage5.lab,
+      foundation: Stage5.foundation,
+      horizon: Stage5.horizon,
       ...Object.fromEntries(STATIONS.map((st) => [`station-${st.id}`, (g) => Stage4.station(g, st.id)])),
     }[id];
     if (!scene) return;
@@ -554,7 +599,7 @@ class Game {
       eyebrow: `Chapter ${CHAPTER_01.number} · ${CHAPTER_01.year}`,
       title: CHAPTER_01.title,
       html: this.hud.journeyHTML({ progress: this.story.progress })
-        + '<p style="margin-top:14px">The playable world covers the journey from The Old Workshop through The Discovery Path and The Learning Camp to the first design studio at Balwa HCM Cloud Suite, up to the door of The Knowledge Academy. Each place on this map opens as a new part of the story.</p>',
+        + '<p style="margin-top:14px">The playable world covers the journey from The Old Workshop through The Discovery Path, The Learning Camp and the first design studio at Balwa HCM Cloud Suite, to The Knowledge Academy at Lovely Professional University and the path to The Mentor\'s Camp. Each place on this map opens as a new part of the story.</p>',
     });
   }
 
@@ -588,13 +633,19 @@ class Game {
         p.autopilot = null;
       } else if (!blocked) {
         let target = clamp(this.scrollTarget, SCROLL.startX, SCROLL.endX);
-        // the studio interior is its own space: step in or out as the scroll crosses its door
-        const inside = p.x > 9990;
-        if (!inside && target > INTERIOR.exitTo + 10) {
+        // separate areas (outdoors, the studio, the campus): step through their doors
+        // as the scroll crosses them, in either direction
+        const area = areaOf(p.x).id;
+        if (area === 'outdoor' && target > INTERIOR.exitTo + 10) {
           if (this.story.seen.has('studio-door')) this.enterStudio();
           else target = INTERIOR.exitTo - 20;
-        } else if (inside && target < INTERIOR.x0 + 30) {
+        } else if (area === 'studio' && target < INTERIOR.x0 + 30) {
           this.exitStudio();
+        } else if (area === 'studio' && target > CAMPUS.exitTo + 40) {
+          if (this.story.seen.has('academy-door')) this.enterCampus();
+          else target = Math.min(target, ACADEMY.door - 4);
+        } else if (area === 'campus' && target < CAMPUS.entry + 10) {
+          this.exitCampus();
         }
         p.autopilot = { x: target, tolerance: 2 };
         p.control.jumpHeld = true;
@@ -634,7 +685,22 @@ class Game {
         if (p.x >= isl.at && this.renderer.raiseIsland(isl.id)) this.audio.sfx('discover');
       }
     }
-    this.camera.bounds = p.x > 9990 ? { min: INTERIOR.x0 - 20, max: WORLD.width } : { min: 0, max: 9870 };
+    const here = areaOf(p.x);
+    this.camera.bounds = { min: here.min, max: here.max };
+    // the Foundation Wall: each principle lights up as he walks past it
+    if (playing && here.id === 'campus') {
+      PRINCIPLES.forEach((pr, i) => {
+        if (Math.abs(p.x - pr.x) < 24 && this.renderer.lightPrinciple(i)) {
+          this.audio.sfx('chime', i);
+          this.story.seen.add(`lit-${pr.id}`);
+        }
+      });
+      if (!this.story.seen.has('foundation') && PRINCIPLES.every((pr) => this.story.seen.has(`lit-${pr.id}`))) {
+        this.story.seen.add('foundation');
+        this.story.save();
+        this.runScene('foundation');
+      }
+    }
     this.camera.follow(p, dt, false);
     this.renderer.update(dt);
     this.dialogue.update(dt);
@@ -657,8 +723,8 @@ class Game {
       industry: industryAt(cx),
       gateway: gatewayAt(cx) * clamp(1 - Math.abs(p.x - PORTAL.x) / 700, 0, 1),
       conveyor: clamp(1 - Math.abs(p.x - (CONVEYOR.x0 + CONVEYOR.x1) / 2) / 350, 0, 1),
-      forest: p.x > 9990 ? 0 : forestAt(cx),
-      studio: p.x > 9990 ? 1 : 0,
+      forest: here.id === 'outdoor' ? forestAt(cx) : here.id === 'campus' ? 0.6 : 0,
+      studio: here.id === 'studio' ? 1 : 0,
     });
     if (forestAt(cx) > 0) this.audio.setWater(Math.max(clamp(1 - wd / 420, 0, 1), clamp(1 - Math.abs(p.x - (STREAM.x0 + STREAM.x1) / 2) / 300, 0, 1) * 0.6));
     this.audio.update();

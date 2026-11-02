@@ -24,7 +24,7 @@ export const CHAPTER_01 = {
     { id: 'discovery', name: 'The Discovery Path', summary: 'Friends introduced me to the idea of UX.' },
     { id: 'camp', name: 'The Learning Camp', summary: 'The Google UX Design course.' },
     { id: 'workplace', name: 'The First Workplace', summary: 'Balwa HCM Cloud Suite.' },
-    { id: 'academy', name: 'The Knowledge Academy', summary: "Master's in Design." },
+    { id: 'academy', name: 'The Knowledge Academy', summary: 'Master of Design in Interaction Design, Lovely Professional University, Punjab.' },
     { id: 'mentor', name: "The Mentor's Camp", summary: 'Mentorship from UX Anuji.' },
     { id: 'temple', name: 'The Origin Temple', summary: 'Where my problem-solving skills were born.' },
   ],
@@ -171,6 +171,78 @@ export const SCRIPTS = {
     { who: 'sign', text: 'THE KNOWLEDGE ACADEMY' },
     { who: 'sign', text: "Sometimes, doing more isn't enough. You need to understand more." },
   ],
+
+  // ---- Stage 5: The Knowledge Academy --------------------------------------
+  'campus-arrive': [
+    { who: 'girl', expr: 'curious', text: 'So, where are we heading now?' },
+    { who: 'boy', expr: 'thinking', text: "I wanted to understand design more deeply. So I decided to pursue my master's." },
+    { who: 'girl', expr: 'speaking', text: 'Where did you go?' },
+    { who: 'boy', expr: 'smile', text: 'Lovely Professional University, Punjab. I joined the Master of Design programme in Interaction Design.' },
+  ],
+  'campus-enter': [
+    { who: 'girl', expr: 'curious', text: 'You came here to learn more about design?' },
+    { who: 'boy', expr: 'speaking', text: 'Yes. I wanted to build a stronger foundation instead of just relying on what I learned through work.' },
+  ],
+  fundamentals: [
+    { who: 'girl', expr: 'curious', text: 'What changed when you started studying design?' },
+    { who: 'boy', expr: 'thinking', text: 'I started understanding why certain design decisions work, not just how to make something look good.' },
+  ],
+  library: [
+    { who: 'boy', expr: 'speaking', text: 'I also began understanding the importance of learning about people before designing for them.' },
+    { who: 'girl', expr: 'curious', text: 'So, understanding the problem comes before creating the solution?' },
+    { who: 'boy', expr: 'smile', text: 'Exactly.' },
+  ],
+  lab: [
+    { who: 'girl', expr: 'curious', text: 'So, interaction design is more than making screens look beautiful?' },
+    { who: 'boy', expr: 'smile', text: "Yes. It's about how people interact with something, understand it and experience it." },
+  ],
+  foundation: [
+    { who: 'boy', expr: 'thinking', text: 'I started seeing design differently. Every decision had a reason behind it.' },
+    { who: 'girl', expr: 'smile', text: "Looks like you're beginning to understand the thinking behind design." },
+    { who: 'girl', expr: 'laugh', text: "You're not just learning how to design anymore. You're learning why." },
+  ],
+  horizon: [
+    { who: 'girl', expr: 'smile', text: "Looks like there's still more to learn." },
+    { who: 'boy', expr: 'thinking', text: 'Definitely. I was learning the principles, but I also wanted someone experienced to challenge the way I thought.' },
+  ],
+  mentor: [
+    { who: 'sign', text: "THE MENTOR'S CAMP" },
+    { who: 'sign', text: 'Learning the principles is one thing. Learning how to think is another.' },
+  ],
+};
+
+// Stage 5: the facts shown on the campus information board.
+export const ACADEMY_INFO = {
+  institution: 'Lovely Professional University, Punjab',
+  programme: 'Master of Design',
+  specialisation: 'Interaction Design',
+};
+
+// Learning objects in the academy. These represent areas of design learning,
+// not a list of specific coursework.
+export const LEARNING_CONTENT = {
+  hierarchy: { text: 'Size, contrast and position tell people what to look at first, and what to look at next.', example: 'hierarchy' },
+  gestalt: { text: 'We see groups, not pieces. Proximity, similarity, closure and continuity shape how a layout is read.', example: 'gestalt' },
+  typography: { text: 'Type sets the voice and the rhythm of a page: the typeface, size, weight and spacing all carry meaning.', example: 'typography' },
+  composition: { text: 'Balance, alignment and whitespace guide the eye through a layout and give it calm.', example: 'composition' },
+  colour: { text: 'Colour creates mood, contrast and meaning, and it has to stay readable for everyone.', example: 'colour' },
+  'usability-principles': { text: 'Clear, consistent and forgiving: people should know what to do next, and be able to recover from mistakes.', example: 'usability' },
+  research: { text: 'Learning what people actually do, need and struggle with before deciding what to build.', example: 'research' },
+  interviews: { text: 'Open questions, then listening. The most useful insights often come from the stories people tell.', example: 'interviews' },
+  'empathy-map': { text: 'What people say, think, do and feel, side by side, so the whole person stays in view.', example: 'empathy' },
+  personas: { text: 'A portrait of a type of user, grounded in research rather than guesses.', example: 'persona' },
+  affinity: { text: 'Grouping research notes until patterns and themes start to appear.', example: 'affinity' },
+  problem: { text: 'Framing the right problem before jumping to a solution.', example: 'problem' },
+};
+
+export const PRINCIPLE_CONTENT = {
+  hierarchy: 'Visual hierarchy: guiding attention, so the most important thing is seen first.',
+  gestalt: 'Gestalt principles: how the mind groups what it sees into meaningful wholes.',
+  typography: 'Typography: making words readable, expressive and easy to scan.',
+  research: 'User research: starting from what people really need.',
+  empathy: 'Empathy: seeing the problem through someone else\'s eyes.',
+  patterns: 'Interaction patterns: familiar ways of doing things, so people don\'t have to relearn.',
+  usability: 'Usability: making things easy to use, understand and recover from.',
 };
 
 // What the course opened up: presented as discoveries, not mastery.

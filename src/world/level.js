@@ -33,7 +33,9 @@ export const TERRAIN = [
   [8524, 8544, G - 11, 'forest'],
   [8544, 9900, G, 'forest'],
   // --- Stage 4: inside the first design studio (a separate interior region)
-  [9900, WORLD.width, G, 'studio'],
+  [9900, 12320, G, 'studio'],
+  // --- Stage 5: the Knowledge Academy campus (outdoors again, its own area)
+  [12320, WORLD.width, G, 'campus'],
 ];
 
 // Where the industrial look fades in and out (used by art, sky tint and audio).
@@ -68,7 +70,56 @@ export const ISLANDS = [
   { id: 'technology', name: 'Technology', x: 8768, y: G - 150, at: 8350 },
 ];
 // Stage 4: the studio interior lives to the right of the forest, behind its own walls.
-export const INTERIOR = { x0: 10100, x1: WORLD.width - 30, entry: 10190, exitTo: 9640 };
+export const INTERIOR = { x0: 10100, x1: 12290, entry: 10190, exitTo: 9640 };
+
+// Stage 5: the Knowledge Academy campus
+export const CAMPUS = { x0: 12420, entry: 12520, exitTo: 12130, gate: 12700, board: 12850 };
+export const CLASSROOM = { x0: 13080, x1: 13460 };
+export const LIBRARY = { x0: 13560, x1: 13960 };
+export const LAB = { x0: 14060, x1: 14460, station: 14270 };
+export const FOUNDATION = { x0: 14600, x1: 15080 };
+export const MENTOR = { sign: 15560, door: 15660 };
+export const GATE_BARRIER = { x: CAMPUS.gate + 4, y: -800, w: 10, h: 1400, kind: 'campusGate' };
+
+// Learning objects: optional to explore, each opens a short explanation with an example.
+export const LEARNING = [
+  { id: 'hierarchy', area: 'fundamentals', name: 'Visual hierarchy', x: 13140 },
+  { id: 'gestalt', area: 'fundamentals', name: 'Gestalt principles', x: 13200 },
+  { id: 'typography', area: 'fundamentals', name: 'Typography', x: 13260 },
+  { id: 'composition', area: 'fundamentals', name: 'Composition', x: 13320 },
+  { id: 'colour', area: 'fundamentals', name: 'Colour theory', x: 13380 },
+  { id: 'usability-principles', area: 'fundamentals', name: 'Usability principles', x: 13430 },
+  { id: 'research', area: 'library', name: 'User research', x: 13620 },
+  { id: 'interviews', area: 'library', name: 'User interviews', x: 13680 },
+  { id: 'empathy-map', area: 'library', name: 'Empathy mapping', x: 13740 },
+  { id: 'personas', area: 'library', name: 'Persona creation', x: 13800 },
+  { id: 'affinity', area: 'library', name: 'Affinity mapping', x: 13860 },
+  { id: 'problem', area: 'library', name: 'Problem identification', x: 13920 },
+];
+
+// The Foundation Wall: each principle lights up as he walks past it.
+export const PRINCIPLES = [
+  { id: 'hierarchy', name: 'Visual hierarchy', x: 14660 },
+  { id: 'gestalt', name: 'Gestalt principles', x: 14725 },
+  { id: 'typography', name: 'Typography', x: 14790 },
+  { id: 'research', name: 'User research', x: 14855 },
+  { id: 'empathy', name: 'Empathy', x: 14920 },
+  { id: 'patterns', name: 'Interaction patterns', x: 14985 },
+  { id: 'usability', name: 'Usability', x: 15050 },
+];
+
+// Separate areas of the world: the camera stays inside the one you're in,
+// and doors move you between them.
+export const AREAS = [
+  { id: 'outdoor', min: 0, max: 9870 },
+  { id: 'studio', min: INTERIOR.x0 - 20, max: 12320 },
+  { id: 'campus', min: CAMPUS.x0 - 20, max: WORLD.width },
+];
+export function areaOf(x) {
+  if (x < 9990) return AREAS[0];
+  if (x < 12360) return AREAS[1];
+  return AREAS[2];
+}
 export const STATIONS = [
   { id: 'graphic', num: '01', name: 'Graphic Design', x: 10650 },
   { id: 'motion', num: '02', name: 'Motion Design', x: 10930 },
@@ -118,6 +169,9 @@ export function buildSolids() {
   // the forest ends at the studio; the studio interior has its own walls
   solids.push({ x: 9870, y: -800, w: 260, h: 1400, kind: 'wall' });
   solids.push({ ...STATION_GATE });
+  // the studio's back wall, and the campus gates (closed until they open)
+  solids.push({ x: 12290, y: -800, w: 140, h: 1400, kind: 'wall' });
+  solids.push({ ...GATE_BARRIER });
   solids.push({ x: BRIDGE.x0, y: BRIDGE.y, w: BRIDGE.x1 - BRIDGE.x0, h: 10, kind: 'bridge' });
   for (const p of PLATFORMS) solids.push({ x: p.x, y: p.y, w: p.w, h: 8, oneWay: true, kind: p.kind });
   for (const c of CRATES) solids.push({ x: c.x, y: G - c.h, w: c.w, h: c.h, kind: 'crate' });
@@ -238,6 +292,29 @@ export const PROPS = [
   { type: 'designWall', x: 11780 },
   { type: 'academySign', x: 11990 },
   { type: 'academyDoor', x: 12165 },
+  // --- Stage 5: the Knowledge Academy campus
+  { type: 'campusBackdrop', x: 12420 },
+  { type: 'arrivalArch', x: CAMPUS.entry - 30 },
+  { type: 'noticeBoard', x: 12600 },
+  { type: 'campusTree', x: 12640, h: 150, r: 42, kind: 'green' },
+  { type: 'campusGate', x: CAMPUS.gate },
+  { type: 'infoBoard', x: CAMPUS.board },
+  { type: 'campusLamp', x: 12940 },
+  { type: 'flowerbed', x: 12990, w: 70 },
+  { type: 'classroom', x: CLASSROOM.x0 },
+  { type: 'campusLamp', x: 13510 },
+  { type: 'library', x: LIBRARY.x0 },
+  { type: 'campusLamp', x: 14010 },
+  { type: 'lab', x: LAB.x0 },
+  { type: 'campusLamp', x: 14520 },
+  { type: 'foundationWall', x: FOUNDATION.x0 },
+  { type: 'campusTree', x: 15160, h: 160, r: 46, kind: 'blossom' },
+  { type: 'bench', x: 15250 },
+  { type: 'fountain', x: 15360 },
+  { type: 'flowerbed', x: 15420, w: 60 },
+  { type: 'campusTree', x: 15480, h: 140, r: 40, kind: 'green' },
+  { type: 'mentorPath', x: MENTOR.sign },
+  { type: 'campusTree', x: 15800, h: 170, r: 48, kind: 'green' },
 ];
 
 // Light sources for the lighting pass (world coords).
@@ -294,6 +371,17 @@ export const LIGHTS = [
   { x: 10300, y: G - 140, r: 46, kind: 'neon' },
   { x: 11990, y: G - 130, r: 70, kind: 'academy' },
   { x: 12165, y: G - 60, r: 110, kind: 'academy' },
+  // stage 5
+  { x: CAMPUS.entry - 30, y: G - 50, r: 70, kind: 'academy' },
+  { x: CAMPUS.gate - 58, y: G - 104, r: 40, kind: 'lantern' },
+  { x: CAMPUS.gate + 58, y: G - 104, r: 40, kind: 'lantern' },
+  ...[12940, 13510, 14010, 14520].map((x) => ({ x, y: G - 76, r: 44, kind: 'lantern' })),
+  { x: 13270, y: G - 150, r: 60, kind: 'window' },
+  { x: 13760, y: G - 150, r: 60, kind: 'window' },
+  { x: LAB.station, y: G - 90, r: 60, kind: 'screen' },
+  { x: 14860, y: G - 120, r: 120, kind: 'academy' },
+  { x: MENTOR.sign, y: G - 120, r: 80, kind: 'campfire' },
+  { x: MENTOR.door + 60, y: G - 20, r: 60, kind: 'campfire' },
 ];
 
 // string-light bulbs over the break yard (also light sources)
@@ -335,6 +423,13 @@ export const INTERACTABLES = [
   ...STATIONS.map((st) => ({ id: `station-${st.id}`, x: st.x - 10, y: G, label: `${st.name} station`, range: 40, station: st.id })),
   { id: 'design-wall', x: 11780, y: G, label: 'Look at the wall', range: 40 },
   { id: 'academy', x: 12165, y: G, label: 'Explore', range: 46 },
+  // stage 5
+  { id: 'campus-exit', x: CAMPUS.entry - 30, y: G, label: 'Back to the studio', range: 24 },
+  { id: 'info-board', x: CAMPUS.board, y: G, label: 'Read board', range: 30 },
+  ...LEARNING.map((o) => ({ id: `learn-${o.id}`, x: o.x, y: G, label: o.name, range: 22, learn: o.id })),
+  { id: 'lab', x: LAB.station, y: G, label: 'Try the interface', range: 40 },
+  ...PRINCIPLES.map((pr) => ({ id: `principle-${pr.id}`, x: pr.x, y: G, label: pr.name, range: 22, principle: pr.id })),
+  { id: 'mentor', x: MENTOR.door, y: G, label: 'Explore', range: 46 },
 ];
 
 // Scripted scenes, fired once when the protagonist reaches them (both modes).
@@ -355,6 +450,14 @@ export const TRIGGERS = [
   ...STATIONS.map((st) => ({ id: `station-${st.id}`, x: st.x - 40, mode: 'scroll' })),
   { id: 'missing-piece', x: 11760, needs: 'hats' },
   { id: 'decision', x: 11990, needs: 'missing-piece' },
+  // stage 5
+  { id: 'academy-door', x: 12150, mode: 'scroll', needs: 'decision' },
+  { id: 'campus-arrive', x: CAMPUS.gate - 90 },
+  { id: 'campus-enter', x: CAMPUS.board + 60, needs: 'campus-arrive' },
+  { id: 'fundamentals', x: CLASSROOM.x0 + 40 },
+  { id: 'library', x: LIBRARY.x0 + 30 },
+  { id: 'lab', x: LAB.station - 40, mode: 'scroll' },
+  { id: 'horizon', x: 15400 },
 ];
 
 // Checkpoints for "continue where you left off".
@@ -370,6 +473,9 @@ export const CHECKPOINTS = [
   { id: 'studio', x: 9300, name: 'the path to the studio' },
   { id: 'workplace', x: 10190, name: 'the first design studio' },
   { id: 'academy-door', x: 11900, name: 'the Knowledge Academy door' },
+  { id: 'campus', x: CAMPUS.entry, name: 'The Knowledge Academy' },
+  { id: 'lab', x: LAB.x0, name: 'the interaction design lab' },
+  { id: 'courtyard', x: 15150, name: 'the courtyard' },
 ];
 
 // Story beats: shared by Scroll Journey and Explore World. Fired once each when the
@@ -393,6 +499,8 @@ export const BEATS = [
   { id: 'rising', x: 7900, who: 'boy', text: 'Wait… is the ground moving?' },
   { id: 'studio-seen', x: 9160, who: 'girl', text: 'There\'s a studio up ahead!' },
   { id: 'desks', x: 10600, mode: 'explore', who: 'girl', text: 'Let\'s check out every desk. Press E at each one!' },
+  { id: 'classroom-hint', x: CLASSROOM.x0 + 90, mode: 'explore', who: 'girl', text: 'Everything in here has a lesson. Press E to look closer!' },
+  { id: 'wall-hint', x: FOUNDATION.x0 - 30, who: 'girl', text: 'Look at that wall… it\'s lighting up!' },
 ];
 
 export const LANDMARKS = {
@@ -403,4 +511,6 @@ export const LANDMARKS = {
   studio: 9650,       // doorstep of 04 The First Workplace
   workplace: 10190,   // 04 The First Workplace (inside the studio)
   academy: 12165,     // doorstep of 05 The Knowledge Academy
+  campus: 12520,      // 05 The Knowledge Academy (on campus)
+  mentor: 15660,      // doorstep of 06 The Mentor's Camp
 };

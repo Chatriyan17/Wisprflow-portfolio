@@ -283,5 +283,95 @@
     "key": "decision-2",
     "who": "girl",
     "text": "Then let's find a place where you can sharpen those skills."
+  },
+  {
+    "key": "campus-arrive-1",
+    "who": "girl",
+    "text": "So, where are we heading now?"
+  },
+  {
+    "key": "campus-arrive-2",
+    "who": "boy",
+    "text": "I wanted to understand design more deeply. So I decided to pursue my master's."
+  },
+  {
+    "key": "campus-arrive-3",
+    "who": "girl",
+    "text": "Where did you go?"
+  },
+  {
+    "key": "campus-arrive-4",
+    "who": "boy",
+    "text": "Lovely Professional University, Punjab. I joined the Master of Design programme in Interaction Design."
+  },
+  {
+    "key": "campus-enter-1",
+    "who": "girl",
+    "text": "You came here to learn more about design?"
+  },
+  {
+    "key": "campus-enter-2",
+    "who": "boy",
+    "text": "Yes. I wanted to build a stronger foundation instead of just relying on what I learned through work."
+  },
+  {
+    "key": "fundamentals-1",
+    "who": "girl",
+    "text": "What changed when you started studying design?"
+  },
+  {
+    "key": "fundamentals-2",
+    "who": "boy",
+    "text": "I started understanding why certain design decisions work, not just how to make something look good."
+  },
+  {
+    "key": "library-1",
+    "who": "boy",
+    "text": "I also began understanding the importance of learning about people before designing for them."
+  },
+  {
+    "key": "library-2",
+    "who": "girl",
+    "text": "So, understanding the problem comes before creating the solution?"
+  },
+  {
+    "key": "library-3",
+    "who": "boy",
+    "text": "Exactly."
+  },
+  {
+    "key": "lab-1",
+    "who": "girl",
+    "text": "So, interaction design is more than making screens look beautiful?"
+  },
+  {
+    "key": "lab-2",
+    "who": "boy",
+    "text": "Yes. It's about how people interact with something, understand it and experience it."
+  },
+  {
+    "key": "foundation-1",
+    "who": "boy",
+    "text": "I started seeing design differently. Every decision had a reason behind it."
+  },
+  {
+    "key": "foundation-2",
+    "who": "girl",
+    "text": "Looks like you're beginning to understand the thinking behind design."
+  },
+  {
+    "key": "foundation-3",
+    "who": "girl",
+    "text": "You're not just learning how to design anymore. You're learning why."
+  },
+  {
+    "key": "horizon-1",
+    "who": "girl",
+    "text": "Looks like there's still more to learn."
+  },
+  {
+    "key": "horizon-2",
+    "who": "boy",
+    "text": "Definitely. I was learning the principles, but I also wanted someone experienced to challenge the way I thought."
   }
 ]

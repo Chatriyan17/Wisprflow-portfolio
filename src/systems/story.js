@@ -92,6 +92,7 @@ export class Story {
       + (throughGateway ? 1 : seg(L.workshop, L.gateway - 40) * 0.999)
       + seg(L.gateway + 60, L.station - 20)
       + (this.maxX > L.workplace - 40 ? 1 : seg(L.station, L.studio - 30) * 0.97)
-      + seg(L.workplace + 60, L.academy - 30);
+      + (this.maxX > L.campus - 40 ? 1 : seg(L.workplace + 60, L.academy - 30) * 0.97)
+      + seg(L.campus + 60, L.mentor - 30);
   }
 }

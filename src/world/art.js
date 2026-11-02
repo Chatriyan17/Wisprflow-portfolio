@@ -1024,3 +1024,7 @@ export function paintPlatform(ctx, rand, p) {
     px(ctx, COLORS.grass.base, p.x + 3, p.y - 2, p.w - 10, 2);
   }
 }
+
+export function pixelTextOn(ctx, text, x, y, size, color, shadow) {
+  pixelText(ctx, text, x, y, { size, color, align: 'center', shadow });
+}

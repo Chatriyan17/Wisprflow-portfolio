@@ -8,6 +8,7 @@ Built so far:
 
 - **Stage 1: World foundation.** The opening village, the two original characters, the camera, both navigation modes, dialogue and interaction.
 - **Stage 2: The Old Workshop** (Chapter 01 · Part 02). The road from the village into an industrial district, the factory hall, the break yard where friends first mention UX, and the gateway to the World of UX.
+- **Stage 5: The Knowledge Academy** (Chapter 01 · Part 05). Master of Design in Interaction Design at Lovely Professional University, Punjab: a magical campus with learning halls, a playable interaction-design puzzle, the Foundation Wall and the first signal of the Mentor's Camp.
 - **Stage 4: The First Design Studio** (Chapter 01 · Part 04). Inside Balwa HCM Cloud Suite: the one-person design team, four creative stations, the creative hats, the missing piece, and the door to the Knowledge Academy.
 - **Stage 3: The Discovery Path** (Chapter 01 · Part 03). Through the gateway into a magical forest: the first question, the learning station with the Google UX Design course on Coursera, six industry islands rising and connecting, and the door of the first design studio.
 
@@ -38,6 +39,16 @@ It deploys as-is to GitHub Pages, Netlify, Vercel or any static host.
 - **Skip to story** opens the whole chapter as plain text, for visitors who'd rather read.
 - `prefers-reduced-motion` is respected: no camera pan, particles or typewriter effect.
 - Both modes share the same world, the same story beats and the same progress.
+
+### What's in Stage 5
+
+- **Into the academy.** Through the glowing doorway of books at the back of the studio, with a "Chapter 01 · Part 05" card, onto a sunny fantasy campus: sandstone halls, slate-blue towers with waving flags, lawns and cobbled paths, lamp posts, a fountain.
+- **The gates.** A stone arch reading *LOVELY PROFESSIONAL UNIVERSITY · PUNJAB, INDIA*. The arrival conversation plays and then the iron gates swing open. Beside them, an information board (E) shows Institution, Programme and Specialisation.
+- **01 · Design Fundamentals classroom.** Six optional learning objects (E): visual hierarchy, Gestalt principles, typography, composition, colour theory and usability principles. Each has a short explanation and a small visual example.
+- **02 · Understanding People library.** Six optional objects: user research, interviews, empathy mapping, personas, affinity mapping and problem identification. All are presented as design learning concepts, not specific coursework.
+- **03 · Interaction Design Lab.** A playable interface puzzle. Rearrange a jumbled sign-up screen, press its button and watch it respond (pressed, loading, success), then compare before and after. It works with mouse, touch and keyboard.
+- **04 · The Foundation Wall.** Seven principle symbols light up one by one as he walks past, each with a rising chime. When all are lit the camera pulls back and the conversation lands: *"You're not just learning how to design anymore. You're learning why."*
+- **The mentor's signal.** In a quiet courtyard he looks to the horizon. After the conversation, *THE MENTOR'S CAMP · Learning the principles is one thing. Learning how to think is another.* glows into view over a lantern-lit path. The path (E) is the hook for Stage 6: `Game.enterNextRegion()`.
 
 ### What's in Stage 4
 
@@ -114,14 +125,18 @@ src/
     industrial.js       Stage 2 painters (concrete, factory hall, machines, break yard, gateway, skyline)
     forest.js           Stage 3 painters (forest, learning station, industry islands, studio)
     studio.js           Stage 4 painters (studio interior, creative stations, design wall, academy door)
+    campus.js           Stage 5 painters (campus, gates, classroom, library, lab, foundation wall)
     renderer.js         Parallax layers, baked main layer, water/smoke/grass, lighting
     pixel.js            Pixel drawing helpers (dither, discs, crisp pixel text)
   systems/              dialogue, character voices, speech bubbles, story progress + save, audio
   ui/hud.js             Chapter progress, mode switch, toasts, story cards
+  ui/labPuzzle.js       The playable interaction-design puzzle (Stage 5)
+  ui/learningCards.js   Academy learning cards with small visual examples
   cinematics/intro.js   Opening sequence
   cinematics/stage2.js  Stage 2 scenes (workshop talk, catwalk, break yard, memory)
   cinematics/stage3.js  Stage 3 scenes (gateway, first question, course, curiosity)
   cinematics/stage4.js  Stage 4 scenes (studio door, one-person team, stations, hats, missing piece, decision)
+  cinematics/stage5.js  Stage 5 scenes (academy door, gates, halls, lab, foundation wall, horizon)
   content/chapter01.js  All story text, chapter locations and dialogue scripts
 assets/sprites/         Baked sprite sheets + animation metadata
 assets/portraits/       Dialogue portraits
@@ -147,6 +162,6 @@ The companion is currently labelled "Companion" in dialogue. Set her name in `CH
 2. ✅ The manufacturing world (The Old Workshop)
 3. ✅ Discovery of UX (Discovery Path, Learning Camp)
 4. ✅ First workplace (Balwa HCM Cloud Suite)
-5. Education and mentorship (Knowledge Academy, Mentor's Camp)
+5. ✅ Education (The Knowledge Academy) · next: mentorship (The Mentor's Camp)
 6. The birth of design skills (Origin Temple puzzle)
 7. Chapter conclusion

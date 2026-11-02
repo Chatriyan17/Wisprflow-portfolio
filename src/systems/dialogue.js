@@ -2,6 +2,8 @@ import { CHARACTERS } from '../content/chapter01.js';
 import { REDUCED_MOTION } from '../config.js';
 
 const CHARS_PER_SEC = 42;
+// expressions available on the companion's reference sheet
+const GIRL_EXPR = new Set(['neutral', 'smile', 'laugh', 'surprised', 'thinking', 'speaking', 'curious', 'wink']);
 
 // Reusable RPG dialogue box. play(lines) resolves when the last line is dismissed.
 export class Dialogue {
@@ -57,7 +59,9 @@ export class Dialogue {
     this.nameEl.textContent = who.name || '';
     this.nameEl.hidden = !who.name;
     if (who.portrait) {
-      this.portrait.src = `assets/portraits/${who.portrait}-${line.expr || 'neutral'}.png`;
+      const have = who.portrait === 'girl' ? GIRL_EXPR : null;
+      const expr = !line.expr ? 'neutral' : have && !have.has(line.expr) ? 'smile' : line.expr;
+      this.portrait.src = `assets/portraits/${who.portrait}-${expr}.png`;
       this.portrait.alt = `${who.name}, ${line.expr || 'neutral'} expression`;
     }
     this.render();

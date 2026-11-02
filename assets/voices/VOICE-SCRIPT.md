@@ -37,6 +37,15 @@ Signs are not voiced.
 | `missing-piece-2-3.mp3` | I wanted someone to guide me. Someone who could tell me whether I was doing things correctly, point out my mistakes and help me improve. |
 | `missing-piece-2-5.mp3` | Exactly. |
 | `decision-1.mp3` | I realised I needed stronger foundations. That's when I decided to pursue my master's in design. |
+| `campus-arrive-2.mp3` | I wanted to understand design more deeply. So I decided to pursue my master's. |
+| `campus-arrive-4.mp3` | Lovely Professional University, Punjab. I joined the Master of Design programme in Interaction Design. |
+| `campus-enter-2.mp3` | Yes. I wanted to build a stronger foundation instead of just relying on what I learned through work. |
+| `fundamentals-2.mp3` | I started understanding why certain design decisions work, not just how to make something look good. |
+| `library-1.mp3` | I also began understanding the importance of learning about people before designing for them. |
+| `library-3.mp3` | Exactly. |
+| `lab-2.mp3` | Yes. It's about how people interact with something, understand it and experience it. |
+| `foundation-1.mp3` | I started seeing design differently. Every decision had a reason behind it. |
+| `horizon-2.mp3` | Definitely. I was learning the principles, but I also wanted someone experienced to challenge the way I thought. |
 
 ## Companion (companion)
 
@@ -68,6 +77,15 @@ Signs are not voiced.
 | `missing-piece-2-2.mp3` | What was missing? |
 | `missing-piece-2-4.mp3` | So you wanted to grow beyond just doing the work? |
 | `decision-2.mp3` | Then let's find a place where you can sharpen those skills. |
+| `campus-arrive-1.mp3` | So, where are we heading now? |
+| `campus-arrive-3.mp3` | Where did you go? |
+| `campus-enter-1.mp3` | You came here to learn more about design? |
+| `fundamentals-1.mp3` | What changed when you started studying design? |
+| `library-2.mp3` | So, understanding the problem comes before creating the solution? |
+| `lab-1.mp3` | So, interaction design is more than making screens look beautiful? |
+| `foundation-2.mp3` | Looks like you're beginning to understand the thinking behind design. |
+| `foundation-3.mp3` | You're not just learning how to design anymore. You're learning why. |
+| `horizon-1.mp3` | Looks like there's still more to learn. |
 
 ## Friend (memory, silhouettes)
 

@@ -201,6 +201,30 @@ export class Audio {
         this.tone(90, 0.25, 'triangle', 0.08 * vol, null, 45);
         this.tone(2200, 0.05, 'square', 0.015 * vol);
         break;
+      case 'gate':
+        this.tone(140, 0.6, 'sawtooth', 0.015, null, 90);
+        [392, 494, 587, 784].forEach((f, i) => this.tone(f, 0.7, 'sine', 0.025, this.ctx.currentTime + 0.4 + i * 0.12));
+        break;
+      case 'page':
+        for (let i = 0; i < 6; i++) this.tone(3000 + Math.random() * 2000, 0.03, 'triangle', 0.006, this.ctx.currentTime + i * 0.025);
+        break;
+      case 'chalk':
+        for (let i = 0; i < 8; i++) this.tone(2400 + Math.random() * 1600, 0.025, 'square', 0.005, this.ctx.currentTime + i * 0.04);
+        break;
+      case 'chime': {
+        const scale = [784, 880, 988, 1175, 1319, 1480, 1568];
+        this.tone(scale[Math.min(6, Math.max(0, vol | 0))], 0.9, 'sine', 0.03);
+        break;
+      }
+      case 'click':
+        this.tone(1800, 0.02, 'square', 0.015);
+        break;
+      case 'success':
+        [659, 880, 1319].forEach((f, i) => this.tone(f, 0.25, 'square', 0.02, this.ctx.currentTime + i * 0.07));
+        break;
+      case 'mentor':
+        [262, 330, 392, 523, 659].forEach((f, i) => this.tone(f, 1.6, 'sine', 0.025, this.ctx.currentTime + i * 0.3));
+        break;
       case 'door':
         this.tone(240, 0.12, 'triangle', 0.04, null, 180);
         this.tone(660, 0.3, 'sine', 0.02, this.ctx.currentTime + 0.12, 990);

@@ -10,11 +10,27 @@ import * as Art from './art.js';
 import * as Ind from './industrial.js';
 import * as Forest from './forest.js';
 import * as Studio from './studio.js';
+import * as Campus from './campus.js';
 import {
   TERRAIN, BRIDGE, PLATFORMS, CRATES, PROPS, LIGHTS, SMOKE, STEAM, WATERFALL, POND,
   REGIONS, HALL, CONVEYOR, PORTAL, STREAM, WOOD_BRIDGE, STATION, HILL, ISLANDS,
   STATIONS, DESIGN_WALL, ACADEMY, INTERIOR,
+  CAMPUS, CLASSROOM, LIBRARY, LAB, FOUNDATION, MENTOR, PRINCIPLES, areaOf,
 } from './level.js';
+
+// The seven design principles on the Foundation Wall, as small pixel symbols.
+export function drawPrinciple(ctx, id, x, y, lit) {
+  x = Math.round(x); y = Math.round(y);
+  const c = lit ? '#fff2c4' : '#5a5274';
+  const a = lit ? '#ffd98a' : '#4a4264';
+  if (id === 'hierarchy') { px(ctx, c, x - 9, y - 7, 18, 4); px(ctx, a, x - 9, y - 1, 12, 3); px(ctx, a, x - 9, y + 4, 7, 2); }
+  else if (id === 'gestalt') { for (const [dx, dy] of [[-6, -5], [-2, -5], [-6, -1], [-2, -1], [4, 2], [8, 2], [4, 6], [8, 6]]) disc(ctx, dx < 0 ? c : a, x + dx, y + dy, 1); }
+  else if (id === 'typography') { px(ctx, c, x - 8, y - 6, 2, 12); px(ctx, c, x - 2, y - 6, 2, 12); px(ctx, c, x - 6, y - 7, 4, 2); px(ctx, c, x - 6, y - 1, 4, 2); px(ctx, a, x + 2, y - 1, 6, 2); px(ctx, a, x + 7, y, 2, 6); px(ctx, a, x + 2, y + 2, 5, 2); px(ctx, a, x + 2, y + 5, 6, 2); }
+  else if (id === 'research') { disc(ctx, c, x - 2, y - 2, 6); disc(ctx, lit ? '#3a2a5a' : '#251f36', x - 2, y - 2, 4); for (let k = 0; k < 5; k++) px(ctx, a, x + 2 + k, y + 2 + k, 2, 2); }
+  else if (id === 'empathy') { disc(ctx, c, x - 3, y - 3, 4); disc(ctx, c, x + 3, y - 3, 4); for (let k = 0; k < 7; k++) px(ctx, c, x - 7 + k, y - 1 + k, 14 - k * 2, 1); }
+  else if (id === 'patterns') { px(ctx, a, x - 9, y + 1, 12, 6); px(ctx, c, x - 9, y - 7, 12, 6); for (let k = 0; k < 6; k++) px(ctx, c, x + 3, y - 2 + k, Math.max(1, 5 - k), 1); }
+  else if (id === 'usability') { disc(ctx, c, x, y, 8); disc(ctx, lit ? '#3a6a4a' : '#251f36', x, y, 6); for (let k = 0; k < 3; k++) px(ctx, c, x - 4 + k, y + k - 1, 2, 2); for (let k = 0; k < 5; k++) px(ctx, c, x - 1 + k, y + 1 - k, 2, 2); }
+}
 
 const HAT_COLORS = { graphic: '#e06a58', motion: '#9a7ad0', visual: '#4fb3a8', product: '#e3b13c' };
 
@@ -73,6 +89,7 @@ const LIGHT_COLORS = {
   sodium: [255, 168, 70], hanglamp: [255, 214, 150], beacon: [255, 140, 40],
   panel: [120, 255, 170], vending: [255, 130, 100], bulb: [255, 222, 160], portal: [160, 130, 255],
   glow: [130, 220, 255], screen: [150, 200, 255], neon: [255, 150, 210], academy: [210, 228, 255],
+  campfire: [255, 150, 70],
 };
 
 function gearRot(ctx, x, y, r, angle, colors) {
@@ -106,6 +123,10 @@ function blit(ctx, img, sx, sy, w, h, dx, dy) {
 }
 
 // Tiny "Aa" glyph drawn with rects (cheap enough to draw every frame).
+function pixelTextCentered(ctx, text, x, y, size, color, shadow) {
+  Art.pixelTextOn(ctx, text, x, y, size, color, shadow);
+}
+
 function pixelLike(ctx, x, y, _text, c) {
   px(ctx, c, x, y + 2, 1, 7); px(ctx, c, x + 4, y + 2, 1, 7); px(ctx, c, x + 1, y + 1, 3, 1); px(ctx, c, x + 1, y + 5, 3, 1);
   px(ctx, c, x + 7, y + 4, 3, 1); px(ctx, c, x + 10, y + 5, 1, 4); px(ctx, c, x + 7, y + 6, 3, 1); px(ctx, c, x + 6, y + 7, 1, 2); px(ctx, c, x + 7, y + 8, 4, 1);
@@ -201,7 +222,7 @@ export class WorldRenderer {
     this.bridge = bridge;
 
     // --- front pass (drawn after characters): bridge parapet
-    const [front, fctx] = makeCanvas(WORLD.width, LAYER_H);
+    const [front, fctx] = makeCanvas(5200, LAYER_H);   // only the bridge parapet and catwalk rails live here
     fctx.translate(0, OY);
     Art.paintBridgeRail(fctx, BRIDGE.x0 - 2, BRIDGE.x1 - 6, BRIDGE.y + 6);
     Ind.paintHallFront(fctx, G);
@@ -225,7 +246,7 @@ export class WorldRenderer {
     this.blades = [];
     const br = rng(29);
     for (const [x0, x1, top, mat] of TERRAIN) {
-      if (mat === 'concrete' || mat === 'factory' || mat === 'studio') continue;
+      if (mat === 'concrete' || mat === 'factory' || mat === 'studio' || mat === 'campus') continue;
       for (let x = x0 + 2; x < x1 - 2; x += br.int(3, 7)) {
         const t = (x - x0) / (x1 - x0);
         if (mat === 'toConcrete' && br() < t * 1.2) continue;
@@ -285,6 +306,25 @@ export class WorldRenderer {
     }
     for (let x = 9200; x < 9620; x += 70) this.books.push({ x, y: G - 70 - ((x * 7) % 80), p: x * 0.01, kind: 'doc', c: '#ffffff' });
 
+    // --- stage 5: the campus
+    this.gateOpen = 0;
+    this.gateTarget = 0;
+    this.principlesLit = PRINCIPLES.map(() => 0);
+    this.labSolved = false;
+    this.mentorSign = 0;
+    this.mentorTarget = 0;
+    {
+      const [mc, mctx2] = makeCanvas(230, 70);
+      // a dark wooden panel behind the glowing words so they read over any background
+      mctx2.fillStyle = '#1d1222'; mctx2.fillRect(2, 0, 226, 64);
+      mctx2.fillStyle = '#3a2418'; mctx2.fillRect(4, 2, 222, 60);
+      mctx2.fillStyle = '#f5a24a'; mctx2.fillRect(4, 2, 222, 1); mctx2.fillRect(4, 61, 222, 1);
+      pixelTextCentered(mctx2, 'THE MENTOR\'S CAMP', 115, 6, 16, '#ffe8a8', '#5a3a1a');
+      pixelTextCentered(mctx2, 'LEARNING THE PRINCIPLES IS ONE THING.', 115, 34, 8, '#f6ead2', '#3a2a1a');
+      pixelTextCentered(mctx2, 'LEARNING HOW TO THINK IS ANOTHER.', 115, 46, 8, '#f6ead2', '#3a2a1a');
+      this.mentorSignImg = mc;
+    }
+
     // conveyor boxes and the press
     this.boxes = [];
     this.boxTimer = 0;
@@ -304,6 +344,7 @@ export class WorldRenderer {
     for (const [x0, x1, top, mat] of sorted) {
       if (mat === 'forest') Forest.paintForestGround(ctx, r, x0, x1, top, bottom);
       else if (mat === 'studio') Studio.paintStudioFloor(ctx, r, x0, x1, top, bottom);
+      else if (mat === 'campus') Campus.paintCampusGround(ctx, r, x0, x1, top, bottom);
       else Ind.paintGround(ctx, r, x0, x1, top, bottom, mat);
     }
 
@@ -362,11 +403,25 @@ export class WorldRenderer {
         case 'hillStones': Forest.paintHillStones(ctx, p.x, HILL.top); break;
         case 'studioSign': Forest.paintStudioSign(ctx, p.x, gy); break;
         case 'studio': Forest.paintStudio(ctx, r, p.x, gy); break;
-        case 'studioInterior': Studio.paintStudioInterior(ctx, r, INTERIOR.x0 - 20, WORLD.width, gy); break;
+        case 'studioInterior': Studio.paintStudioInterior(ctx, r, INTERIOR.x0 - 20, 12320, gy); break;
         case 'creativeStation': Studio.paintCreativeStation(ctx, r, p.x, gy, p); break;
         case 'designWall': Studio.paintDesignWall(ctx, p.x, gy); break;
         case 'academySign': Studio.paintAcademySign(ctx, p.x, gy); break;
         case 'academyDoor': Studio.paintAcademyDoor(ctx, p.x, gy); break;
+        case 'campusBackdrop': this.flags = Campus.paintCampusBackdrop(ctx, r, p.x, WORLD.width, gy); break;
+        case 'arrivalArch': Campus.paintArrivalArch(ctx, p.x, gy); break;
+        case 'noticeBoard': Campus.paintNoticeBoard(ctx, p.x, gy); break;
+        case 'campusTree': Campus.paintCampusTree(ctx, r, p.x, gy, p); break;
+        case 'campusGate': Campus.paintCampusGatePillars(ctx, p.x, gy); break;
+        case 'infoBoard': Campus.paintInfoBoard(ctx, p.x, gy); break;
+        case 'campusLamp': Campus.paintCampusLamp(ctx, p.x, gy); break;
+        case 'flowerbed': Campus.paintFlowerbed(ctx, r, p.x, gy, p.w); break;
+        case 'classroom': Campus.paintClassroom(ctx, r, CLASSROOM.x0, CLASSROOM.x1, gy); break;
+        case 'library': Campus.paintLibrary(ctx, r, LIBRARY.x0, LIBRARY.x1, gy); break;
+        case 'lab': Campus.paintLab(ctx, r, LAB.x0, LAB.x1, gy); break;
+        case 'foundationWall': Campus.paintFoundationWall(ctx, FOUNDATION.x0, gy); break;
+        case 'fountain': Campus.paintFountain(ctx, p.x, gy); break;
+        case 'mentorPath': Campus.paintMentorPath(ctx, r, p.x, gy); break;
         case 'bannerPole':
           px(ctx, '#3a2a35', p.x - 1, gy - 78, 3, 78);
           px(ctx, '#f5c35b', p.x - 2, gy - 81, 5, 3);
@@ -411,6 +466,10 @@ export class WorldRenderer {
         }
       }
     }
+    // stage 5 animations
+    this.gateOpen += (this.gateTarget - this.gateOpen) * Math.min(1, dt * 1.6);
+    this.mentorSign += (this.mentorTarget - this.mentorSign) * Math.min(1, dt * 0.9);
+    for (let i = 0; i < this.principlesLit.length; i++) if (this.principlesLit[i] > 0 && this.principlesLit[i] < 1) this.principlesLit[i] = Math.min(1, this.principlesLit[i] + dt * 2);
     // stage 4 animations
     for (const st of Object.values(this.stations)) if (st.on) st.t += dt * (1 - this.quiet * 0.75);
     if (this.hats.cycle) this.hats.cycleT += dt;
@@ -593,6 +652,7 @@ export class WorldRenderer {
     this.drawIndustrial(ctx, cam);
     this.drawForest(ctx, cam);
     this.drawStudio(ctx, cam);
+    this.drawCampus(ctx, cam);
     this.drawWater(ctx, cam);
     ctx.drawImage(this.bridge, Math.round(BRIDGE.x0 - 12 - cam.x), Math.round(-OY - cam.y));
     this.drawSmoke(ctx, cam);
@@ -717,6 +777,128 @@ export class WorldRenderer {
       for (let k = 0; k < 40; k += 2) {
         const v = (k + Math.floor(t * 30)) % 8;
         px(ctx, v < 3 ? '#ffffff' : '#a9d6f6', wx, y + 74 + k, 2, 2);
+      }
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  // -------------------------------------------------------------- stage 5
+  lightPrinciple(i) {
+    if (this.principlesLit[i] > 0) return false;
+    this.principlesLit[i] = 0.01;
+    return true;
+  }
+
+  drawCampus(ctx, cam) {
+    const W = cam.viewW;
+    const t = this.time;
+    if (cam.x + W < CAMPUS.x0) return;
+    const gy = G - cam.y;
+    // waving flags on the towers
+    for (const f of this.flags || []) {
+      const x = f.flagX - cam.x, y = f.flagY - cam.y;
+      if (x < -30 || x > W + 30) continue;
+      px(ctx, '#3a3346', x, y - 18, 1, 18);
+      for (let i = 0; i < 16; i++) {
+        const wave = REDUCED_MOTION ? 0 : Math.round(Math.sin(t * 4 - i * 0.5) * 1.5);
+        px(ctx, i < 2 ? '#a84a6a' : '#8c3b5a', x + 1 + i, y - 18 + wave, 1, 9 - Math.floor(i / 6));
+        if (i % 4 === 1) px(ctx, '#f5c35b', x + 1 + i, y - 14 + wave, 1, 1);
+      }
+    }
+    // arrival arch shimmer
+    const ax = CAMPUS.entry - 30 - cam.x;
+    if (ax > -60 && ax < W + 60) {
+      ctx.globalCompositeOperation = 'lighter';
+      // a half-ellipse of light filling the top of the book arch
+      for (let j = 0; j < 40; j++) {
+        const half = Math.round(Math.sqrt(Math.max(0, 1 - (j / 40) ** 2)) * 26);
+        ctx.globalAlpha = 0.18 + 0.08 * Math.sin(t * 2 + j * 0.2);
+        px(ctx, '#dfeaff', ax - half, gy - 60 - j, half * 2, 1);
+      }
+      ctx.fillStyle = 'rgba(223,234,255,0.18)';
+      ctx.fillRect(Math.round(ax - 26), Math.round(gy - 60), 52, 60);
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+    }
+    // iron gates (swing open after the arrival conversation)
+    const gx = CAMPUS.gate - cam.x;
+    if (gx > -80 && gx < W + 80) {
+      const open = this.gateOpen;
+      for (const side of [-1, 1]) {
+        const w = Math.max(3, Math.round(44 * (1 - open * 0.88)));
+        const hinge = gx + side * 46;
+        const x0 = side < 0 ? hinge : hinge - w;
+        px(ctx, '#2b2330', x0, gy - 96, w, 3);
+        px(ctx, '#2b2330', x0, gy - 50, w, 2);
+        px(ctx, '#2b2330', x0, gy - 8, w, 2);
+        for (let k = 0; k <= w; k += Math.max(2, Math.round(6 * (1 - open * 0.6)))) {
+          px(ctx, '#3a3346', x0 + k, gy - 96, 2, 96);
+          px(ctx, '#f5c35b', x0 + k, gy - 100, 2, 4);
+        }
+      }
+    }
+    // the lab screen: a messy interface quietly waiting, or the tidy one once solved
+    const lx = LAB.x0 + 163 - cam.x, ly = G - 170 + 75 - cam.y;
+    if (lx > -110 && lx < W + 10) {
+      px(ctx, '#f4f6fb', lx, ly, 94, 58);
+      if (!this.labSolved) {
+        const jig = REDUCED_MOTION ? 0 : Math.round(Math.sin(t * 2) * 1);
+        px(ctx, '#e3b13c', lx + 52 + jig, ly + 4, 30, 9);
+        px(ctx, '#c8c8d8', lx + 6, ly + 20, 40, 6);
+        px(ctx, '#2b2330', lx + 30, ly + 34, 50, 5);
+        px(ctx, '#c8c8d8', lx + 10, ly + 46, 60, 6);
+        px(ctx, '#e04848', lx + 82, ly + 46, 6, 6);
+      } else {
+        px(ctx, '#2b2330', lx + 8, ly + 6, 60, 6);
+        px(ctx, '#e8eef9', lx + 8, ly + 18, 78, 8);
+        px(ctx, '#e8eef9', lx + 8, ly + 30, 78, 8);
+        px(ctx, '#4fb3a8', lx + 8, ly + 43, 78, 9);
+        px(ctx, '#ffffff', lx + 36, ly + 46, 22, 2);
+      }
+    }
+    // the Foundation Wall: each principle glows once he has walked past it
+    const fx0 = FOUNDATION.x0 - cam.x;
+    if (fx0 > -500 && fx0 < W + 20) {
+      PRINCIPLES.forEach((pr, i) => {
+        const k = this.principlesLit[i];
+        const x = pr.x - cam.x, y = G - 132 - cam.y;
+        if (k > 0) {
+          ctx.globalCompositeOperation = 'lighter';
+          const rg = ctx.createRadialGradient(x, y, 2, x, y, 30);
+          rg.addColorStop(0, `rgba(255, 220, 150, ${0.45 * k})`);
+          rg.addColorStop(1, 'rgba(255, 220, 150, 0)');
+          ctx.fillStyle = rg;
+          ctx.fillRect(x - 30, y - 30, 60, 60);
+          ctx.globalCompositeOperation = 'source-over';
+        }
+        drawPrinciple(ctx, pr.id, x, y, k > 0.5);
+      });
+    }
+    // fountain water
+    const fx = 15360 - cam.x;
+    if (fx > -40 && fx < W + 40) {
+      for (let i = 0; i < 12; i++) {
+        const k = ((t * 1.2 + i / 12) % 1);
+        const side = i % 2 ? 1 : -1;
+        px(ctx, '#bfe4ff', fx + side * k * 16, gy - 42 - Math.sin(k * Math.PI) * 10 + k * 30, 2, 2);
+      }
+    }
+    // the mentor's signal fades in over the path
+    if (this.mentorSign > 0.01) {
+      const mx = MENTOR.sign - cam.x, my = G - 168 - cam.y + Math.sin(t * 1.2) * 2;
+      ctx.globalAlpha = this.mentorSign;
+      ctx.globalCompositeOperation = 'lighter';
+      const rg = ctx.createRadialGradient(mx, my + 30, 4, mx, my + 30, 130);
+      rg.addColorStop(0, 'rgba(255, 190, 110, 0.35)');
+      rg.addColorStop(1, 'rgba(255, 190, 110, 0)');
+      ctx.fillStyle = rg;
+      ctx.fillRect(mx - 130, my - 100, 260, 260);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.drawImage(this.mentorSignImg, Math.round(mx - 115), Math.round(my));
+      for (let i = 0; i < 10; i++) {
+        const life = (t * 0.4 + i / 10) % 1;
+        ctx.globalAlpha = this.mentorSign * (1 - life);
+        px(ctx, '#ffe8a8', mx - 100 + ((i * 47) % 200), my + 60 - life * 70, 1, 1);
       }
       ctx.globalAlpha = 1;
     }
@@ -1144,7 +1326,7 @@ export class WorldRenderer {
     // petals (screen space with parallax) belong to the green parts of the world;
     // the factory has drifting dust in the window light instead
     const ind = industryAt(cam.x + W / 2);
-    const indoors = cam.x > INTERIOR.x0 - 200;
+    const indoors = areaOf(cam.x + W / 2).id === 'studio';
     const petalCount = indoors ? 0 : Math.round(this.petals.length * (1 - ind));
     for (let i = 0; i < this.motes.length; i++) {
       const m = this.motes[i];
@@ -1165,7 +1347,7 @@ export class WorldRenderer {
 
     // foreground foliage (parallax 1.25) framing the bottom edge (not indoors)
     const bottomY = H + 4;
-    for (const f of (cam.x > INTERIOR.x0 - 200 ? [] : this.fg)) {
+    for (const f of (areaOf(cam.x + W / 2).id === 'studio' ? [] : this.fg)) {
       const x = Math.round(f.x - cam.x * 1.25);
       if (x < -40 || x > W + 40) continue;
       const sway = REDUCED_MOTION ? 0 : Math.sin(t * 1.4 + f.p) * 1.5;
