@@ -309,6 +309,15 @@ export async function golem(game) {
     girl.autopilot = null;
     bossEnd(game);
     player.facing = 1;
+    // if the battle was ever cut short by something unexpected, never trap the
+    // visitor in a dark room: the golem settles down and the way on opens
+    if (!seen.has('golem-defeated')) {
+      g.endSymbols();
+      g.setRest(true);
+      seen.add('golem-defeated');
+      game.openStationGate();
+      game.story.save();
+    }
   }
 }
 

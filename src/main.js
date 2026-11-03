@@ -7,7 +7,7 @@ import { clamp } from './engine/rng.js';
 import { Character } from './entities/character.js';
 import { Companion } from './entities/companion.js';
 import { WorldRenderer } from './world/renderer.js';
-import { buildSolids, groundTopAt, INTERACTABLES, WATERFALL, CONVEYOR, PORTAL, BREAK, GATE, ISLANDS, STREAM, STATIONS, INTERIOR, CAMPUS, PRINCIPLES, ACADEMY, MENTOR, CAMP, MEMORIES, GOLEM, areaOf } from './world/level.js';
+import { buildSolids, groundTopAt, INTERACTABLES, WATERFALL, CONVEYOR, PORTAL, BREAK, GATE, ISLANDS, STREAM, STATIONS, INTERIOR, CAMPUS, PRINCIPLES, ACADEMY, MENTOR, CAMP, MEMORIES, GOLEM, areaOf, SCROLL_LENGTH, pathX, pathDistance } from './world/level.js';
 import { Golem } from './world/golem.js';
 import * as Boss from './cinematics/boss.js';
 import { industryAt, gatewayAt, forestAt } from './world/renderer.js';
@@ -30,6 +30,13 @@ import { playIntro } from './cinematics/intro.js';
 import { SCRIPTS, MODE_HINTS, CHAPTER_01, RECAP } from './content/chapter01.js';
 
 const G = WORLD.ground;
+// Scroll Journey's areas in order, and the door out of each one into the next
+const SCROLL_AREAS = ['outdoor', 'studio', 'campus', 'camp'];
+const DOORS = [
+  { opens: 'studio-door', enter: 'enterStudio', exit: 'exitStudio', wait: INTERIOR.exitTo - 20 },
+  { opens: 'academy-door', enter: 'enterCampus', exit: 'exitCampus', wait: ACADEMY.door - 4 },
+  { opens: 'mentor-door', enter: 'enterCamp', exit: 'exitCamp', wait: MENTOR.door - 2 },
+];
 const LEARN_LIBRARY = new Set(['research', 'interviews', 'empathy-map', 'personas', 'affinity', 'problem']);
 const IS_TOUCH = matchMedia('(pointer: coarse)').matches;
 
@@ -134,7 +141,7 @@ class Game {
     const btn = document.getElementById('resume');
     btn.textContent = `Continue from ${cp.name} ▸`;
     btn.hidden = false;
-    btn.onclick = (e) => { e.stopPropagation(); this.resume(); };
+    btn.onclick = (e) => { e.stopPropagation(); if (e.detail > 0) btn.blur(); this.resume(); };
     this.later(14, () => { btn.hidden = true; });
   }
 
@@ -417,18 +424,19 @@ class Game {
     this.input.captureScrollKeys = mode === 'explore' || !!this.bossActive;
     if (mode === 'scroll') {
       this.updateScrollTrack();
-      const y = (clamp(this.player.x, SCROLL.startX, SCROLL.endX) - SCROLL.startX) * SCROLL.pxPerWorldPx;
-      this.ignoreScroll = true;
-      window.scrollTo({ top: y, behavior: 'instant' });
-      this.scrollTarget = this.player.x;
-      requestAnimationFrame(() => { this.ignoreScroll = false; });
+      this.syncScroll();
+      // Scroll Journey can't walk him to the blackboard: open the school puzzle straight away
+      if (this.awaitBoard) { const w = this.awaitBoard; this.awaitBoard = null; w.resolve(); }
       if (!silent) {
         this.hud.toast('Scroll Journey · scroll to travel the path');
         this.bubbles.say(this.girl, MODE_HINTS.scroll, { duration: 3.5 });
       }
     } else {
-      this.player.autopilot = null;
-      this.player.control.move = 0;
+      // stop Scroll Journey's walking, but never a scene's (it's steering him to his mark)
+      if (!this.scripting) {
+        this.player.autopilot = null;
+        this.player.control.move = 0;
+      }
       if (!silent) {
         this.hud.toast(IS_TOUCH ? 'Explore World · use the on-screen buttons' : 'Explore World · WASD / arrows to move, SPACE to jump, E to interact');
         this.bubbles.say(this.girl, IS_TOUCH ? MODE_HINTS.touch : MODE_HINTS.explore, { duration: 4 });
@@ -438,17 +446,33 @@ class Game {
 
   updateScrollTrack() {
     const track = document.getElementById('scroll-track');
-    const len = (SCROLL.endX - SCROLL.startX) * SCROLL.pxPerWorldPx;
+    const len = SCROLL_LENGTH * SCROLL.pxPerWorldPx;
     track.style.height = `${Math.round(len + window.innerHeight)}px`;
+  }
+
+  // Scroll Journey: where the page's scroll position says the protagonist should be.
+  scrollWorldX() { return pathX(window.scrollY / SCROLL.pxPerWorldPx); }
+
+  // Scroll Journey: move the page's scroll position to where the protagonist is
+  // (after he's been moved: a door, a memory, a scene that walked him on).
+  syncScroll(x = this.player.x) {
+    if (this.mode !== 'scroll') return;
+    // inside the school memory he's off the path: the page waits for him to come back
+    if (!SCROLL_AREAS.includes(areaOf(x).id)) return;
+    const top = Math.round(pathDistance(x) * SCROLL.pxPerWorldPx);
+    this.ignoreScroll = true;
+    window.scrollTo({ top, behavior: 'instant' });
+    this.scrollTarget = pathX(top / SCROLL.pxPerWorldPx);
+    requestAnimationFrame(() => { this.ignoreScroll = false; });
   }
 
   // ---------------------------------------------------------------- input
 
   bindUI() {
-    document.getElementById('skip-intro').addEventListener('click', () => { this.introSkipped = true; });
-    document.getElementById('skip-scene').addEventListener('click', (e) => { if (e.detail > 0) e.currentTarget.blur(); this.skipScene(); });
     // Mouse clicks hand keyboard focus back to the world; keyboard activation keeps focus.
     const release = (e) => { if (e.detail > 0) e.currentTarget.blur(); };
+    document.getElementById('skip-intro').addEventListener('click', (e) => { release(e); this.introSkipped = true; });
+    document.getElementById('skip-scene').addEventListener('click', (e) => { release(e); this.skipScene(); });
     const modeScroll = document.getElementById('mode-scroll');
     const modeExplore = document.getElementById('mode-explore');
     const sound = document.getElementById('sound-toggle');
@@ -458,12 +482,12 @@ class Game {
     const voices = document.getElementById('voice-toggle');
     voices.addEventListener('click', (e) => { release(e); this.toggleVoices(); });
     if (!this.voice.available) voices.hidden = true;
-    document.getElementById('story-open').addEventListener('click', () => this.openStory());
-    document.getElementById('interact-prompt').addEventListener('click', () => this.tryInteract());
+    document.getElementById('story-open').addEventListener('click', (e) => { release(e); this.openStory(); });
+    document.getElementById('interact-prompt').addEventListener('click', (e) => { release(e); this.tryInteract(); });
 
     window.addEventListener('scroll', () => {
       if (this.mode !== 'scroll' || this.ignoreScroll || this.busy) return;
-      this.scrollTarget = SCROLL.startX + window.scrollY / SCROLL.pxPerWorldPx;
+      this.scrollTarget = this.scrollWorldX();
     }, { passive: true });
 
     let wheelHintAt = 0;
@@ -582,9 +606,9 @@ class Game {
       this.runScene(id);
       return;
     }
-    if (it.id === 'studio-exit') { this.exitStudio(); return; }
-    if (it.id === 'campus-exit') { this.exitCampus(); return; }
-    if (it.id === 'camp-exit') { this.exitCamp(); return; }
+    if (it.id === 'studio-exit') { this.exitStudio(); this.syncScroll(); return; }
+    if (it.id === 'campus-exit') { this.exitCampus(); this.syncScroll(); return; }
+    if (it.id === 'camp-exit') { this.exitCamp(); this.syncScroll(); return; }
     if (it.memory) { this.audio.sfx('chime', MEMORIES.findIndex((m) => m.id === it.memory)); this.openMemory(it.memory); return; }
     this.busy = true;
     this.audio.sfx('interact');
@@ -701,9 +725,10 @@ class Game {
       this.story.save();
       if (!this.sceneQueue.length) this.endFastForward();
       // keep Scroll Journey in step with where the scene left the protagonist
+      // (a door scene puts him in the next room while the page is still at the door)
       if (this.mode === 'scroll') {
-        this.scrollTarget = SCROLL.startX + window.scrollY / SCROLL.pxPerWorldPx;
-        if (this.scrollTarget < p.x) this.scrollTarget = p.x;
+        if (window.scrollY / SCROLL.pxPerWorldPx < pathDistance(p.x) - 0.5) this.syncScroll(p.x);
+        else this.scrollTarget = this.scrollWorldX();
       }
       const next = this.sceneQueue.shift();
       if (next) this.runScene(next);
@@ -774,24 +799,17 @@ class Game {
         p.autopilot = null;
       } else if (!blocked) {
         let target = clamp(this.scrollTarget, SCROLL.startX, SCROLL.endX);
-        // separate areas (outdoors, the studio, the campus): step through their doors
-        // as the scroll crosses them, in either direction
-        const area = areaOf(p.x).id;
-        if (area === 'outdoor' && target > INTERIOR.exitTo + 10) {
-          if (this.story.seen.has('studio-door')) this.enterStudio();
-          else target = INTERIOR.exitTo - 20;
-        } else if (area === 'studio' && target < INTERIOR.x0 + 30) {
-          this.exitStudio();
-        } else if (area === 'studio' && target > CAMPUS.exitTo + 40) {
-          if (this.story.seen.has('academy-door')) this.enterCampus();
-          else target = Math.min(target, ACADEMY.door - 4);
-        } else if (area === 'campus' && target < CAMPUS.entry + 10) {
-          this.exitCampus();
-        } else if (area === 'campus' && target > MENTOR.door + 20) {
-          if (this.story.seen.has('mentor-door')) this.enterCamp();
-          else target = Math.min(target, MENTOR.door - 2);
-        } else if (area === 'camp' && target < CAMP.entry + 10) {
-          this.exitCamp();
+        // separate areas (outdoors, the studio, the campus, the camp): when the
+        // scroll path moves on into the next area (or back into the last one),
+        // step through the door between them. Locked doors hold him at the door.
+        const here = SCROLL_AREAS.indexOf(areaOf(p.x).id);
+        const want = SCROLL_AREAS.indexOf(areaOf(target).id);
+        if (here >= 0 && want > here) {
+          const door = DOORS[here];
+          if (this.story.seen.has(door.opens)) this[door.enter]();
+          else target = Math.min(target, door.wait);
+        } else if (here > 0 && want >= 0 && want < here) {
+          this[DOORS[here - 1].exit]();
         }
         p.autopilot = { x: target, tolerance: 2 };
         p.control.jumpHeld = true;

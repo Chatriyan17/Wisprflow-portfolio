@@ -121,7 +121,17 @@ export class Music {
     this.nextTime = 0;
     this.files = {};
     this.fileAudio = {};
-    fetch('assets/music/manifest.json').then((r) => (r.ok ? r.json() : null)).then((m) => { if (m && m.tracks) this.files = m.tracks; }).catch(() => {});
+    fetch('assets/music/manifest.json').then((r) => (r.ok ? r.json() : null)).then((m) => {
+      if (!m || !m.tracks) return;
+      this.files = m.tracks;
+      // the list arrives after the first piece has started: swap to its recording now
+      const now = this.current;
+      if (now && this.files[now]) {
+        this.bus(now).gain.setTargetAtTime(0, this.ctx.currentTime, 0.6);
+        this.current = null;
+        this.play(now);
+      }
+    }).catch(() => {});
   }
 
   bus(name) {
@@ -151,24 +161,31 @@ export class Music {
     this.nextTime = Math.max(t + 0.15, this.nextTime);
   }
 
+  // A recorded track plays through the soundtrack's own output (not straight to the
+  // speakers), so the sound toggle and the quiet story moments apply to it too.
   playFile(name) {
-    let a = this.fileAudio[name];
-    if (!a) {
-      a = new Audio(`assets/music/${this.files[name]}`);
+    let f = this.fileAudio[name];
+    if (!f) {
+      const a = new Audio(`assets/music/${this.files[name]}`);
       a.loop = true;
-      a.volume = 0;
-      this.fileAudio[name] = a;
+      const gain = this.ctx.createGain();
+      gain.gain.value = 0;
+      this.ctx.createMediaElementSource(a).connect(gain).connect(this.out);
+      f = this.fileAudio[name] = { a, gain };
     }
-    a.play().catch(() => {});
-    const fade = () => { if (this.current !== name) return; a.volume = Math.min(0.6, a.volume + 0.03); if (a.volume < 0.6) setTimeout(fade, 80); };
-    fade();
+    const t = this.ctx.currentTime;
+    f.gain.gain.cancelScheduledValues(t);
+    f.gain.gain.setTargetAtTime(1, t, 0.8);
+    f.a.play().catch(() => {});
   }
 
   stopFile(name) {
-    const a = this.fileAudio[name];
-    if (!a) return;
-    const fade = () => { a.volume = Math.max(0, a.volume - 0.04); if (a.volume > 0) setTimeout(fade, 80); else a.pause(); };
-    fade();
+    const f = this.fileAudio[name];
+    if (!f) return;
+    const t = this.ctx.currentTime;
+    f.gain.gain.cancelScheduledValues(t);
+    f.gain.gain.setTargetAtTime(0, t, 0.4);
+    setTimeout(() => { if (this.current !== name) f.a.pause(); }, 2500);
   }
 
   setLevel(v) { this.out.gain.setTargetAtTime(0.55 * v, this.ctx.currentTime, 0.6); }

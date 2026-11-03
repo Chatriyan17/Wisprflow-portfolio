@@ -1,4 +1,4 @@
-import { WORLD } from '../config.js';
+import { WORLD, SCROLL } from '../config.js';
 
 // Level layout. Stage 1: the starting village. Stage 2: the road into the
 // industrial district, the Old Workshop factory hall, the break yard and the
@@ -157,6 +157,40 @@ export function areaOf(x) {
   if (x < 15950) return AREAS[2];
   if (x < 19360) return AREAS[3];
   return AREAS[4];
+}
+
+// Scroll Journey walks one continuous path through the separate areas. Each
+// stretch below is where the protagonist walks in that area, and the page's
+// scroll distance runs straight from the end of one stretch onto the start of
+// the next: a door leads directly to the entrance behind it. (Mapping the
+// scroll position onto world x directly would leave a dead zone between a door
+// and the entrance inside, where both "go in" and "go back out" are true.)
+export const SCROLL_PATH = [
+  { area: 'outdoor', x0: SCROLL.startX, x1: STUDIO.door },          // the village → the studio door
+  { area: 'studio', x0: INTERIOR.entry, x1: CAMPUS.exitTo + 40 },   // inside the studio → the academy door
+  { area: 'campus', x0: CAMPUS.entry, x1: MENTOR.door + 20 },       // the campus → the lantern path
+  { area: 'camp', x0: CAMP.entry, x1: SCROLL.endX },                // the camp → the Chapter 02 gateway
+];
+let pathLength = 0;
+for (const seg of SCROLL_PATH) { seg.d0 = pathLength; pathLength += seg.x1 - seg.x0; }
+export const SCROLL_LENGTH = pathLength;   // in world pixels
+
+// distance along the path → world x (each stretch starts exactly where the last one ends)
+export function pathX(d) {
+  const dd = Math.max(0, Math.min(SCROLL_LENGTH, d));
+  for (const seg of SCROLL_PATH) if (dd < seg.d0 + seg.x1 - seg.x0) return seg.x0 + dd - seg.d0;
+  return SCROLL.endX;
+}
+
+// world x → distance along the path. Positions off the path snap onto its stretch in
+// that area, a pixel clear of the stretch's ends so they never read as the next area.
+export function pathDistance(x) {
+  const id = areaOf(x).id;
+  const last = SCROLL_PATH[SCROLL_PATH.length - 1];
+  const seg = SCROLL_PATH.find((q) => q.area === id) || last;
+  const lo = seg.d0 === 0 ? seg.x0 : seg.x0 + 1;
+  const hi = seg === last ? seg.x1 : seg.x1 - 1;
+  return seg.d0 + Math.max(lo, Math.min(hi, x)) - seg.x0;
 }
 export const STATIONS = [
   { id: 'graphic', num: '01', name: 'Graphic Design', x: 10650 },

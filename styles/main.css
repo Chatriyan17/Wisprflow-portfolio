@@ -180,9 +180,10 @@ body.show-title .title-card { opacity: 1; }
   bottom: calc(18px + var(--safe-b));
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.4s;
+  visibility: hidden;   /* hidden for real: no focus, no Tab stop */
+  transition: opacity 0.4s, visibility 0.4s;
 }
-body.phase-intro .skip-intro { opacity: 1; pointer-events: auto; }
+body.phase-intro .skip-intro { opacity: 1; pointer-events: auto; visibility: visible; }
 
 .press-start {
   position: fixed;
@@ -710,9 +711,9 @@ body.is-memory .dialogue__text { font-style: italic; }
 
 .skip-scene {
   position: fixed; right: 14px; top: 104px;
-  opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  opacity: 0; pointer-events: none; visibility: hidden; transition: opacity 0.3s, visibility 0.3s;
 }
-body.phase-play.is-busy .skip-scene { opacity: 1; pointer-events: auto; }
+body.phase-play.is-busy .skip-scene { opacity: 1; pointer-events: auto; visibility: visible; }
 @media (max-width: 860px) { .skip-scene { top: 132px; } }
 
 .dialogue[data-speaker='mentor'] .dialogue__name { color: var(--gold); }
@@ -871,3 +872,18 @@ body.is-boss .interact-prompt { display: none !important; }
 @keyframes banner-pop { from { transform: scale(1.6); } }
 .boss-banner__sub { margin: 14px 0 0; font: 700 clamp(13px, 2.4vw, 22px)/1.2 var(--font-pixel); color: var(--cream); letter-spacing: 0.08em; text-shadow: 0 3px 0 var(--ink), 3px 0 0 var(--ink), -3px 0 0 var(--ink), 0 -3px 0 var(--ink); }
 .boss-banner[data-kind='battle'] .boss-banner__big { color: #ff9a7a; }
+
+/* Short screens (phones held sideways): keep the boy and the golem in view during the
+   battle. The boss indicators take the chapter bar's place, the tip sits above the
+   boy's head, and JUMP moves to the bottom-right thumb position. */
+@media (max-height: 520px) {
+  body.is-boss .hud-top .chapter { display: none; }
+  .boss-hud { top: 58px; padding: 5px 10px 6px; }
+  .boss-hud__eyebrow, .boss-hud__count { display: none; }
+  .boss-hud__name { margin: 0 0 5px; font-size: 11px; }
+  .boss-hud__systems li { padding: 4px 3px; }
+  .boss-tip { bottom: calc(16px + var(--safe-b)); max-width: calc(100vw - 330px); font-size: 13px; padding: 6px 10px; }
+  .boss-jump { left: auto; right: calc(14px + env(safe-area-inset-right, 0px)); bottom: calc(12px + var(--safe-b)); transform: none; min-width: 132px; min-height: 64px; }
+  .boss-jump.is-down { transform: translateY(3px); }
+  body.is-boss .skip-scene { top: auto; right: auto; left: calc(14px + env(safe-area-inset-left, 0px)); bottom: calc(14px + var(--safe-b)); }
+}

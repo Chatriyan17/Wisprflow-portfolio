@@ -41,6 +41,7 @@ It deploys as-is to GitHub Pages, Netlify, Vercel or any static host.
 - **Skip to story** opens the whole chapter as plain text, for visitors who'd rather read.
 - `prefers-reduced-motion` is respected: no camera pan, particles or typewriter effect.
 - Both modes share the same world, the same story beats and the same progress.
+- The studio, the campus and the camp are separate spaces. In Scroll Journey the page scrolls one continuous path through them: scrolling past a door takes the boy straight to the entrance behind it, and scrolling back takes him back out.
 
 ### What's in Stage 6
 
@@ -138,9 +139,9 @@ python3 tools/bake_sprites.py
 
 ## Music
 
-Each part of the world has its own short composed piece: the village, the Old Workshop, the forest, the first workplace, the academy, the camp, the school memory and the overlook. They crossfade as you travel. They're written in `src/systems/music.js`: melodies, chords and bass lines in plain notation, played by synthesised instruments with a warm reverb.
+Each part of the world has its own short composed piece: the village, the Old Workshop, the forest, the first workplace, the academy, the camp, the school memory and the overlook, plus a playful theme for the golem battle. They crossfade as you travel. They're written in `src/systems/music.js`: melodies, chords and bass lines in plain notation, played by synthesised instruments with a warm reverb.
 
-To use recorded music instead, put audio files in `assets/music/` and list them in `assets/music/manifest.json`, for example `{ "tracks": { "village": "village.mp3", "factory": "workshop.mp3" } }`. A listed track replaces the composed piece for that region; regions without one keep theirs.
+To use recorded music instead, put audio files in `assets/music/` and list them in `assets/music/manifest.json`, for example `{ "tracks": { "village": "village.mp3", "factory": "workshop.mp3" } }`. A listed track replaces the composed piece for that region; regions without one keep theirs. The region names are `village`, `factory`, `forest`, `studio`, `campus`, `camp`, `school`, `overlook` and `boss`. Recorded tracks play through the game's own sound output, so the sound toggle and the quiet story moments apply to them too.
 
 ## Project structure
 

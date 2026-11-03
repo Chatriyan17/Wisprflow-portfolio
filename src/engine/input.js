@@ -11,6 +11,15 @@ const KEYMAP = {
   Escape: 'cancel',
 };
 
+// A focused button only keeps Space/Enter for itself while it can actually be seen and
+// used. A faded-out one (e.g. "Skip intro" once the intro is over) must not swallow
+// the game's keys.
+function usableButton(el) {
+  if (!el || !el.isConnected || el.disabled || el.closest('[hidden]') || !el.getClientRects().length) return false;
+  const cs = getComputedStyle(el);
+  return cs.visibility !== 'hidden' && cs.pointerEvents !== 'none' && parseFloat(cs.opacity) > 0.05;
+}
+
 // Keys that would scroll the page if we didn't stop them while exploring.
 const SCROLL_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space', 'PageUp', 'PageDown', 'Home', 'End']);
 
@@ -38,7 +47,8 @@ export class Input {
   onKeyDown(e) {
     if (this.isTypingTarget(e) || e.metaKey || e.ctrlKey || e.altKey) return;
     // Let focused buttons keep Space/Enter for activation.
-    const onButton = e.target && e.target.closest && e.target.closest('button, a, [role="button"], summary');
+    let onButton = e.target && e.target.closest && e.target.closest('button, a, [role="button"], summary');
+    if (onButton && !usableButton(onButton)) { onButton.blur(); onButton = null; }
     const action = KEYMAP[e.code];
     for (const fn of this.listeners.anykey) fn(e, action);
     if (!action) return;
