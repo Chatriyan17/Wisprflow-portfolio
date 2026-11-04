@@ -116,7 +116,15 @@ It deploys as-is to GitHub Pages, Netlify, Vercel or any static host.
 
 With sound on, every line of dialogue is spoken (signs stay silent).
 
-1. **Recorded voices come first.** Record a line as an `.mp3`, name it after the line's key, put it in `assets/voices/` and run `python3 tools/voice_manifest.py`. The full list of lines and file names is in [`assets/voices/VOICE-SCRIPT.md`](assets/voices/VOICE-SCRIPT.md). Regenerate that list after editing dialogue with `node tools/voice_script.mjs`.
+1. **Recorded voices come first.** Record a line in any format (a phone voice note or WhatsApp audio is fine) and import it under the line's key:
+
+   ```
+   python3 tools/import_voices.py intro-1=path/to/recording.mp4 home-1=path/to/another.m4a
+   ```
+
+   Several lines recorded in one voice note can be split by giving each one its time range in seconds, e.g. `enter-workshop-1=note.mp4@0-4.8 observation-1=note.mp4@6-11`.
+
+   The import trims the silence around the words, lightly cleans up hiss, evens out the loudness so every clip plays at the same level, saves `assets/voices/<key>.mp3` and updates the manifest. It needs `ffmpeg`. A ready-made `.mp3` can also be dropped into `assets/voices/` directly, followed by `python3 tools/voice_manifest.py`. The lines and file names are in [`SCRIPT-GIRL.md`](assets/voices/SCRIPT-GIRL.md), [`SCRIPT-BOY.md`](assets/voices/SCRIPT-BOY.md) and the full [`VOICE-SCRIPT.md`](assets/voices/VOICE-SCRIPT.md). Regenerate the full list after editing dialogue with `node tools/voice_script.mjs`.
 2. **Everything else uses the browser's built-in speech.** Each character gets their own voice, pitch and pace: the protagonist lower, the companion brighter, the friends deeper. Indian-English voices are preferred where the device has them. The exact voice depends on the visitor's device and browser.
 
 Lines can be recorded a few at a time; anything not yet recorded keeps using the browser voice.
@@ -184,6 +192,7 @@ assets/voices/          Recorded voice lines (optional) + manifest + voice scrip
 tools/bake_sprites.py   Sprite/portrait baker
 tools/voice_script.mjs  Exports every spoken line with its file name
 tools/voice_manifest.py Lists recorded voice clips for the game
+tools/import_voices.py  Cleans up raw recordings into voice clips
 ```
 
 Character sprites, the background layers, camera, dialogue, interactables and story progression are separate modules. Characters are independent, controllable entities on top of the world; they are never baked into the background.

@@ -1,6 +1,7 @@
 # Boy (Chatriyan) — voice script
 
-53 lines, in story order. Record each as an MP3 named after its file name and put it in assets/voices/, then run python3 tools/voice_manifest.py.
+53 lines, in story order. Record each line (a phone voice note is fine), then import it under its file name, e.g.
+`python3 tools/import_voices.py intro-2=path/to/recording.mp4`. The import trims, cleans and levels the clip and updates the manifest.
 
 | # | File | Line |
 |---|---|---|
