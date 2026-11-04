@@ -122,6 +122,8 @@ With sound on, every line of dialogue is spoken (signs stay silent).
    python3 tools/import_voices.py intro-1=path/to/recording.mp4 home-1=path/to/another.m4a
    ```
 
+   Several lines recorded in one voice note can be split by giving each one its time range in seconds, e.g. `enter-workshop-1=note.mp4@0-4.8 observation-1=note.mp4@6-11`.
+
    The import trims the silence around the words, lightly cleans up hiss, evens out the loudness so every clip plays at the same level, saves `assets/voices/<key>.mp3` and updates the manifest. It needs `ffmpeg`. A ready-made `.mp3` can also be dropped into `assets/voices/` directly, followed by `python3 tools/voice_manifest.py`. The lines and file names are in [`SCRIPT-GIRL.md`](assets/voices/SCRIPT-GIRL.md), [`SCRIPT-BOY.md`](assets/voices/SCRIPT-BOY.md) and the full [`VOICE-SCRIPT.md`](assets/voices/VOICE-SCRIPT.md). Regenerate the full list after editing dialogue with `node tools/voice_script.mjs`.
 2. **Everything else uses the browser's built-in speech.** Each character gets their own voice, pitch and pace: the protagonist lower, the companion brighter, the friends deeper. Indian-English voices are preferred where the device has them. The exact voice depends on the visitor's device and browser.
 

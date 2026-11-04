@@ -2,8 +2,9 @@
 
 49 lines, in story order. Record each line (a phone voice note is fine), then import it under its file name, e.g.
 `python3 tools/import_voices.py lookout-2=path/to/recording.mp4`. The import trims, cleans and levels the clip and updates the manifest.
+Several lines recorded in one voice note can be split by time: `key=note.mp4@START-END` (seconds).
 
-Recorded so far: 5 of 49 (marked ✓). Lines without a recording use the browser voice.
+Recorded so far: 13 of 49 (marked ✓). Lines without a recording use the browser voice.
 
 | # | File | Line | Recorded |
 |---|---|---|---|
@@ -12,14 +13,14 @@ Recorded so far: 5 of 49 (marked ✓). Lines without a recording use the browser
 | 3 | `home-1.mp3` | Nobody home. We already left! | ✓ |
 | 4 | `journey-map-intro-1.mp3` | Here's the map. Seven places, one chapter. | ✓ |
 | 5 | `lookout-1.mp3` | See the chimney smoke over there? | ✓ |
-| 6 | `lookout-2.mp3` | That's the Old Workshop. It's where your story begins. |  |
-| 7 | `enter-workshop-1.mp3` | So, where did your journey begin? |  |
-| 8 | `observation-1.mp3` | Did you always know what you wanted to become? |  |
-| 9 | `break-talk-1.mp3` | Sounds like an interesting start. Did you enjoy it? |  |
-| 10 | `break-talk-3.mp3` | Sometimes, finding a new direction starts with a simple conversation. |  |
-| 11 | `memory-after-1.mp3` | Looks like someone just opened a new door. |  |
-| 12 | `first-question-1.mp3` | So, what happened after your friends introduced you to UX? |  |
-| 13 | `first-question-3.mp3` | Then let's find out. |  |
+| 6 | `lookout-2.mp3` | That's the Old Workshop. It's where your story begins. | ✓ |
+| 7 | `enter-workshop-1.mp3` | So, where did your journey begin? | ✓ |
+| 8 | `observation-1.mp3` | Did you always know what you wanted to become? | ✓ |
+| 9 | `break-talk-1.mp3` | Sounds like an interesting start. Did you enjoy it? | ✓ |
+| 10 | `break-talk-3.mp3` | Sometimes, finding a new direction starts with a simple conversation. | ✓ |
+| 11 | `memory-after-1.mp3` | Looks like someone just opened a new door. | ✓ |
+| 12 | `first-question-1.mp3` | So, what happened after your friends introduced you to UX? | ✓ |
+| 13 | `first-question-3.mp3` | Then let's find out. | ✓ |
 | 14 | `course-2.mp3` | What did you learn? |  |
 | 15 | `curiosity-1.mp3` | You realise there are so many worlds to explore, right? |  |
 | 16 | `curiosity-2-2.mp3` | So UX wasn't just about designing screens? |  |

@@ -5,6 +5,11 @@ game-ready clips in assets/voices/, then rebuild the manifest.
 
     python3 tools/import_voices.py intro-1=~/Downloads/note1.mp4 home-1=~/Downloads/note2.mp4
 
+A recording with several lines in a row can be split by giving each line its time range
+in seconds:
+
+    python3 tools/import_voices.py lookout-2=note.mp4@0-4.8 enter-workshop-1=note.mp4@5.5-11
+
 Each KEY is a line key from assets/voices/lines.json (see SCRIPT-BOY.md / SCRIPT-GIRL.md).
 For every recording this:
   1. cuts the hum below 80 Hz and lightly reduces background hiss,
@@ -67,16 +72,17 @@ def speech_bounds(path):
     return sound[0][0], sound[-1][1]
 
 
-def process(key, src, dst):
+def process(key, src, dst, span=None):
+    cut = ["-ss", f"{span[0]}", "-to", f"{span[1]}"] if span else []
     with tempfile.TemporaryDirectory() as tmp:
         # pass 1: measure loudness after cleanup
-        log = ffmpeg("-i", src, "-af", f"{CLEAN},loudnorm={TARGET}:print_format=json", "-f", "null", "-")
+        log = ffmpeg(*cut, "-i", src, "-af", f"{CLEAN},loudnorm={TARGET}:print_format=json", "-f", "null", "-")
         m = json.loads(log[log.rindex("{"):log.rindex("}") + 1])
         norm = (f"loudnorm={TARGET}:linear=true:measured_I={m['input_i']}:measured_TP={m['input_tp']}"
                 f":measured_LRA={m['input_lra']}:measured_thresh={m['input_thresh']}:offset={m['target_offset']}")
         # pass 2: clean + normalise to a mono wav
         wav = os.path.join(tmp, "norm.wav")
-        ffmpeg("-i", src, "-af", f"{CLEAN},{norm},aresample=44100", "-ac", "1", wav)
+        ffmpeg(*cut, "-i", src, "-af", f"{CLEAN},{norm},aresample=44100", "-ac", "1", wav)
         # trim the dead air, fade the edges so the cut never clicks, encode
         begin, finish = speech_bounds(wav)
         a = max(0.0, begin - LEAD)
@@ -85,7 +91,8 @@ def process(key, src, dst):
         ffmpeg("-i", wav, "-af",
                f"atrim={a:.3f}:{b:.3f},asetpts=PTS-STARTPTS,afade=t=in:d=0.03,afade=t=out:st={max(0, length - 0.08):.3f}:d=0.08",
                "-c:a", "libmp3lame", "-q:a", "3", "-ac", "1", dst)
-    print(f"{key}.mp3  {length:.2f}s  (trimmed {a:.2f}s before, {duration(src) - b:.2f}s after; was {m['input_i']} LUFS)")
+    kept = f"{(span[0] if span else 0) + a:.2f}-{(span[0] if span else 0) + b:.2f}s of the recording"
+    print(f"{key}.mp3  {length:.2f}s  (kept {kept}; was {m['input_i']} LUFS)")
 
 
 def main(pairs):
@@ -97,16 +104,22 @@ def main(pairs):
     for p in pairs:
         key, sep, src = p.partition("=")
         key = key.removesuffix(".mp3")
+        span = None
+        m = re.fullmatch(r"(.+)@([\d.]+)-([\d.]+)", src)
+        if m:
+            src, span = m.group(1), (float(m.group(2)), float(m.group(3)))
+            if span[1] <= span[0]:
+                sys.exit(f"empty time range in {p!r}")
         src = os.path.expanduser(src)
         if not sep or not src:
-            sys.exit(f"expected KEY=FILE, got {p!r}")
+            sys.exit(f"expected KEY=FILE or KEY=FILE@START-END, got {p!r}")
         if key not in known:
             sys.exit(f"unknown line key {key!r} (see assets/voices/lines.json)")
         if not os.path.isfile(src):
             sys.exit(f"no such file: {src}")
-        jobs.append((key, src))
-    for key, src in jobs:
-        process(key, src, os.path.join(DIR, f"{key}.mp3"))
+        jobs.append((key, src, span))
+    for key, src, span in jobs:
+        process(key, src, os.path.join(DIR, f"{key}.mp3"), span)
     subprocess.run([sys.executable, os.path.join(ROOT, "tools", "voice_manifest.py")], check=True)
 
 
